@@ -1,347 +1,118 @@
-端边云一体化智能对话处理系统 - 技术框架
+# SDP
+SmartDialog Processor (SDP) - 项目目标说明书
 
-一、项目概述
+一、核心业务目标
 
-项目名称：SmartDialog Processor (SDP)
-核心功能：通过CV截图识别对话内容 → AI智能处理 → 用户交互选择 → 模板动态优化
-技术特点：端边云三层架构、实时AI交互、个性化模板学习
+1. 核心功能目标
 
-二、技术栈推荐
+• 对话内容智能识别：实现90%+准确率的对话文本OCR识别
 
-前端（客户端）
+• AI个性化响应：基于"旮旯给木"基础模板，生成3-5个差异化选项
 
-• 框架：Electron + React（桌面应用）或 Next.js（Web应用）
+• 用户偏好学习：通过选择统计，7天内建立用户语言风格画像（幽默/高冷/正式等）
 
-• 截图库：html2canvas + canvas-area-select（Web）或 electron-screenshot（Electron）
+• 模板动态优化：根据用户选择反馈，每周自动优化模板库，提升选项匹配度
 
-• UI组件：Ant Design / Material-UI
+2. 用户体验目标
 
-• 状态管理：Zustand / Redux Toolkit
+• 响应时间：从截图到显示AI选项 ≤ 3秒（端到端）
 
-• 通信：WebSocket（实时） + REST API
+• 操作便捷性：一键截图+框选，3步内完成完整流程
 
-后端（云服务）
+• 界面友好度：新手用户5分钟内掌握全部操作
 
-• 运行时：Node.js + Express 或 Python + FastAPI
+• 个性化程度：使用2周后，AI选项符合用户偏好的概率 ≥ 70%
 
-• AI集成：OpenAI API / 文心一言 API / 通义千问 API
+二、技术性能指标
 
-• 数据库：PostgreSQL（主数据） + Redis（缓存/实时统计）
+1. 系统性能
 
-• OCR服务：Tesseract.js（本地）或 百度OCR API（云端）
+• 并发处理：支持1000+用户同时在线使用
 
-• 任务队列：Bull（Node.js）或 Celery（Python）
+• API响应：后端API平均响应时间 < 500ms
 
-边缘层（可选）
+• 数据存储：用户对话记录保存6个月，统计数据分析实时更新
 
-• 容器化：Docker
+• 可用性：系统整体可用性 ≥ 99.5%（SLA）
 
-• 边缘运行时：Node.js微服务
+2. AI处理质量
 
-• 消息队列：MQTT（轻量级设备通信）
+• 选项多样性：每次生成3-5个语义不同但合理的选项
 
-DevOps
+• 模板覆盖：基础模板库包含20+种对话场景模板
 
-• 版本控制：Git + GitHub/GitLab
+• 优化速度：用户选择数据积累100条后，系统开始自动优化模板
 
-• CI/CD：GitHub Actions / Jenkins
+• 准确率提升：每月模板优化使选项点击率提升5-10%
 
-• 监控：Prometheus + Grafana
+三、业务价值目标
 
-• 日志：ELK Stack
+1. 用户价值
 
-三、系统架构（文字描述）
+• 效率提升：相比手动输入回复，节省50%+的对话时间
 
+• 沟通质量：提供更符合场景的回复建议，提升沟通效果
 
-用户端 (Electron/Web)
-    │
-    ├─ 截图模块 → 框选 → OCR文字提取
-    │
-    ├─ 交互界面 → 显示AI选项 → 记录用户选择
-    │
-    └─ WebSocket → 实时通信
-            │
-            ↓
-边缘网关 (Docker容器)
-    │
-    ├─ 请求转发/负载均衡
-    ├─ 本地缓存（用户偏好）
-    └─ 基础预处理（图像压缩）
-            │
-            ↓
-云端服务器集群
-    ├─ API网关层：路由、认证、限流
-    ├─ 业务逻辑层：
-    │   ├─ 对话处理服务：调用AI API
-    │   ├─ 模板管理服务：模板存储/优化
-    │   └─ 用户分析服务：统计选择数据
-    ├─ 数据存储层：
-    │   ├─ PostgreSQL：用户数据、对话记录
-    │   ├─ Redis：实时统计、会话缓存
-    │   └─ 对象存储：截图图片（可选）
-    └─ 任务队列层：异步处理OCR/AI调用
+• 个性化体验：系统越用越懂用户，形成个性化对话助手
 
+2. 数据价值
 
-四、核心模块设计
+• 用户画像：积累用户语言风格、对话偏好数据
 
-1. 前端模块
+• 场景分析：识别高频对话场景和痛点
 
+• 模板优化：形成可商业化的对话模板库
 
-src/
-├── components/
-│   ├── ScreenshotTool/     # 截图组件
-│   ├── DialogDisplay/      # 对话显示
-│   ├── OptionButtons/      # 选项按钮组
-│   └── UserPreference/     # 用户偏好设置
-├── services/
-│   ├── api.js             # API调用封装
-│   ├── websocket.js       # WebSocket连接
-│   └── ocr.js            # OCR处理（前端版）
-└── stores/
-    └── userStore.js       # 用户状态管理
-
-
-2. 后端模块
-
-
-server/
-├── src/
-│   ├── controllers/       # 控制器
-│   │   ├── dialog.controller.js
-│   │   ├── template.controller.js
-│   │   └── user.controller.js
-│   ├── services/         # 业务逻辑
-│   │   ├── ai.service.js    # AI集成
-│   │   ├── ocr.service.js   # OCR处理
-│   │   └── template.service.js # 模板优化
-│   ├── models/          # 数据模型
-│   ├── routes/          # 路由定义
-│   └── middleware/      # 中间件
-├── config/              # 配置文件
-├── scripts/             # 部署脚本
-└── tests/               # 测试文件
-
-
-五、API接口设计（RESTful）
-
-核心接口
-
-# 1. 处理对话内容
-POST /api/v1/dialog/process
-请求体: { image: base64, userId: string }
-响应: { 
-  options: [string], 
-  templateId: string,
-  sessionId: string 
-}
-
-# 2. 记录用户选择
-POST /api/v1/dialog/selection
-请求体: { 
-  sessionId: string, 
-  selectedOption: number,
-  userId: string 
-}
-
-# 3. 获取用户偏好模板
-GET /api/v1/template/user/:userId
-响应: { 
-  template: string, 
-  style: "humorous"|"cold",
-  confidence: number 
-}
+3. 扩展性目标
 
-# 4. 更新模板
-PUT /api/v1/template/optimize
-请求体: { 
-  templateId: string, 
-  selectionData: object 
-}
-
-
-WebSocket事件
-
-// 客户端连接时发送
-ws.send(JSON.stringify({
-  type: 'register',
-  userId: 'user123'
-}))
-
-// 服务器推送AI响应
-ws.onmessage = (event) => {
-  const data = JSON.parse(event.data)
-  if (data.type === 'dialog_response') {
-    // 显示选项
-  }
-}
-
-
-六、数据库设计
-
-1. 用户表 (users)
-
-CREATE TABLE users (
-  id UUID PRIMARY KEY,
-  username VARCHAR(50),
-  language_preference VARCHAR(10) DEFAULT 'zh-CN',
-  humor_level INT DEFAULT 5, -- 1-10幽默程度
-  cold_level INT DEFAULT 5,  -- 1-10高冷程度
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-);
-
-
-2. 对话会话表 (dialog_sessions)
-
-CREATE TABLE dialog_sessions (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES users(id),
-  original_text TEXT,
-  processed_text TEXT,
-  template_id UUID,
-  created_at TIMESTAMP
-);
-
-
-3. 用户选择表 (user_selections)
-
-CREATE TABLE user_selections (
-  id UUID PRIMARY KEY,
-  session_id UUID REFERENCES dialog_sessions(id),
-  option_index INT,          -- 用户选择的选项索引
-  option_text TEXT,          -- 选项内容
-  response_time_ms INT,      -- 响应时间（毫秒）
-  created_at TIMESTAMP
-);
-
-
-4. 模板表 (templates)
-
-CREATE TABLE templates (
-  id UUID PRIMARY KEY,
-  base_template TEXT,        -- "旮旯给木"基础模板
-  style VARCHAR(20),         -- 'humorous', 'cold', 'neutral'
-  success_rate FLOAT,        -- 成功率统计
-  usage_count INT DEFAULT 0,
-  last_optimized TIMESTAMP
-);
+• 多平台支持：第一阶段桌面端，第二阶段移动端适配
 
+• 多语言扩展：支持中英文，预留其他语言接口
 
-七、AI提示词模板设计
+• API开放：后期可开放部分API给第三方开发者
 
-基础模板（旮旯给木风格）
+四、阶段性里程碑
 
-const basePrompt = `
-你是一个智能对话处理器，需要根据用户对话内容生成3个回应选项。
+MVP阶段（1-2个月）
 
-对话内容：{{dialog_text}}
+• 基础截图+文本识别功能
 
-生成要求：
-1. 选项1：幽默风趣风格
-2. 选项2：高冷简洁风格  
-3. 选项3：中性平衡风格
+• 集成单一AI服务（如OpenAI）
 
-每个选项不超过20个字，符合中文对话习惯。
-`;
+• 实现基础模板和用户选择记录
 
+• 10个种子用户测试
 
-模板优化算法（伪代码）
+V1.0阶段（3-4个月）
 
-function optimizeTemplate(templateId, selectionData) {
-  // 1. 统计各选项被选择频率
-  const stats = calculateSelectionStats(selectionData);
-  
-  // 2. 分析用户语言偏好
-  const userPreference = analyzeUserStyle(selectionData);
-  
-  // 3. 调整模板权重
-  if (userPreference.humor > threshold) {
-    // 增强幽默元素
-    template = injectHumorElements(template);
-  }
-  
-  // 4. A/B测试新模板
-  return createVariantTemplate(template, userPreference);
-}
+• 完整的端边云架构部署
 
+• 多AI服务支持（备选方案）
 
-八、部署配置
+• 基础模板优化算法
 
-Docker Compose示例
+• 用户偏好分析报告
 
-version: '3.8'
-services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_DB: smartdialog
-      POSTGRES_PASSWORD: password
-  
-  redis:
-    image: redis:7-alpine
-  
-  api-server:
-    build: ./server
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
-      - redis
-  
-  edge-gateway:
-    build: ./edge
-    ports:
-      - "8080:8080"
+• 正式发布，目标100+活跃用户
 
+V2.0阶段（6个月）
 
-环境变量配置
+• 高级个性化引擎
 
-# AI服务配置
-OPENAI_API_KEY=your_key_here
-AI_MODEL=gpt-4-turbo
+• 多语言支持
 
-# 数据库配置
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=smartdialog
+• 团队协作功能
 
-# OCR配置（如果使用云端OCR）
-BAIDU_OCR_API_KEY=your_key
+• 商业化模板市场
 
+• 目标1000+付费用户
 
-九、开发路线图（MVP版本）
+五、成功度量指标（KPI）
 
-Week 1-2: 基础后端
+1. 用户活跃度：DAU/MAU > 30%
+2. 功能使用率：截图功能使用频率 > 3次/天/用户
+3. 用户满意度：NPS > 40
+4. 模板优化效果：选项点击率每月提升 > 5%
+5. 系统稳定性：故障恢复时间 < 15分钟
 
-• 设置Node.js/Express项目
-
-• 实现基础API（处理文本、记录选择）
-
-• 集成AI API测试
-
-Week 3-4: 前端原型
-
-• Electron基础框架
-
-• 手动文本输入界面（先替代截图）
-
-• 连接后端API
-
-Week 5-6: CV功能
-
-• 集成截图库
-
-• 添加OCR文字提取
-
-• 优化图像处理流程
-
-Week 7-8: 模板优化系统
-
-• 实现用户选择统计
-
-• 开发模板A/B测试
-
-• 添加个性化推荐算法
-
-#   S D P  
- # SDP
+这个项目目标既包含了具体的技术指标，也明确了业务价值和阶段性成果，可以作为项目规划和评估的基准。
