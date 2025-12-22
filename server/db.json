@@ -11,6 +11,36 @@
       "username": "Guest",
       "createdAt": "2025-12-22T09:29:52.008Z",
       "updatedAt": "2025-12-22T09:29:52.008Z"
+    },
+    {
+      "id": "user-35ym7f4f5",
+      "username": "Guest",
+      "createdAt": "2025-12-22T10:16:09.031Z",
+      "updatedAt": "2025-12-22T10:16:09.031Z"
+    },
+    {
+      "id": "user-d8ha5jgsd",
+      "username": "Guest",
+      "createdAt": "2025-12-22T10:23:09.647Z",
+      "updatedAt": "2025-12-22T10:23:09.647Z"
+    },
+    {
+      "id": "user-ag3cvr92l",
+      "username": "Guest",
+      "createdAt": "2025-12-22T10:34:26.243Z",
+      "updatedAt": "2025-12-22T10:34:26.243Z"
+    },
+    {
+      "id": "user-x6s6y0vec",
+      "username": "Guest",
+      "createdAt": "2025-12-22T10:52:36.660Z",
+      "updatedAt": "2025-12-22T10:52:36.660Z"
+    },
+    {
+      "id": "user-gmocr78xz",
+      "username": "Guest",
+      "createdAt": "2025-12-22T11:01:29.216Z",
+      "updatedAt": "2025-12-22T11:01:29.216Z"
     }
   ],
   "dialogSessions": [
@@ -172,6 +202,681 @@
       ],
       "createdAt": "2025-12-22T09:31:20.110Z",
       "updatedAt": "2025-12-22T09:31:20.110Z"
+    },
+    {
+      "id": "6c70abf0-86c0-4df4-b4de-e18069e6c000",
+      "userId": "user-csqndacxi",
+      "originalText": "我能找97的姐姐吗",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "放心，我嘴最严了！这事就烂在我肚子里。",
+          "style": "可靠队友",
+          "effect": "朋友好感度+1，获得[可靠队友]标签",
+          "emoji": "🛡️"
+        },
+        {
+          "id": "B",
+          "text": "只要封口费到位，我什么都不知道~",
+          "style": "幽默接梗",
+          "effect": "气氛轻松，朋友觉得你很有趣",
+          "emoji": "💰"
+        },
+        {
+          "id": "C",
+          "text": "哦？那得看你表现了，不然我就去告密！",
+          "style": "假装要挟",
+          "effect": "朋友紧张了一下，随后大笑",
+          "emoji": "😈"
+        },
+        {
+          "id": "D",
+          "text": "无聊，这种小事我才懒得说。",
+          "style": "冷漠拆台",
+          "effect": "朋友觉得你很高冷，但很安心",
+          "emoji": "😒"
+        },
+        {
+          "id": "E",
+          "text": "哼，谁稀罕说你的破事，别自作多情了。",
+          "style": "傲娇责备",
+          "effect": "朋友看穿了你的傲娇，好感度+1",
+          "emoji": "😤"
+        }
+      ],
+      "createdAt": "2025-12-22T10:15:18.116Z",
+      "updatedAt": "2025-12-22T10:15:18.116Z"
+    },
+    {
+      "id": "d9511089-3ecc-4fbb-bf0d-1d5684f54554",
+      "userId": "user-35ym7f4f5",
+      "originalText": "你好漂亮啊😍\n",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "嘉奖，谢谢哦！😊  ",
+          "style": "默认风格",
+          "effect": "结果影响 🌟",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "嘻哈，你这眼睛也太漂亮了吧，我差点没注意看！😊  ",
+          "style": "默认风格",
+          "effect": "结果影响 😊",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "嘛，你这把年纪了，还不知道怎么说我话多一点吗？📖  ",
+          "style": "默认风格",
+          "effect": "结果影响 📖",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "哎呀，看来你今天心情不错啊，不过下次还是要多点温柔一点哦😊  ",
+          "style": "默认风格",
+          "effect": "结果影响 😅",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "嘉奖，还不够温柔哦，下次要多点关心我才行 rtrim  ",
+          "style": "默认风格",
+          "effect": "结果影响",
+          "emoji": "🔄"
+        }
+      ],
+      "createdAt": "2025-12-22T10:16:20.785Z",
+      "updatedAt": "2025-12-22T10:16:20.785Z"
+    },
+    {
+      "id": "0ba084c6-1a8f-450f-8603-20623ea854e2",
+      "userId": "user-d8ha5jgsd",
+      "originalText": "你好漂亮\n",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "放心，我嘴最严了！这事就烂在我肚子里。",
+          "style": "可靠队友",
+          "effect": "朋友好感度+1，获得[可靠队友]标签",
+          "emoji": "🛡️"
+        },
+        {
+          "id": "B",
+          "text": "只要封口费到位，我什么都不知道~",
+          "style": "幽默接梗",
+          "effect": "气氛轻松，朋友觉得你很有趣",
+          "emoji": "💰"
+        },
+        {
+          "id": "C",
+          "text": "哦？那得看你表现了，不然我就去告密！",
+          "style": "假装要挟",
+          "effect": "朋友紧张了一下，随后大笑",
+          "emoji": "😈"
+        },
+        {
+          "id": "D",
+          "text": "无聊，这种小事我才懒得说。",
+          "style": "冷漠拆台",
+          "effect": "朋友觉得你很高冷，但很安心",
+          "emoji": "😒"
+        },
+        {
+          "id": "E",
+          "text": "哼，谁稀罕说你的破事，别自作多情了。",
+          "style": "傲娇责备",
+          "effect": "朋友看穿了你的傲娇，好感度+1",
+          "emoji": "😤"
+        }
+      ],
+      "createdAt": "2025-12-22T10:23:39.651Z",
+      "updatedAt": "2025-12-22T10:23:39.651Z"
+    },
+    {
+      "id": "569c4b65-b3d6-43fe-be74-cede71a0ccfb",
+      "userId": "user-d8ha5jgsd",
+      "originalText": "小烧宝，你能开麦吗",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "当然可以！不过我还有个任务要处理，稍后再开麦吧！ 🌟  ",
+          "style": "默认风格",
+          "effect": "结果影响：爽快答应，但表示还有其他事情要做",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "你开麦吧！我刚刚在想，这声音多好听呢！ 😄  ",
+          "style": "默认风格",
+          "effect": "结果影响：幽默接梗，调侃烧宝的声音",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "哈哈，你这声音怕是要把别人吓到吧！不过没关系，我等你！isks  ",
+          "style": "默认风格",
+          "effect": "结果影响：假装要挟，但又带点轻松",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "唉，开麦还要等你？你倒是快点来啊！ 😅  ",
+          "style": "默认风格",
+          "effect": "结果影响：冷漠拆台，但又带有幽默",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "你倒是开口啊！这声音多好听，肯定能吸引到很多人！ 🔄  ",
+          "style": "默认风格",
+          "effect": "结",
+          "emoji": "果影响：傲娇责备，强调职责和任务"
+        }
+      ],
+      "createdAt": "2025-12-22T10:27:07.151Z",
+      "updatedAt": "2025-12-22T10:27:07.151Z"
+    },
+    {
+      "id": "f472f2b3-a918-409c-a1c7-469a0395a90c",
+      "userId": "user-ag3cvr92l",
+      "originalText": "你好",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "“没问题，我这就过去！”（爽快答应型） → 结果影响 🌟  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "“没问题，你吃我这碗饭！”（幽默接梗型） → 结果影响 😄  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "“除非你给我更多糖果，否则我就不理你！”（假装要挟型） → 结果影响 🍖  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "“你看看吧，你永远都不会理解我。”（冷漠拆台型） → 结果影响 😅  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "“我凭什么要配合你？你可以自己去。”（傲娇责备型） → 结果影响 🔄",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        }
+      ],
+      "createdAt": "2025-12-22T10:34:39.856Z",
+      "updatedAt": "2025-12-22T10:34:39.856Z"
+    },
+    {
+      "id": "2e4d3445-a743-4f27-8984-d84bf9c36c05",
+      "userId": "user-ag3cvr92l",
+      "originalText": "我喜欢你，喜欢每个跟你在一起的瞬间",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "放心，我嘴最严了！这事就烂在我肚子里。",
+          "style": "可靠队友",
+          "effect": "朋友好感度+1，获得[可靠队友]标签",
+          "emoji": "🛡️"
+        },
+        {
+          "id": "B",
+          "text": "只要封口费到位，我什么都不知道~",
+          "style": "幽默接梗",
+          "effect": "气氛轻松，朋友觉得你很有趣",
+          "emoji": "💰"
+        },
+        {
+          "id": "C",
+          "text": "哦？那得看你表现了，不然我就去告密！",
+          "style": "假装要挟",
+          "effect": "朋友紧张了一下，随后大笑",
+          "emoji": "😈"
+        },
+        {
+          "id": "D",
+          "text": "无聊，这种小事我才懒得说。",
+          "style": "冷漠拆台",
+          "effect": "朋友觉得你很高冷，但很安心",
+          "emoji": "😒"
+        },
+        {
+          "id": "E",
+          "text": "哼，谁稀罕说你的破事，别自作多情了。",
+          "style": "傲娇责备",
+          "effect": "朋友看穿了你的傲娇，好感度+1",
+          "emoji": "😤"
+        }
+      ],
+      "createdAt": "2025-12-22T10:38:33.062Z",
+      "updatedAt": "2025-12-22T10:38:33.062Z"
+    },
+    {
+      "id": "c12300b8-8544-4cef-8ba1-dd4525f8df61",
+      "userId": "user-ag3cvr92l",
+      "originalText": "我喜欢你，喜欢每个跟你在一起的瞬间",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "当然喜欢，你是我的唯一 😊  ",
+          "style": "默认风格",
+          "effect": "结果影响 🌟",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "哎呀，看来我真是你的救星啊 😂  ",
+          "style": "默认风格",
+          "effect": "结果影响 😄",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "你要是再不答应，我就把你的手机给断电 声音里带着点调皮 😴  ",
+          "style": "默认风格",
+          "effect": "结果影响 🍖",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "哦？那是什么好东西？吃多了会不会拉肚子 😅  ",
+          "style": "默认风格",
+          "effect": "结果影响 😅",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "怎么还这么慢？！ 🤬  ",
+          "style": "默认风格",
+          "effect": "结果影响",
+          "emoji": "🔄"
+        }
+      ],
+      "createdAt": "2025-12-22T10:43:40.519Z",
+      "updatedAt": "2025-12-22T10:43:40.519Z"
+    },
+    {
+      "id": "a7993725-aa08-4e77-8c34-15b78cd1d0aa",
+      "userId": "user-x6s6y0vec",
+      "originalText": "你好",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "“没问题，我这就去帮你！”（爽快答应型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 🌟",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "“哎呀，你这反应也太夸张了吧～”（幽默接梗型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 😄",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "“再想想，你这样可能会有意外哦～”（假装要挟型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 🍖",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "“好吧，随你意愿，不过我还要处理其他事情。”（冷漠拆台型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 😅",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "“别拿我当回事，你看看我的表情。”（傲娇责备型）  ",
+          "style": "默认风格",
+          "effect": "结果影响",
+          "emoji": "🔄"
+        }
+      ],
+      "createdAt": "2025-12-22T10:52:50.060Z",
+      "updatedAt": "2025-12-22T10:52:50.060Z"
+    },
+    {
+      "id": "1c821f99-6bb3-48a6-92cd-e3fef01421a0",
+      "userId": "user-x6s6y0vec",
+      "originalText": "你好",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "“没问题！我答应你！”（爽快答应型）",
+          "style": "默认风格",
+          "effect": "结果影响 🌟",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "“哈哈，太有趣了！不过放心，我一定会帮你！”（幽默接梗型）",
+          "style": "默认风格",
+          "effect": "结果影响 😄",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "“你确定要我答应吗？我觉得可能会让你失望的哦！”（假装要挟型）",
+          "style": "默认风格",
+          "effect": "结果影响 🍖",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "“别这么急躁，慢慢来，我得想想办法。”（冷漠拆台型）",
+          "style": "默认风格",
+          "effect": "结果影响 😅",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "“你这个态度，我实在受不了了，真的答应不了！”（傲娇责备型）",
+          "style": "默认风格",
+          "effect": "结果影响",
+          "emoji": "🔄"
+        }
+      ],
+      "createdAt": "2025-12-22T11:01:03.756Z",
+      "updatedAt": "2025-12-22T11:01:03.756Z"
+    },
+    {
+      "id": "7a27716a-60cc-4856-8e81-284b6cddf70c",
+      "userId": "user-gmocr78xz",
+      "originalText": "你们好",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "当然没问题！这很简单，对吧？ → 促进关系 🌟  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "这不是很有趣吗？你难道不是喜欢这个吗？ → 增加轻松氛围 😄  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "别开玩笑了，这真的可能吗？我问过他们，他们都这么说。 → 制造紧张感 🍖  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "嗯，这可能吗？你确定不是开玩笑的吗？ → 保持距离 😅  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "别再提这个了，我早就说过这不可能！ → 引发反感 🔄",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        }
+      ],
+      "createdAt": "2025-12-22T11:01:35.996Z",
+      "updatedAt": "2025-12-22T11:01:35.996Z"
+    },
+    {
+      "id": "e2b7ec0e-c136-4cac-b41a-3fc3cecf873f",
+      "userId": "user-gmocr78xz",
+      "originalText": "你好呀，宝贝",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "宝贝，我当然是会的呀！ （爽快答应型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 🌟",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "你今天怎么这么开心呀？是不是中奖了？ （幽默接梗型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 🤪",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "你这鬼灵精精的，难道想绑架我吗？ （假装要挟型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 😂",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "宝贝，你这是在跟我讲什么呀？这跟我们的话题八竿子打不着！ （冷漠拆台型）  ",
+          "style": "默认风格",
+          "effect": "结果影响 🤓",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "不给就吃醋！谁让你今天那么开心的呀？ （傲娇责备型）  ",
+          "style": "默认风格",
+          "effect": "结果影响",
+          "emoji": "😢"
+        }
+      ],
+      "createdAt": "2025-12-22T11:24:54.611Z",
+      "updatedAt": "2025-12-22T11:24:54.611Z"
+    },
+    {
+      "id": "08a2b78b-6776-4637-b9a0-8cee20a60fbe",
+      "userId": "user-gmocr78xz",
+      "originalText": "你好呀，宝贝",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "宝贝，我今天想和你一起玩捉迷藏！（爽快答应型） → 结果影响 🌟  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "你今天怎么这么慢？是不是在等什么特别的礼物？（幽默接梗型） → 结果影响 😄  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "你要是再不给我买玩具，我就把我的书都拿走了！（假装要挟型） → 结果影响 🍖  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "宝贝，我今天穿得有点冷，你帮我把衣服脱下来吗？（冷漠拆台型） → 结果影响 *****  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "你又迟到了？这已经是第三次了，下次我就不理你了！（傲娇责备型） → 结果影响 🔄",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        }
+      ],
+      "createdAt": "2025-12-22T11:36:05.928Z",
+      "updatedAt": "2025-12-22T11:36:05.928Z"
+    },
+    {
+      "id": "29da574b-c819-40f2-84e6-837db40e651b",
+      "userId": "user-gmocr78xz",
+      "originalText": "你好呀，宝贝",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "放心，我嘴最严了！这事就烂在我肚子里。",
+          "style": "可靠队友",
+          "effect": "朋友好感度+1，获得[可靠队友]标签",
+          "emoji": "🛡️"
+        },
+        {
+          "id": "B",
+          "text": "只要封口费到位，我什么都不知道~",
+          "style": "幽默接梗",
+          "effect": "气氛轻松，朋友觉得你很有趣",
+          "emoji": "💰"
+        },
+        {
+          "id": "C",
+          "text": "哦？那得看你表现了，不然我就去告密！",
+          "style": "假装要挟",
+          "effect": "朋友紧张了一下，随后大笑",
+          "emoji": "😈"
+        },
+        {
+          "id": "D",
+          "text": "无聊，这种小事我才懒得说。",
+          "style": "冷漠拆台",
+          "effect": "朋友觉得你很高冷，但很安心",
+          "emoji": "😒"
+        },
+        {
+          "id": "E",
+          "text": "哼，谁稀罕说你的破事，别自作多情了。",
+          "style": "傲娇责备",
+          "effect": "朋友看穿了你的傲娇，好感度+1",
+          "emoji": "😤"
+        }
+      ],
+      "createdAt": "2025-12-22T11:36:41.188Z",
+      "updatedAt": "2025-12-22T11:36:41.188Z"
+    },
+    {
+      "id": "956a3db7-d9f3-462c-af0a-304d0caa9830",
+      "userId": "user-gmocr78xz",
+      "originalText": "我好喜欢你",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "太好啦，我也很喜欢你！  ",
+          "style": "默认风格",
+          "effect": "继续深入交流🌟",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "哎呀，看来我也喜欢你呢！  ",
+          "style": "默认风格",
+          "effect": "一起探索喜欢的真谛😊",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "那我可不会管你！  ",
+          "style": "默认风格",
+          "effect": "让你自由发挥[]",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "嗯，看来不是我啊。  ",
+          "style": "默认风格",
+          "effect": "表现得很无所谓🤨",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "这么讨厌，你确定你也很喜欢我？  ",
+          "style": "默认风格",
+          "effect": "展现你的不满 @_@",
+          "emoji": "💬"
+        }
+      ],
+      "createdAt": "2025-12-22T11:38:39.475Z",
+      "updatedAt": "2025-12-22T11:38:39.475Z"
+    },
+    {
+      "id": "4e04fec6-5a38-436d-8824-7cf38d2027d5",
+      "userId": "user-gmocr78xz",
+      "originalText": "我好喜欢你",
+      "contextStyle": "neutral",
+      "generatedOptions": [
+        {
+          "id": "A",
+          "text": "\"哇，你果然是个大好人！我也很喜欢你，你愿意和我在一起吗？\" （爽快答应型） → 结果影响 🌟  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "B",
+          "text": "\"哎呀，你这人真是有趣极了！我本来就有喜欢的人，你倒是赶紧去喜欢别人啊！\" （幽默接梗型） → 结果影响 😄  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "C",
+          "text": "\"你确定你不是在开玩笑吗？我快要被你甜言蜜语的甜言蜜语糖化了！\" （假装要挟型） → 结果影响 💎  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "D",
+          "text": "\"你这是在说笑吗？我根本不觉得你适合我，你还是去找别人吧！\" （冷漠拆台型） → 结果影响 😂  ",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        },
+        {
+          "id": "E",
+          "text": "\"你是不是在跟我讲错话了？我其实真的很喜欢你，听你说得这么投入我都快信了！\" （傲娇责备型） → 结果影响 😢",
+          "style": "默认风格",
+          "effect": "无特殊影响",
+          "emoji": "💬"
+        }
+      ],
+      "createdAt": "2025-12-22T11:39:04.423Z",
+      "updatedAt": "2025-12-22T11:39:04.423Z"
     }
   ],
   "userSelections": [],

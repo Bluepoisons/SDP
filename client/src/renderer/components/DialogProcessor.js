@@ -8,6 +8,7 @@ const DialogProcessor = () => {
     generateOptions, 
     isLoading, 
     dialogOptions, 
+    sceneSummary,
     error,
     selectOption,
     history 
@@ -78,35 +79,99 @@ const DialogProcessor = () => {
       {dialogOptions.length > 0 && (
         <div style={{ marginBottom: '30px' }}>
           <h3>生成的选项:</h3>
+          
+          {sceneSummary && (
+            <div style={{
+              background: 'linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)',
+              color: 'white',
+              padding: '12px 20px',
+              borderRadius: '10px',
+              marginBottom: '20px',
+              boxShadow: '0 4px 12px rgba(106, 17, 203, 0.3)',
+              borderLeft: '4px solid #ffcc00',
+              fontSize: '1em',
+              lineHeight: '1.5',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+              💬 场景总结：{sceneSummary}
+            </div>
+          )}
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {dialogOptions.map((option, index) => (
               <div 
                 key={index}
+                onClick={() => selectOption(index)}
                 style={{ 
                   padding: '15px', 
-                  backgroundColor: '#424242', 
-                  border: '1px solid #555',
-                  borderRadius: '4px'
+                  backgroundColor: '#2d2d2d', 
+                  border: '1px solid #444',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  position: 'relative',
+                  overflow: 'hidden'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#3d3d3d';
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#2d2d2d';
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.2)';
                 }}
               >
-                <p style={{ fontWeight: 'bold', marginBottom: '5px' }}>选项 {index + 1}</p>
-                <p>{option.text}</p>
-                <p style={{ fontSize: '0.9em', color: '#aaa', marginTop: '5px' }}>
-                  风格: {option.style} | 情感: {option.sentiment}
+                {/* 装饰条 */}
+                <div style={{
+                  position: 'absolute',
+                  left: 0,
+                  top: 0,
+                  bottom: 0,
+                  width: '4px',
+                  backgroundColor: option.favorChange > 0 ? '#81c784' : (option.favorChange < 0 ? '#e57373' : '#64b5f6')
+                }} />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: '10px' }}>
+                  <span style={{ 
+                    fontWeight: 'bold', 
+                    color: '#90caf9',
+                    fontSize: '1.1em',
+                    fontFamily: '"Microsoft YaHei", sans-serif'
+                  }}>
+                    {option.id || String.fromCharCode(65 + index)}. {option.style || '风格'}
+                  </span>
+                  <span style={{ fontSize: '1.5em' }}>{option.emoji}</span>
+                </div>
+                
+                <p style={{ 
+                  fontSize: '1.1em', 
+                  margin: '5px 0 5px 10px',
+                  lineHeight: '1.5',
+                  color: '#fff'
+                }}>
+                  {option.text}
                 </p>
-                <button
-                  onClick={() => selectOption(index)}
-                  style={{
-                    marginTop: '10px',
-                    padding: '5px 15px',
-                    backgroundColor: '#4caf50',
-                    color: 'white',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  选择此项
-                </button>
+                
+                <div style={{ 
+                  fontSize: '0.9em', 
+                  color: option.favorChange > 0 ? '#81c784' : (option.favorChange < 0 ? '#ef5350' : '#bdbdbd'),
+                  marginTop: '5px',
+                  paddingLeft: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  fontWeight: 'bold'
+                }}>
+                  <span>{option.effect}</span>
+                </div>
               </div>
             ))}
           </div>

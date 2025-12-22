@@ -6,6 +6,7 @@ const useStore = create((set, get) => ({
   isConnected: false,
   userId: 'user-' + Math.random().toString(36).substr(2, 9),
   currentScene: '',
+  sceneSummary: '', // 新增：场景旁白
   dialogOptions: [],
   history: [],
   isLoading: false,
@@ -29,6 +30,7 @@ const useStore = create((set, get) => ({
       if (result.success) {
         set({ 
           dialogOptions: result.data.options,
+          sceneSummary: result.data.sceneSummary || '', // 设置场景旁白
           currentScene: text,
           isLoading: false 
         });
@@ -45,6 +47,7 @@ const useStore = create((set, get) => ({
       // Clear options after selection or move to history
       set((state) => ({
         dialogOptions: [],
+        sceneSummary: '', // 清除场景旁白
         history: [...state.history, { sessionId, optionId, timestamp: new Date() }]
       }));
     } catch (err) {

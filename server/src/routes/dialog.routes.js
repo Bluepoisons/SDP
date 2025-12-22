@@ -20,14 +20,15 @@ router.post('/process', async (req, res) => {
     }
     
     // 调用AI服务生成选项
-    const options = await aiService.generateDialogOptions(text, style);
+    const aiResult = await aiService.generateDialogOptions(text, style);
     
     // 存储会话到数据库
     const session = await DialogSession.create({
       userId,
       originalText: text,
       contextStyle: style,
-      generatedOptions: options
+      generatedOptions: aiResult.options, // 保持原有结构，只存选项数组
+      sceneSummary: aiResult.sceneSummary // 新增字段存旁白
     });
     
     res.json({
@@ -35,7 +36,8 @@ router.post('/process', async (req, res) => {
       data: {
         sessionId: session.id,
         originalText: text,
-        options: options,
+        options: aiResult.options,
+        sceneSummary: aiResult.sceneSummary, // 返回旁白
         style: style,
         timestamp: session.createdAt
       }
