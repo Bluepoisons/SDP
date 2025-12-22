@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const AIService = require('../services/ai.service');
+const aiService = new AIService();
+const templateService = require('../services/template.service');
+const { DialogSession, UserSelection, User } = require('../models');
 
-// 测试用对话处理接口
 router.post('/process', async (req, res) => {
   try {
     const { text, userId, style = 'neutral' } = req.body;
@@ -10,21 +13,31 @@ router.post('/process', async (req, res) => {
       return res.status(400).json({ error: '对话文本不能为空' });
     }
     
-    // 模拟AI处理（先用静态数据）
-    const options = [
-      "这个想法不错，我支持！",
-      "需要更多细节才能判断。",
-      "让我想想有没有更好的方案。"
-    ];
+    // 确保用户存在
+    let user = await User.findByPk(userId);
+    if (!user) {
+      await User.create({ id: userId, username: 'Guest' });
+    }
+    
+    // 调用AI服务生成选项
+    const options = await aiService.generateDialogOptions(text, style);
+    
+    // 存储会话到数据库
+    const session = await DialogSession.create({
+      userId,
+      originalText: text,
+      contextStyle: style,
+      generatedOptions: options
+    });
     
     res.json({
       success: true,
       data: {
+        sessionId: session.id,
         originalText: text,
         options: options,
-        templateId: 'temp_001',
         style: style,
-        timestamp: new Date().toISOString()
+        timestamp: session.createdAt
       }
     });
     
@@ -37,18 +50,42 @@ router.post('/process', async (req, res) => {
 // 记录用户选择的接口
 router.post('/selection', async (req, res) => {
   try {
-    const { sessionId, optionIndex, userId } = req.body;
+    const { sessionId, optionId, userId } = req.body;
     
-    // 模拟存储到数据库
-    console.log(`用户 ${userId} 在会话 ${sessionId} 选择了选项 ${optionIndex}`);
+    // 验证会话是否存在
+    const session = await DialogSession.findByPk(sessionId);
+    if (!session) {
+      return res.status(404).json({ error: '会话不存在或已过期' });
+    }
+
+    // 存储选择记录
+    const selection = await UserSelection.create({
+      sessionId,
+      selectedOptionId: optionId,
+      userId
+    });
     
+    // 触发模板优化和用户偏好更新
+    await templateService.recordSelectionAndOptimize(userId, sessionId, optionId);
+    
+    // 获取用户统计
+    const allSelections = await UserSelection.findAll({ where: { userId } });
+    const userStats = {
+      totalSelections: allSelections.length,
+      // 简单的统计示例
+      lastSelection: optionId
+    };
+
     res.json({
       success: true,
       message: '选择已记录',
       data: {
-        sessionId,
-        optionIndex,
-        recordedAt: new Date().toISOString()
+        selection: {
+            sessionId,
+            optionId,
+            recordedAt: selection.createdAt
+        },
+        userStats
       }
     });
     
@@ -56,6 +93,26 @@ router.post('/selection', async (req, res) => {
     console.error('记录选择时出错:', error);
     res.status(500).json({ error: '服务器内部错误' });
   }
+});
+
+// 获取用户统计数据接口
+router.get('/stats/:userId', async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        const user = await User.findByPk(userId);
+        const selections = await UserSelection.findAll({ where: { userId } });
+        
+        const stats = {
+            userId,
+            totalDialogs: selections.length,
+            stylePreferences: user ? user.preferences : {}
+        };
+        res.json({ success: true, data: stats });
+    } catch (error) {
+        console.error('获取统计数据出错:', error);
+        res.status(500).json({ error: '服务器内部错误' });
+    }
 });
 
 module.exports = router;

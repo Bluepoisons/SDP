@@ -28,6 +28,10 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date() });
 });
 
+// Bridge 中间件（增强的 health 与跨域支持）
+const bridge = require('./middleware/bridge');
+app.use('/bridge', bridge);
+
 app.use('/api/dialog', dialogRoutes);
 
 // 处理404
@@ -36,7 +40,19 @@ app.use((req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
-  console.log(`✅ 服务器运行在 http://localhost:${PORT}`);
-  console.log(`📁 API文档: http://localhost:${PORT}/api-docs`);
-});
+if (require.main === module) {
+  const server = app.listen(PORT, () => {
+    console.log(`✅ 服务器运行在 http://localhost:${PORT}`);
+    console.log(`📁 API文档: http://localhost:${PORT}/api-docs`);
+  });
+
+  process.on('uncaughtException', (err) => {
+    console.error('Uncaught Exception:', err);
+  });
+  
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  });
+}
+
+module.exports = app;

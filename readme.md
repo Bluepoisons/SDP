@@ -116,3 +116,40 @@ V2.0阶段（6个月）
 5. 系统稳定性：故障恢复时间 < 15分钟
 
 这个项目目标既包含了具体的技术指标，也明确了业务价值和阶段性成果，可以作为项目规划和评估的基准。
+
+## 开发指南 (Development Guide)
+
+### 1. 环境准备
+- Node.js (v16+)
+- npm
+
+### 2. 后端设置 (Server)
+后端使用 Node.js + Express + LowDB (本地JSON数据库)。
+
+```bash
+cd server
+npm install
+# 配置 .env 文件 (参考 .env.example，填入文心API Key)
+npm run dev
+```
+
+### 3. 前端设置 (Client)
+前端使用 Electron + React。
+
+```bash
+cd client
+# 设置 Electron 镜像 (如果在中国大陆)
+$env:ELECTRON_MIRROR="https://npmmirror.com/mirrors/electron/"
+npm install
+npm run dev
+```
+
+### 4. 项目结构
+- `server/`: 后端代码
+  - `src/models/`: LowDB 数据模型
+  - `src/services/`: 业务逻辑 (文心API, 模板管理)
+  - `src/routes/`: API 路由
+  - `db.json`: 本地数据库文件 (自动生成)
+- `client/`: 前端代码
+  - `electron/`: Electron 主进程
+  - `src/`: React 渲染进程
