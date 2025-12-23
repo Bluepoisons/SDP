@@ -4,7 +4,7 @@ const API_BASE_URL = 'http://localhost:3000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 60000, // Increased to 60s for AI processing
+  timeout: 120000, // Increased to 120s for AI processing
   headers: {
     'Content-Type': 'application/json',
   },
@@ -21,11 +21,15 @@ export const checkHealth = async () => {
   }
 };
 
-export const processDialog = async (text, userId, style) => {
+export const processDialog = async (text, userId, style, signal) => {
   try {
-    const response = await api.post('/api/dialog/process', { text, userId, style });
+    const response = await api.post('/api/dialog/process', { text, userId, style }, { signal });
     return response.data;
   } catch (error) {
+    if (axios.isCancel(error)) {
+      console.log('Request canceled', error.message);
+      throw new Error('Request canceled');
+    }
     console.error('Process dialog failed:', error);
     throw error;
   }

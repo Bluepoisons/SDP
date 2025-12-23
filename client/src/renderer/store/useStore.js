@@ -11,6 +11,7 @@ const useStore = create((set, get) => ({
   history: [],
   isLoading: false,
   error: null,
+  abortController: null, // Store the controller
 
   // Actions
   checkConnection: async () => {
@@ -23,21 +24,42 @@ const useStore = create((set, get) => ({
   },
 
   generateOptions: async (text, style = 'neutral') => {
-    set({ isLoading: true, error: null });
+    // Cancel previous request if exists
+    const { abortController } = get();
+    if (abortController) {
+      abortController.abort();
+    }
+
+    const controller = new AbortController();
+    set({ isLoading: true, error: null, abortController: controller });
+
     try {
       const { userId } = get();
-      const result = await processDialog(text, userId, style);
+      const result = await processDialog(text, userId, style, controller.signal);
       if (result.success) {
         set({ 
           dialogOptions: result.data.options,
           sceneSummary: result.data.sceneSummary || '', // 设置场景旁白
           currentScene: text,
-          isLoading: false 
+          isLoading: false,
+          abortController: null
         });
       }
     } catch (err) {
-      set({ isLoading: false, error: '生成选项失败: ' + err.message });
+      if (err.message === 'Request canceled') {
+        set({ isLoading: false, abortController: null }); // Don't set error for user cancellation
+      } else {
+        set({ isLoading: false, error: '生成选项失败: ' + err.message, abortController: null });
+      }
     }
+  },
+
+  cancelGeneration: () => {
+    const { abortController } = get();
+    if (abortController) {
+      abortController.abort();
+    }
+    set({ isLoading: false, abortController: null });
   },
 
   selectOption: async (sessionId, optionId) => {
