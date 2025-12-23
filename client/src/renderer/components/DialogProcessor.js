@@ -24,19 +24,20 @@ const Typewriter = ({ text, speed = 20 }) => {
 
 // 选项卡片组件
 const OptionCard = ({ option, index, onSelect, isSelected, isOtherSelected }) => {
-  // 为不同风格定义不同的主题色
+  // 为不同风格定义不同的主题色 - 升级为 Galgame 糖果色系
   const styleThemes = {
-    '治愈系': { bg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', color: '#ff9a9e', icon: '🌸' },
-    '氛围': { bg: 'linear-gradient(135deg, #36d1dc, #5b86e5)', color: '#36d1dc', icon: '😄' },
-    '心口不一': { bg: 'linear-gradient(135deg, #9d50bb, #6e48aa)', color: '#9d50bb', icon: '😏' },
-    '疏离': { bg: 'linear-gradient(135deg, #485563, #29323c)', color: '#485563', icon: '❄️' },
-    '太阳': { bg: 'linear-gradient(135deg, #ff6b6b, #ff8e53)', color: '#ff6b6b', icon: '🔥' },
+    '治愈系': { bg: 'linear-gradient(135deg, #FF9A9E, #FECFEF)', color: '#FF9A9E', icon: '🌸' }, // 樱花粉
+    '氛围': { bg: 'linear-gradient(135deg, #A18CD1, #FBC2EB)', color: '#A18CD1', icon: '✨' }, // 梦幻紫
+    '心口不一': { bg: 'linear-gradient(135deg, #84FAB0, #8FD3F4)', color: '#4facfe', icon: '💢' }, // 清新蓝绿
+    '疏离': { bg: 'linear-gradient(135deg, #E0C3FC, #8EC5FC)', color: '#8EC5FC', icon: '❄️' }, // 冰雪蓝
+    '太阳': { bg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', color: '#ff9a9e', icon: '☀️' }, // 暖阳
     // 兼容旧标签
-    '热情': { bg: 'linear-gradient(135deg, #ff6b6b, #ff8e53)', color: '#ff6b6b', icon: '🔥' },
-    '幽默': { bg: 'linear-gradient(135deg, #36d1dc, #5b86e5)', color: '#36d1dc', icon: '😄' },
-    '傲娇': { bg: 'linear-gradient(135deg, #9d50bb, #6e48aa)', color: '#9d50bb', icon: '😏' },
-    '高冷': { bg: 'linear-gradient(135deg, #485563, #29323c)', color: '#485563', icon: '❄️' },
-    '温柔': { bg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', color: '#ff9a9e', icon: '🌸' },
+    '热情': { bg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', color: '#ff9a9e', icon: '🔥' },
+    '幽默': { bg: 'linear-gradient(135deg, #A18CD1, #FBC2EB)', color: '#A18CD1', icon: '😄' },
+    '傲娇': { bg: 'linear-gradient(135deg, #84FAB0, #8FD3F4)', color: '#4facfe', icon: '😤' },
+    '高冷': { bg: 'linear-gradient(135deg, #E0C3FC, #8EC5FC)', color: '#8EC5FC', icon: '🧊' },
+    '温柔': { bg: 'linear-gradient(135deg, #FF9A9E, #FECFEF)', color: '#FF9A9E', icon: '🎀' },
+    '默认': { bg: 'linear-gradient(135deg, #FF9A9E, #FECFEF)', color: '#FF9A9E', icon: '🎀' }
   };
 
   // 模糊匹配风格
@@ -44,16 +45,15 @@ const OptionCard = ({ option, index, onSelect, isSelected, isOtherSelected }) =>
     (option.style && option.style.includes(key))
   ) || '治愈系';
   
-  const theme = styleThemes[styleKey] || styleThemes['治愈系'];
+  const theme = styleThemes[styleKey] || styleThemes['默认'];
 
-  // 简单的文本格式化：将括号内的动作/心理描写设为斜体
+  // 简单的文本格式化
   const formatText = (text) => {
     if (!text) return '';
-    // 匹配中文括号、英文括号、星号包裹的内容
     const parts = text.split(/(\(.*?\)|（.*?）|\*.*?\*)/g);
     return parts.map((part, i) => {
       if (part.match(/^[\(（\*].*[\)）\*]$/)) {
-        return <span key={i} style={{ fontStyle: 'italic', fontSize: '0.9em', opacity: 0.8, marginLeft: '4px', marginRight: '4px' }}>{part}</span>;
+        return <span key={i} style={{ fontStyle: 'italic', fontSize: '0.85em', opacity: 0.7, display: 'block', marginTop: '4px' }}>{part}</span>;
       }
       return <span key={i}>{part}</span>;
     });
@@ -61,79 +61,53 @@ const OptionCard = ({ option, index, onSelect, isSelected, isOtherSelected }) =>
 
   return (
     <div 
-      className={`option-card ${styleKey.toLowerCase()} ${isSelected ? 'selected-card' : ''} ${isOtherSelected ? 'fade-out-card' : ''}`}
+      className={`option-card ${styleKey.toLowerCase()} ${isSelected ? 'selected-card' : ''} ${isOtherSelected ? 'fade-out-card' : ''} stagger-${(index % 5) + 1}`}
       style={{ '--card-theme-color': theme.color }}
+      onClick={() => !isOtherSelected && onSelect(option)}
     >
-      {/* 选项序号徽章 */}
-      <div className="option-badge" style={{ background: theme.bg }}>
-        <span className="option-letter">{option.id}</span>
-      </div>
-
-      {/* 风格标签与颜文字 */}
-      <div className="style-header">
-        <span className="style-tag" style={{ background: theme.bg }}>
-          {option.style || '未知身份'}
-        </span>
-        {option.kaomoji && (
-          <span className="kaomoji-tag">{option.kaomoji}</span>
-        )}
-      </div>
-
-      {/* 对话内容 */}
-      <div className="option-content">
-        <p className="option-text">"{formatText(option.text)}"</p>
-      </div>
-
-      {/* 好感度影响区域 */}
-      <div className="option-impact">
-        <div className={`favor-change ${option.favorChange > 0 ? 'favor-positive' : option.favorChange < 0 ? 'favor-negative' : 'favor-neutral'}`}>
-          <span className="favor-icon">
-            {option.favorChange > 0 ? '❤️' : option.favorChange < 0 ? '💔' : '⚪'}
-          </span>
-          <span className="favor-value">
-            {option.favorChange > 0 ? `+${option.favorChange}` : option.favorChange}
-          </span>
-        </div>
-        {option.effect && (
-          <div className="impact-tags">
-             <span className="impact-tag">{option.effect}</span>
+      <div className="option-inner" style={{ borderTop: `4px solid ${theme.color}` }}>
+        <div className="style-header">
+          <div className="style-tag-ribbon">
+            {option.style || '未知'}
           </div>
-        )}
-      </div>
+          <div className="favor-bubble favor-positive">
+             <span className="favor-value">{option.favorChange > 0 ? `+${option.favorChange}` : option.favorChange}</span>
+          </div>
+        </div>
 
-      {/* 选择按钮 */}
-      <button 
-        className="select-button"
-        onClick={() => onSelect(option.id)}
-        style={{ background: theme.bg }}
-        disabled={isOtherSelected}
-      >
-        {isSelected ? '正在同调...' : '披上此面具'}
-        <span className="select-arrow">→</span>
-      </button>
+        <div className="option-content">
+          <p className="option-text">{formatText(option.text)}</p>
+          {option.description && <p className="option-desc">({option.description})</p>}
+        </div>
+
+        <div className="option-impact">
+           {option.effect && (
+            <div className="impact-tags">
+               <span className="impact-tag">{option.effect}</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* 宿命感小字：只在选中后通过动画浮现 */}
+      {isSelected && (
+        <div className="destiny-text">
+          你的每一个决定都指向着不一样的结局...
+        </div>
+      )}
     </div>
   );
 };
 
-// 加载动画组件
-const LoadingState = () => {
+// 骨架屏组件
+const SkeletonLoader = () => {
   return (
-    <div className="loading-container">
-      <div className="loading-dots">
-        {[...Array(3)].map((_, i) => (
-          <div 
-            key={i} 
-            className="loading-dot"
-            style={{ animationDelay: `${i * 0.1}s` }}
-          />
-        ))}
-      </div>
-      <p className="loading-text">AI正在编织对话选项...</p>
-      <div className="loading-quotes">
-        <span>💭 构思中</span>
-        <span>🎭 塑造角色</span>
-        <span>✨ 注入灵魂</span>
-      </div>
+    <div className="options-grid">
+      {[...Array(5)].map((_, i) => (
+        <div key={i} className="skeleton-card">
+          {/* 内部可以加一些装饰性的线条，或者保持纯净 */}
+        </div>
+      ))}
     </div>
   );
 };
@@ -174,7 +148,8 @@ const EnhancedInput = ({ value, onChange, onSubmit, loading, timer, onCancel }) 
               </>
             ) : (
               <>
-                🎭 生成选项
+                <span style={{ fontSize: '1.2em' }}>🪄</span> 
+                <span>生成选项</span>
                 <span className="shortcut">⌘⏎</span>
               </>
             )}
@@ -198,6 +173,11 @@ const DialogProcessor = () => {
     error,
     selectOption 
   } = useStore();
+
+  // 【关键修复】：当 dialogOptions 更新（AI 生成新内容）时，重置选中状态
+  useEffect(() => {
+    setSelectedOptionId(null);
+  }, [dialogOptions]);
 
   useEffect(() => {
     let interval;
@@ -224,13 +204,17 @@ const DialogProcessor = () => {
   };
 
   // 新增：处理选择动画
-  const handleOptionSelect = async (id) => {
-    setSelectedOptionId(id);
-    // 播放动画 800ms 后再执行实际选择
+  const handleOptionSelect = (option) => {
+    if (selectedOptionId) return; // 防止重复点击
+  
+    setSelectedOptionId(option.id);
+  
+    // 增加一个延时，给玩家展示“选择成功”的效果
     setTimeout(() => {
-      selectOption(null, id); 
-      setSelectedOptionId(null);
-    }, 800);
+      // 这里触发你原有的选择后续逻辑
+      selectOption(null, option.id); 
+      // 注意：这里不立即重置 selectedOptionId，等待新数据加载或页面跳转
+    }, 1500);
   };
 
   return (
@@ -263,7 +247,15 @@ const DialogProcessor = () => {
         </div>
       )}
 
-      {isLoading && <LoadingState />}
+      {isLoading && (
+        <>
+          <div style={{ textAlign: 'center', margin: '20px 0', color: '#aaa', fontSize: '0.9em', letterSpacing: '1px' }}>
+            <span style={{ display: 'inline-block', animation: 'spin 2s linear infinite', marginRight: '8px' }}>⏳</span>
+            AI 正在编织宿命...
+          </div>
+          <SkeletonLoader />
+        </>
+      )}
 
       {!isLoading && dialogOptions.length > 0 && (
         <>
@@ -271,8 +263,8 @@ const DialogProcessor = () => {
           {sceneSummary && (
             <div className="scene-summary-card">
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                <span style={{ fontSize: '1.5em' }}>🎬</span>
-                <h3 style={{ margin: 0 }}>场景侧写</h3>
+                <span style={{ fontSize: '1.5em' }}>✨</span>
+                <h3 style={{ margin: 0, color: '#FF8FAB' }}>当前氛围</h3>
               </div>
               
               {/* 尝试分割场景侧写内容 */}
@@ -302,16 +294,16 @@ const DialogProcessor = () => {
           {/* 第二层：生成选项标题 */}
           <div className="options-header">
             <div className="options-title">
-              <span>🎯</span>
-              <span>命运的分岔路口</span>
+              <span>💖</span>
+              <span>心跳的选择</span>
             </div>
-            <div style={{ color: '#94a3b8', fontSize: '0.9em' }}>
-              共生成 {dialogOptions.length} 个回应方案
+            <div style={{ color: '#888', fontSize: '0.9em', fontWeight: '500' }}>
+              解锁 {dialogOptions.length} 个心动瞬间
             </div>
           </div>
 
           {/* 第三层：选项卡片容器 */}
-          <div className="options-grid">
+          <div className={`options-grid ${selectedOptionId ? 'has-selection' : ''}`}>
             {dialogOptions.map((option, index) => (
               <OptionCard 
                 key={option.id || index} 
