@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import useStore from '../store/useStore';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import ImageInputProcessor from './ImageInputProcessor';
+import ScreenshotCapture from './ScreenshotCapture';
+import GalgameOptions from './GalgameOptions'; // Import the new component
 
-// 打字机效果组件
+// 打字机效果组件 - 升级为支持 Markdown
 const Typewriter = ({ text, speed = 20 }) => {
   const [displayedText, setDisplayedText] = useState('');
   
@@ -19,33 +24,52 @@ const Typewriter = ({ text, speed = 20 }) => {
     return () => clearInterval(timer);
   }, [text, speed]);
   
-  return <span>{displayedText}</span>;
+  return (
+    <div className="markdown-content">
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+        {displayedText}
+      </ReactMarkdown>
+    </div>
+  );
 };
 
 // 选项卡片组件
-const OptionCard = ({ option, index, onSelect, isSelected, isOtherSelected }) => {
-  // 为不同风格定义不同的主题色 - 升级为 Galgame 糖果色系
-  const styleThemes = {
-    '治愈系': { bg: 'linear-gradient(135deg, #FF9A9E, #FECFEF)', color: '#FF9A9E', icon: '🌸' }, // 樱花粉
-    '氛围': { bg: 'linear-gradient(135deg, #A18CD1, #FBC2EB)', color: '#A18CD1', icon: '✨' }, // 梦幻紫
-    '心口不一': { bg: 'linear-gradient(135deg, #84FAB0, #8FD3F4)', color: '#4facfe', icon: '💢' }, // 清新蓝绿
-    '疏离': { bg: 'linear-gradient(135deg, #E0C3FC, #8EC5FC)', color: '#8EC5FC', icon: '❄️' }, // 冰雪蓝
-    '太阳': { bg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', color: '#ff9a9e', icon: '☀️' }, // 暖阳
-    // 兼容旧标签
-    '热情': { bg: 'linear-gradient(135deg, #ff9a9e, #fecfef)', color: '#ff9a9e', icon: '🔥' },
-    '幽默': { bg: 'linear-gradient(135deg, #A18CD1, #FBC2EB)', color: '#A18CD1', icon: '😄' },
-    '傲娇': { bg: 'linear-gradient(135deg, #84FAB0, #8FD3F4)', color: '#4facfe', icon: '😤' },
-    '高冷': { bg: 'linear-gradient(135deg, #E0C3FC, #8EC5FC)', color: '#8EC5FC', icon: '🧊' },
-    '温柔': { bg: 'linear-gradient(135deg, #FF9A9E, #FECFEF)', color: '#FF9A9E', icon: '🎀' },
-    '默认': { bg: 'linear-gradient(135deg, #FF9A9E, #FECFEF)', color: '#FF9A9E', icon: '🎀' }
+const OptionCard = ({ option, index, onSelect, onHover, isSelected, isOtherSelected, isHovered }) => {
+  // 动态情感主题：基于 favorChange 决定颜色和标签
+  const getEmotionTheme = (favorChange) => {
+    if (favorChange > 0) {
+      return {
+        label: '积极',
+        bg: 'linear-gradient(135deg, #FF9A9E, #FFB88C)', // 亮粉到暖橙
+        color: '#FF8FAB',
+        borderColor: '#FF8FAB',
+        icon: '🌟'
+      };
+    } else if (favorChange < 0) {
+      return {
+        label: '冷淡',
+        bg: 'linear-gradient(135deg, #A18CD1, #6E7C8C)', // 深紫到深灰
+        color: '#A18CD1',
+        borderColor: '#A18CD1',
+        icon: '❄️'
+      };
+    } else {
+      return {
+        label: '稳定',
+        bg: 'linear-gradient(135deg, #A8E6CF, #BDE8FF)', // 薄荷绿到天蓝
+        color: '#7DD3C0',
+        borderColor: '#7DD3C0',
+        icon: '⚖️'
+      };
+    }
   };
-
-  // 模糊匹配风格
-  const styleKey = Object.keys(styleThemes).find(key => 
-    (option.style && option.style.includes(key))
-  ) || '治愈系';
   
-  const theme = styleThemes[styleKey] || styleThemes['默认'];
+  const theme = getEmotionTheme(option.favorChange || 0);
+  
+  // 根据 favorChange 决定卡片类名
+  const emotionClass = option.favorChange > 0 ? 'card-positive' 
+    : option.favorChange < 0 ? 'card-negative' 
+    : 'card-neutral';
 
   // 简单的文本格式化
   const formatText = (text) => {
@@ -61,16 +85,18 @@ const OptionCard = ({ option, index, onSelect, isSelected, isOtherSelected }) =>
 
   return (
     <div 
-      className={`option-card ${styleKey.toLowerCase()} ${isSelected ? 'selected-card' : ''} ${isOtherSelected ? 'fade-out-card' : ''} stagger-${(index % 5) + 1}`}
+      className={`option-card ${emotionClass} ${isSelected ? 'selected-card' : ''} ${isOtherSelected ? 'is-dismissed' : ''} stagger-${(index % 3) + 1}`}
       style={{ '--card-theme-color': theme.color }}
       onClick={() => !isOtherSelected && onSelect(option)}
+      onMouseEnter={() => onHover && onHover(option.id)}
+      onMouseLeave={() => onHover && onHover(null)}
     >
-      <div className="option-inner" style={{ borderTop: `4px solid ${theme.color}` }}>
+      <div className="option-inner" style={{ borderLeft: `4px solid ${theme.borderColor}` }}>
         <div className="style-header">
-          <div className="style-tag-ribbon">
-            {option.style || '未知'}
+          <div className="style-tag-ribbon" style={{ background: theme.bg }}>
+            {theme.icon} {theme.label}
           </div>
-          <div className="favor-bubble favor-positive">
+          <div className={`favor-bubble ${option.favorChange > 0 ? 'favor-positive' : option.favorChange < 0 ? 'favor-negative' : 'favor-neutral'}`}>
              <span className="favor-value">{option.favorChange > 0 ? `+${option.favorChange}` : option.favorChange}</span>
           </div>
         </div>
@@ -103,7 +129,7 @@ const OptionCard = ({ option, index, onSelect, isSelected, isOtherSelected }) =>
 const SkeletonLoader = () => {
   return (
     <div className="options-grid">
-      {[...Array(5)].map((_, i) => (
+      {[...Array(3)].map((_, i) => (
         <div key={i} className="skeleton-card">
           {/* 内部可以加一些装饰性的线条，或者保持纯净 */}
         </div>
@@ -133,7 +159,7 @@ const EnhancedInput = ({ value, onChange, onSubmit, loading, timer, onCancel }) 
         <div className="input-footer">
           <div className="input-hints">
             <span>💡 提示：输入对话内容，如"我好喜欢你啊"</span>
-            <span>✨ AI将为你生成5个不同风格的回应</span>
+            <span>✨ AI将为你生成3个不同风格的回应</span>
           </div>
           <button 
             className={`generate-button ${loading ? 'loading' : ''}`}
@@ -163,21 +189,33 @@ const EnhancedInput = ({ value, onChange, onSubmit, loading, timer, onCancel }) 
 const DialogProcessor = () => {
   const [inputText, setInputText] = useState('');
   const [timer, setTimer] = useState(0);
-  const [selectedOptionId, setSelectedOptionId] = useState(null); // 新增：选中状态
+  const [selectedOptionId, setSelectedOptionId] = useState(null);
+  const [hoveredOptionId, setHoveredOptionId] = useState(null);
+  const [showImageInput, setShowImageInput] = useState(false);
+  const [showScreenshotCapture, setShowScreenshotCapture] = useState(false);
+  
   const { 
     generateOptions, 
     cancelGeneration,
     isLoading, 
-    dialogOptions, 
-    sceneSummary,
     error,
-    selectOption 
+    selectOption,
+    getCurrentSession
   } = useStore();
 
-  // 【关键修复】：当 dialogOptions 更新（AI 生成新内容）时，重置选中状态
+  const session = getCurrentSession();
+  const messages = session ? session.messages : [];
+  const messagesEndRef = React.useRef(null);
+
+  // Auto-scroll logic
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages.length, isLoading]);
+
+  // Reset selection when new AI message arrives
   useEffect(() => {
     setSelectedOptionId(null);
-  }, [dialogOptions]);
+  }, [messages.length]);
 
   useEffect(() => {
     let interval;
@@ -196,6 +234,7 @@ const DialogProcessor = () => {
     if (e) e.preventDefault();
     if (!inputText.trim()) return;
     await generateOptions(inputText);
+    setInputText('');
   };
 
   const handleCancel = (e) => {
@@ -203,119 +242,154 @@ const DialogProcessor = () => {
     cancelGeneration();
   };
 
-  // 新增：处理选择动画
   const handleOptionSelect = (option) => {
-    if (selectedOptionId) return; // 防止重复点击
-  
+    if (selectedOptionId) return;
     setSelectedOptionId(option.id);
-  
-    // 增加一个延时，给玩家展示“选择成功”的效果
     setTimeout(() => {
-      // 这里触发你原有的选择后续逻辑
-      selectOption(null, option.id); 
-      // 注意：这里不立即重置 selectedOptionId，等待新数据加载或页面跳转
+      selectOption(null, option.id);
     }, 1500);
+  };
+
+  // 处理从截图识别模块提取的文本
+  const handleTextExtracted = (text) => {
+    setInputText(text);
+    setShowImageInput(false);
+  };
+
+  // 处理从高级截图捕获提取的文本
+  const handleScreenshotTextExtracted = (text) => {
+    setInputText(text);
+    setShowScreenshotCapture(false);
+    // 自动生成选项
+    if (text.trim()) {
+      generateOptions(text);
+    }
   };
 
   return (
     <div className="dialog-container">
-      <div className="app-header">
-        <h1 className="app-logo">
+      <div className="app-header" style={{ padding: '20px 40px', textAlign: 'center', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+        <h1 className="app-logo" style={{ fontSize: '1.8em', margin: 0, whiteSpace: 'nowrap' }}>
           <span>✨</span> SmartDialog Processor
         </h1>
       </div>
 
-      <EnhancedInput 
-        value={inputText}
-        onChange={setInputText}
-        onSubmit={handleSubmit}
-        loading={isLoading}
-        timer={timer}
-        onCancel={handleCancel}
-      />
-
-      {error && (
-        <div style={{ 
-          color: '#ff6b6b', 
-          marginBottom: '20px', 
-          padding: '15px', 
-          background: 'rgba(255, 107, 107, 0.1)', 
-          borderRadius: '8px',
-          border: '1px solid rgba(255, 107, 107, 0.2)'
-        }}>
-          ⚠️ 错误: {error}
-        </div>
-      )}
-
-      {isLoading && (
-        <>
-          <div style={{ textAlign: 'center', margin: '20px 0', color: '#aaa', fontSize: '0.9em', letterSpacing: '1px' }}>
-            <span style={{ display: 'inline-block', animation: 'spin 2s linear infinite', marginRight: '8px' }}>⏳</span>
-            AI 正在编织宿命...
+      <div className="messages-list">
+        {messages.length === 0 ? (
+          <div className="empty-state">
+            <div className="empty-logo">✨ SDP</div>
+            <div className="empty-slogan">编织你的宿命...</div>
           </div>
-          <SkeletonLoader />
-        </>
-      )}
-
-      {!isLoading && dialogOptions.length > 0 && (
-        <>
-          {/* 第一层：场景总结卡 */}
-          {sceneSummary && (
-            <div className="scene-summary-card">
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '15px' }}>
-                <span style={{ fontSize: '1.5em' }}>✨</span>
-                <h3 style={{ margin: 0, color: '#FF8FAB' }}>当前氛围</h3>
+        ) : (
+          messages.map((msg, idx) => (
+          <div key={idx} className={`message-row ${msg.role}`}>
+            {msg.role === 'user' && (
+              <div className="user-bubble">
+                <div className="bubble-content">{msg.content}</div>
+                <div className="message-time">{new Date(msg.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
               </div>
-              
-              {/* 尝试分割场景侧写内容 */}
-              {(() => {
-                // 简单的分割逻辑：假设第一段是分析，后面是预告
-                // 如果没有明显的双换行，就全部显示在分析区
-                const parts = sceneSummary.split(/\n\s*\n/);
-                const analysis = parts[0];
-                const preview = parts.length > 1 ? parts.slice(1).join('\n\n') : null;
-                
-                return (
-                  <>
-                    <div className="scene-analysis">
-                      <Typewriter text={analysis} speed={15} />
-                    </div>
-                    {preview && (
-                      <div className="scene-preview">
-                        <Typewriter text={preview} speed={10} />
-                      </div>
-                    )}
-                  </>
-                );
-              })()}
-            </div>
-          )}
+            )}
+            
+            {msg.role === 'ai' && (
+              <div className="ai-bubble" style={{ width: '100%', maxWidth: '800px', margin: '0 auto' }}>
+                {/* Use the new GalgameOptions component for the latest message */}
+                {idx === messages.length - 1 ? (
+                  <div className="fixed bottom-10 left-1/2 transform -translate-x-1/2 w-full max-w-4xl z-50">
+                    <GalgameOptions 
+                      sceneSummary={msg.content}
+                      options={msg.options || []}
+                      onSelect={handleOptionSelect}
+                    />
+                  </div>
+                ) : (
+                  /* For history messages, keep a simpler view or reuse the component without animation if desired */
+                  <div className="history-message-container">
+                     <div className="scene-message-container" style={{ marginBottom: '10px', padding: '15px' }}>
+                        <div className="scene-text" style={{ fontSize: '1rem' }}>
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>{msg.content}</ReactMarkdown>
+                        </div>
+                     </div>
+                     {msg.options && (
+                       <div className="gal-options-grid" style={{ opacity: 0.7, pointerEvents: 'none' }}>
+                          {msg.options.map(opt => (
+                            <div key={opt.id} className="gal-option-card" style={{ padding: '10px 15px', minHeight: 'auto' }}>
+                               <span style={{ marginRight: '10px' }}>{opt.emoji}</span>
+                               <span style={{ color: 'white' }}>{opt.text}</span>
+                            </div>
+                          ))}
+                       </div>
+                     )}
+                  </div>
+                )}
+              </div>
+            )}
 
-          {/* 第二层：生成选项标题 */}
-          <div className="options-header">
-            <div className="options-title">
-              <span>💖</span>
-              <span>心跳的选择</span>
-            </div>
-            <div style={{ color: '#888', fontSize: '0.9em', fontWeight: '500' }}>
-              解锁 {dialogOptions.length} 个心动瞬间
-            </div>
+            {msg.role === 'system' && (
+              <div className="system-message">
+                <span>{msg.content}</span>
+              </div>
+            )}
           </div>
+        ))
+      )}
 
-          {/* 第三层：选项卡片容器 */}
-          <div className={`options-grid ${selectedOptionId ? 'has-selection' : ''}`}>
-            {dialogOptions.map((option, index) => (
-              <OptionCard 
-                key={option.id || index} 
-                option={option} 
-                index={index} 
-                onSelect={handleOptionSelect}
-                isSelected={selectedOptionId === option.id}
-                isOtherSelected={selectedOptionId !== null && selectedOptionId !== option.id}
-              />
-            ))}
+        {isLoading && (
+          <div className="loading-container">
+            <div style={{ textAlign: 'center', margin: '20px 0', color: '#aaa', fontSize: '0.9em', letterSpacing: '1px' }}>
+              <span style={{ display: 'inline-block', animation: 'spin 2s linear infinite', marginRight: '8px' }}>⏳</span>
+              AI 正在编织宿命...
+            </div>
+            <SkeletonLoader />
           </div>
-        </>
+        )}
+
+        {error && (
+          <div className="error-message">
+            ⚠️ 错误: {error}
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} style={{ height: '100px' }} />
+      </div>
+
+      <div className="input-area-fixed">
+        {/* 截图识别切换按钮 */}
+        <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+          <button 
+            className="toggle-image-input-btn"
+            onClick={() => setShowScreenshotCapture(true)}
+          >
+            🎯 高级截图识别
+          </button>
+          <button 
+            className="toggle-image-input-btn"
+            onClick={() => setShowImageInput(!showImageInput)}
+          >
+            {showImageInput ? '📝 切换到文字输入' : '📸 上传图片识别'}
+          </button>
+        </div>
+
+        {/* 截图识别模块 */}
+        {showImageInput ? (
+          <ImageInputProcessor onTextExtracted={handleTextExtracted} />
+        ) : (
+          <EnhancedInput 
+            value={inputText}
+            onChange={setInputText}
+            onSubmit={handleSubmit}
+            loading={isLoading}
+            timer={timer}
+            onCancel={handleCancel}
+          />
+        )}
+      </div>
+
+      {/* 高级截图捕获模式 */}
+      {showScreenshotCapture && (
+        <ScreenshotCapture 
+          onTextExtracted={handleScreenshotTextExtracted}
+          onClose={() => setShowScreenshotCapture(false)}
+        />
       )}
     </div>
   );

@@ -1,0 +1,2 @@
+SILICONFLOW_API_KEY=sk-qeyytsgvzlwtaztvbdaovxqkbmkbiiavagnvmprqzikerouu
+AI_MODEL=deepseek-ai/DeepSeek-V3.2

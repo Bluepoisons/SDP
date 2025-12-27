@@ -1,81 +1,186 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { checkHealth, processDialog, submitSelection } from '../services/api';
 
-const useStore = create((set, get) => ({
-  // State
-  isConnected: false,
-  userId: 'user-' + Math.random().toString(36).substr(2, 9),
-  currentScene: '',
-  sceneSummary: '', // 新增：场景旁白
-  dialogOptions: [],
-  history: [],
-  isLoading: false,
-  error: null,
-  abortController: null, // Store the controller
+const createSession = () => ({
+  id: 'session-' + Date.now(),
+  title: '新故事 ' + new Date().toLocaleTimeString(),
+  lastTimestamp: Date.now(),
+  messages: [], // { role: 'user' | 'ai', content: string, options?: [], sceneSummary?: string, timestamp: number }
+});
 
-  // Actions
-  checkConnection: async () => {
-    try {
-      await checkHealth();
-      set({ isConnected: true, error: null });
-    } catch (err) {
-      set({ isConnected: false, error: '无法连接到服务器' });
-    }
-  },
+const useStore = create(
+  persist(
+    (set, get) => ({
+      // State
+      isConnected: false,
+      userId: 'user-' + Math.random().toString(36).substr(2, 9),
+      
+      sessions: [createSession()],
+      currentSessionId: null, // Will be set in init
+      
+      // Current View State (derived or temporary)
+      isLoading: false,
+      error: null,
+      abortController: null,
 
-  generateOptions: async (text, style = 'neutral') => {
-    // Cancel previous request if exists
-    const { abortController } = get();
-    if (abortController) {
-      abortController.abort();
-    }
+      // Settings
+      modelSource: 'external', // 'external' | 'local'
+      setModelSource: (source) => set({ modelSource: source }),
 
-    const controller = new AbortController();
-    set({ isLoading: true, error: null, abortController: controller });
+      // Actions
+      initStore: () => {
+        const { sessions, currentSessionId } = get();
+        if (sessions.length === 0) {
+          const newSession = createSession();
+          set({ sessions: [newSession], currentSessionId: newSession.id });
+        } else if (!currentSessionId) {
+          set({ currentSessionId: sessions[0].id });
+        }
+      },
 
-    try {
-      const { userId } = get();
-      const result = await processDialog(text, userId, style, controller.signal);
-      if (result.success) {
-        set({ 
-          dialogOptions: result.data.options,
-          sceneSummary: result.data.sceneSummary || '', // 设置场景旁白
-          currentScene: text,
-          isLoading: false,
-          abortController: null
+      createNewSession: () => {
+        const newSession = createSession();
+        set(state => ({
+          sessions: [newSession, ...state.sessions],
+          currentSessionId: newSession.id
+        }));
+      },
+
+      switchSession: (sessionId) => {
+        set({ currentSessionId: sessionId });
+      },
+
+      deleteSession: (sessionId) => {
+        set(state => {
+          const newSessions = state.sessions.filter(s => s.id !== sessionId);
+          if (newSessions.length === 0) {
+            const newSession = createSession();
+            return { sessions: [newSession], currentSessionId: newSession.id };
+          }
+          return { 
+            sessions: newSessions, 
+            currentSessionId: state.currentSessionId === sessionId ? newSessions[0].id : state.currentSessionId 
+          };
         });
-      }
-    } catch (err) {
-      if (err.message === 'Request canceled') {
-        set({ isLoading: false, abortController: null }); // Don't set error for user cancellation
-      } else {
-        set({ isLoading: false, error: '生成选项失败: ' + err.message, abortController: null });
-      }
-    }
-  },
+      },
 
-  cancelGeneration: () => {
-    const { abortController } = get();
-    if (abortController) {
-      abortController.abort();
-    }
-    set({ isLoading: false, abortController: null });
-  },
+      checkConnection: async () => {
+        try {
+          await checkHealth();
+          set({ isConnected: true, error: null });
+        } catch (err) {
+          set({ isConnected: false, error: '无法连接到服务器' });
+        }
+      },
 
-  selectOption: async (sessionId, optionId) => {
-    try {
-      const { userId } = get();
-      await submitSelection(sessionId, optionId, userId);
-      // Clear options after selection or move to history
-      set((state) => ({
-        dialogOptions: [],
-        sceneSummary: '', // 清除场景旁白
-        history: [...state.history, { sessionId, optionId, timestamp: new Date() }]
-      }));
-    } catch (err) {
-      console.error('Selection failed:', err);
+      generateOptions: async (text, style = 'neutral') => {
+        const { abortController, currentSessionId, sessions } = get();
+        if (abortController) abortController.abort();
+
+        const controller = new AbortController();
+        set({ isLoading: true, error: null, abortController: controller });
+
+        // Add User Message
+        const userMsg = { role: 'user', content: text, timestamp: Date.now() };
+        set(state => ({
+          sessions: state.sessions.map(s => 
+            s.id === currentSessionId 
+              ? { ...s, messages: [...s.messages, userMsg], lastTimestamp: Date.now(), title: s.messages.length === 0 ? text.slice(0, 20) : s.title } 
+              : s
+          )
+        }));
+
+        try {
+          const { userId, modelSource } = get();
+          const result = await processDialog(text, userId, style, controller.signal, modelSource);
+          
+          if (result.success || (modelSource === 'local' && result.options)) { // Handle local backend response format difference if any
+            const aiMsg = {
+              role: 'ai',
+              content: result.data.sceneSummary || '', // Use sceneSummary as main content
+              options: result.data.options,
+              sceneSummary: result.data.sceneSummary,
+              timestamp: Date.now()
+            };
+
+            set(state => ({
+              sessions: state.sessions.map(s => 
+                s.id === currentSessionId 
+                  ? { ...s, messages: [...s.messages, aiMsg], lastTimestamp: Date.now() } 
+                  : s
+              ),
+              isLoading: false,
+              abortController: null
+            }));
+          }
+        } catch (err) {
+          if (err.message !== 'Request canceled') {
+            set({ isLoading: false, error: '生成选项失败: ' + err.message, abortController: null });
+          }
+        }
+      },
+
+      cancelGeneration: () => {
+        const { abortController } = get();
+        if (abortController) abortController.abort();
+        set({ isLoading: false, abortController: null });
+      },
+
+      selectOption: async (sessionId, optionId) => { // sessionId here is likely from API, but we use store's sessionId
+        // Note: The original selectOption took sessionId from API response? 
+        // Actually, usually we just record the selection.
+        // We will record the selection in the message history or as a new system message?
+        // For now, let's just log it or maybe add a "selection" message.
+        
+        const { currentSessionId, sessions } = get();
+        const currentSession = sessions.find(s => s.id === currentSessionId);
+        if (!currentSession) return;
+
+        // Find the option text
+        let optionText = '';
+        const lastAiMsg = [...currentSession.messages].reverse().find(m => m.role === 'ai');
+        if (lastAiMsg && lastAiMsg.options) {
+          const opt = lastAiMsg.options.find(o => o.id === optionId);
+          if (opt) optionText = opt.text;
+        }
+
+        const selectionMsg = {
+          role: 'system',
+          content: `选择了: ${optionText}`,
+          selectionId: optionId,
+          timestamp: Date.now()
+        };
+
+        set(state => ({
+          sessions: state.sessions.map(s => 
+            s.id === currentSessionId 
+              ? { ...s, messages: [...s.messages, selectionMsg], lastTimestamp: Date.now() } 
+              : s
+          )
+        }));
+
+        try {
+          const { userId, modelSource } = get();
+          // Call API to record selection
+          await submitSelection(sessionId, optionId, userId, modelSource); 
+        } catch (err) {
+          console.error('Selection failed:', err);
+        }
+      },
+      
+      // Helper to get current session data for UI
+      getCurrentSession: () => {
+        const { sessions, currentSessionId } = get();
+        return sessions.find(s => s.id === currentSessionId) || sessions[0];
+      }
+    }),
+    {
+      name: 'galonline-storage', // unique name
+      storage: createJSONStorage(() => localStorage),
+      partialize: (state) => ({ sessions: state.sessions, currentSessionId: state.currentSessionId, userId: state.userId }),
     }
-  }
-}));
+  )
+);
 
 export default useStore;
