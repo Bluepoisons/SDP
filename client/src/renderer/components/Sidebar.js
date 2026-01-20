@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import useStore from '../store/useStore';
 
-const Sidebar = ({ activeTab, setActiveTab }) => {
+const Sidebar = ({ activeTab, setActiveTab, isDark, onToggleTheme }) => {
   const { sessions, currentSessionId, switchSession, createNewSession } = useStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
@@ -68,7 +68,9 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
 
       {/* 固定底部（预留扩展） */}
       <div className="sidebar-footer">
-        {/* 可放置用户信息或版本信息 */}
+        <button className="theme-toggle-btn" onClick={onToggleTheme}>
+          {isDark ? '切换到明亮' : '切换到暗色'}
+        </button>
       </div>
     </div>
   );

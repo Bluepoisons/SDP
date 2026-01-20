@@ -9,8 +9,10 @@ function createWindow() {
     width: 1200,
     height: 800,
     webPreferences: {
+      backgroundThrottling: false,
       nodeIntegration: true,
-      contextIsolation: false, // 为了简化开发，暂时允许 nodeIntegration
+      contextIsolation: true,
+      preload: path.join(__dirname, 'preload.js'),
       webSecurity: false // 允许跨域请求（如果需要）
     }
   });

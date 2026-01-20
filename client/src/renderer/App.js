@@ -6,19 +6,25 @@ import './styles/App.css';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [theme, setTheme] = useState('morning');
+  const [isDark, setIsDark] = useState(() => {
+    const stored = localStorage.getItem('gal-theme');
+    return stored ? stored === 'dark' : false;
+  });
 
   useEffect(() => {
-    const hour = new Date().getHours();
-    if (hour >= 5 && hour < 16) setTheme('morning');
-    else if (hour >= 16 && hour < 19) setTheme('afternoon');
-    else setTheme('night');
-  }, []);
+    document.body.classList.toggle('theme-dark', isDark);
+    localStorage.setItem('gal-theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
 
   return (
     <div className="app-container">
       <FluidBackground />
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isDark={isDark}
+        onToggleTheme={() => setIsDark(prev => !prev)}
+      />
       <MainContent activeTab={activeTab} />
     </div>
   );

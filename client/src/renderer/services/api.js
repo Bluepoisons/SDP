@@ -5,7 +5,7 @@ const API_BASE_URL = 'http://127.0.0.1:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 120000, // Increased to 120s for AI processing
+  timeout: 60000, // Increased to 60s for AI processing
   headers: {
     'Content-Type': 'application/json',
   },
@@ -24,8 +24,6 @@ export const checkHealth = async () => {
 
 export const processDialog = async (text, userId, style, signal, modelSource = 'external') => {
   try {
-    // 无论 modelSource 是什么，现在都统一发给 Python 后端
-    // Python 后端内部再去决定是调 API 还是调本地模型
     const response = await api.post('/api/generate', { 
       text, 
       userId, 
@@ -33,12 +31,15 @@ export const processDialog = async (text, userId, style, signal, modelSource = '
     }, { signal });
     return response.data;
   } catch (error) {
-    if (axios.isCancel(error)) {
+    if (error.code === 'ERR_CANCELED' || error.name === 'CanceledError' || axios.isCancel(error)) {
       console.log('Request canceled', error.message);
       throw new Error('Request canceled');
     }
+    const serverMsg = error?.response?.data?.message;
+    const serverType = error?.response?.data?.errorType;
+    const msg = serverMsg ? `${serverMsg}${serverType ? ` (${serverType})` : ''}` : (error.message || '请求失败');
     console.error('Process dialog failed:', error);
-    throw error;
+    throw new Error(msg);
   }
 };
 

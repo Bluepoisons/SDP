@@ -75,13 +75,12 @@ const useStore = create(
       },
 
       generateOptions: async (text, style = 'neutral') => {
-        const { abortController, currentSessionId, sessions } = get();
+        const { abortController, currentSessionId } = get();
         if (abortController) abortController.abort();
 
         const controller = new AbortController();
         set({ isLoading: true, error: null, abortController: controller });
 
-        // Add User Message
         const userMsg = { role: 'user', content: text, timestamp: Date.now() };
         set(state => ({
           sessions: state.sessions.map(s => 
@@ -94,14 +93,21 @@ const useStore = create(
         try {
           const { userId, modelSource } = get();
           const result = await processDialog(text, userId, style, controller.signal, modelSource);
-          
-          if (result.success || (modelSource === 'local' && result.options)) { // Handle local backend response format difference if any
+
+          if (!result || result.success === false) {
+            const msg = result?.message || '生成失败，请稍后重试。';
+            set({ isLoading: false, error: msg, abortController: null });
+            return;
+          }
+
+          if (result.success || (modelSource === 'local' && result.options)) {
             const aiMsg = {
               role: 'ai',
-              content: result.data.sceneSummary || '', // Use sceneSummary as main content
+              content: result.data.sceneSummary || '',
               options: result.data.options,
               sceneSummary: result.data.sceneSummary,
-              timestamp: Date.now()
+              timestamp: Date.now(),
+              thinkingTimeMs: result.data.generationTimeMs
             };
 
             set(state => ({

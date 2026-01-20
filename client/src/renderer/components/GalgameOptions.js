@@ -98,7 +98,10 @@ const useTypewriter = (text, speed = 40) => {
 // ==========================================
 // 主组件 - GalgameOptions
 // ==========================================
-const GalgameOptions = ({ sceneSummary, options, onSelect }) => {
+const GalgameOptions = ({ sceneSummary, options, onSelect, thinkingTimeMs, selectedOptionId }) => {
+  const thinkingTimeText = typeof thinkingTimeMs === 'number'
+    ? `思考时间 ${(thinkingTimeMs / 1000).toFixed(2)}s`
+    : null;
   const { displayedText, isComplete } = useTypewriter(
     sceneSummary || "等待命运的指引...", 
     40
@@ -130,19 +133,27 @@ const GalgameOptions = ({ sceneSummary, options, onSelect }) => {
     }
   };
 
+  const visibleOptions = selectedOptionId
+    ? options.filter((opt) => opt.id === selectedOptionId)
+    : options;
+
   return (
     <>
       {/* 选项区：悬浮在对话框上方 */}
       <AnimatePresence>
-        {isComplete && options && options.length > 0 && (
+        {isComplete && visibleOptions && visibleOptions.length > 0 && (
           <motion.div
-            className="flex flex-col gap-3 mb-6"
+            className={
+              selectedOptionId
+                ? "flex flex-col items-center gap-3 mb-6"
+                : "flex flex-col gap-3 mb-6"
+            }
             variants={containerVariants}
             initial="hidden"
             animate="show"
             exit="hidden"
           >
-            {options.map((opt) => {
+            {visibleOptions.map((opt) => {
               const theme = getThemeColor(opt);
 
               return (
@@ -150,7 +161,11 @@ const GalgameOptions = ({ sceneSummary, options, onSelect }) => {
                   key={opt.id}
                   variants={itemVariants}
                   onClick={() => onSelect(opt)}
-                  className="group relative overflow-hidden rounded-lg p-5 text-left transition-all duration-300 hover:pl-6 shadow-2xl border-l-[6px]"
+                  className={
+                    selectedOptionId
+                      ? "group relative w-full max-w-2xl overflow-hidden rounded-lg p-5 text-left transition-all duration-300 shadow-2xl border-l-[6px]"
+                      : "group relative overflow-hidden rounded-lg p-5 text-left transition-all duration-300 hover:pl-6 shadow-2xl border-l-[6px]"
+                  }
                   style={{
                     backgroundColor: '#000000',
                     borderColor: theme.borderColor,
@@ -238,6 +253,11 @@ const GalgameOptions = ({ sceneSummary, options, onSelect }) => {
           <span className="text-indigo-400 text-xs font-bold tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">
             SCENE LOG
           </span>
+          {thinkingTimeText && (
+            <span className="ml-auto text-xs text-emerald-300 drop-shadow-[0_1px_2px_rgba(0,0,0,1)]">
+              {thinkingTimeText}
+            </span>
+          )}
         </div>
 
         {/* 旁白文字 - 核心：纯白+大字号+强阴影 */}

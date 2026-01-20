@@ -18,6 +18,18 @@
   --gal-font-body: "Segoe UI", "Roboto", sans-serif;
 }
 
+body.theme-dark {
+  --gal-bg-gradient: linear-gradient(135deg, #0b0b0f 0%, #12121a 100%);
+  --gal-bg-anim: linear-gradient(-45deg, #0f172a, #111827, #1f2937, #0f172a);
+  --gal-color-accent: #8b5cf6;
+  --gal-color-accent-hover: #a78bfa;
+  --gal-color-text-primary: #e5e7eb;
+  --gal-color-text-secondary: #9ca3af;
+  --gal-card-bg: rgba(17, 24, 39, 0.72);
+  --gal-card-border: rgba(55, 65, 81, 0.9);
+  --gal-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
 @keyframes gradientBG {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -33,6 +45,23 @@ body {
   color: var(--gal-color-text-primary);
   height: 100vh;
   overflow: hidden;
+}
+
+.theme-toggle-btn {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--gal-card-border);
+  background: var(--gal-card-bg);
+  color: var(--gal-color-text-primary);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--gal-color-accent);
+  box-shadow: 0 0 0 1px var(--gal-color-accent);
 }
 
 .app-container {

@@ -6,3 +6,7 @@ build/
 coverage/
 .vscode/
 *.log
+__pycache__/
+*.pyc
+backend/db.json
+backend/data/

@@ -1,2 +1,2 @@
 SILICONFLOW_API_KEY=sk-qeyytsgvzlwtaztvbdaovxqkbmkbiiavagnvmprqzikerouu
-AI_MODEL=deepseek-ai/DeepSeek-V3.2
+AI_MODEL=Qwen/Qwen2.5-72B-Instruct

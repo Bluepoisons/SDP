@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import ImageInputProcessor from './ImageInputProcessor';
 import ScreenshotCapture from './ScreenshotCapture';
 import GalgameOptions from './GalgameOptions'; // Import the new component
+import GalgameInput from './GalgameInput';
 
 // 打字机效果组件 - 升级为支持 Markdown
 const Typewriter = ({ text, speed = 20 }) => {
@@ -138,61 +139,16 @@ const SkeletonLoader = () => {
   );
 };
 
-// 增强输入组件
-const EnhancedInput = ({ value, onChange, onSubmit, loading, timer, onCancel }) => {
-  return (
-    <div className="input-container">
-      <div className="input-wrapper">
-        <textarea
-          className="dialog-input"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="输入对话内容，让AI生成回应选项..."
-          rows={3}
-          disabled={loading}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
-              onSubmit(e);
-            }
-          }}
-        />
-        <div className="input-footer">
-          <div className="input-hints">
-            <span>💡 提示：输入对话内容，如"我好喜欢你啊"</span>
-            <span>✨ AI将为你生成3个不同风格的回应</span>
-          </div>
-          <button 
-            className={`generate-button ${loading ? 'loading' : ''}`}
-            onClick={loading ? onCancel : onSubmit}
-            disabled={!loading && !value.trim()}
-            style={loading ? { background: 'rgba(255, 107, 107, 0.2)', border: '1px solid #ff6b6b', color: '#ff6b6b' } : {}}
-          >
-            {loading ? (
-              <>
-                <span className="spinner" style={{ borderTopColor: '#ff6b6b' }} />
-                <span>生成中 ({timer}s) - 点击取消</span>
-              </>
-            ) : (
-              <>
-                <span style={{ fontSize: '1.2em' }}>🪄</span> 
-                <span>生成选项</span>
-                <span className="shortcut">⌘⏎</span>
-              </>
-            )}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const DialogProcessor = () => {
   const [inputText, setInputText] = useState('');
-  const [timer, setTimer] = useState(0);
+  const [timerMs, setTimerMs] = useState(0);
+  const [thinkingStage, setThinkingStage] = useState('');
+  const [selectedStyle, setSelectedStyle] = useState('gentle');
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [hoveredOptionId, setHoveredOptionId] = useState(null);
   const [showImageInput, setShowImageInput] = useState(false);
   const [showScreenshotCapture, setShowScreenshotCapture] = useState(false);
+  const timerStartRef = React.useRef(0);
   
   const { 
     generateOptions, 
@@ -219,13 +175,26 @@ const DialogProcessor = () => {
 
   useEffect(() => {
     let interval;
+    const thoughtSteps = [
+      '正在分析潜台词...',
+      '检索历史记忆...',
+      '推演关系走向...',
+      '构建语气模型...'
+    ];
+
     if (isLoading) {
-      setTimer(0);
+      timerStartRef.current = performance.now();
+      setTimerMs(0);
+      setThinkingStage(thoughtSteps[0]);
       interval = setInterval(() => {
-        setTimer(prev => prev + 1);
-      }, 1000);
+        const elapsed = performance.now() - timerStartRef.current;
+        setTimerMs(elapsed);
+        const stepIndex = Math.floor((elapsed / 800) % thoughtSteps.length);
+        setThinkingStage(thoughtSteps[stepIndex]);
+      }, 50);
     } else {
-      setTimer(0);
+      setTimerMs(0);
+      setThinkingStage('');
     }
     return () => clearInterval(interval);
   }, [isLoading]);
@@ -233,7 +202,7 @@ const DialogProcessor = () => {
   const handleSubmit = async (e) => {
     if (e) e.preventDefault();
     if (!inputText.trim()) return;
-    await generateOptions(inputText);
+    await generateOptions(inputText, selectedStyle);
     setInputText('');
   };
 
@@ -262,7 +231,7 @@ const DialogProcessor = () => {
     setShowScreenshotCapture(false);
     // 自动生成选项
     if (text.trim()) {
-      generateOptions(text);
+      generateOptions(text, selectedStyle);
     }
   };
 
@@ -298,7 +267,9 @@ const DialogProcessor = () => {
                     <GalgameOptions 
                       sceneSummary={msg.content}
                       options={msg.options || []}
+                      thinkingTimeMs={msg.thinkingTimeMs}
                       onSelect={handleOptionSelect}
+                      selectedOptionId={selectedOptionId}
                     />
                   </div>
                 ) : (
@@ -335,9 +306,38 @@ const DialogProcessor = () => {
 
         {isLoading && (
           <div className="loading-container">
-            <div style={{ textAlign: 'center', margin: '20px 0', color: '#aaa', fontSize: '0.9em', letterSpacing: '1px' }}>
-              <span style={{ display: 'inline-block', animation: 'spin 2s linear infinite', marginRight: '8px' }}>⏳</span>
-              AI 正在编织宿命...
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '12px 16px',
+                borderRadius: '10px',
+                border: '1px solid rgba(124, 58, 237, 0.25)',
+                background: 'rgba(24, 24, 27, 0.65)',
+                margin: '16px auto',
+                maxWidth: '520px',
+              }}
+            >
+              <span style={{ display: 'inline-block', animation: 'spin 1.6s linear infinite' }}>🧠</span>
+              <div style={{ flex: 1, fontSize: '0.9em', color: '#c4b5fd', fontFamily: 'monospace' }}>
+                <div>{thinkingStage || '正在编织心流...'}</div>
+                <div style={{ opacity: 0.7 }}>{(timerMs / 1000).toFixed(2)}s</div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCancel}
+                style={{
+                  border: 'none',
+                  background: 'rgba(239, 68, 68, 0.15)',
+                  color: '#fca5a5',
+                  padding: '6px 10px',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                }}
+              >
+                停止生成
+              </button>
             </div>
             <SkeletonLoader />
           </div>
@@ -353,33 +353,22 @@ const DialogProcessor = () => {
       </div>
 
       <div className="input-area-fixed">
-        {/* 截图识别切换按钮 */}
-        <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-          <button 
-            className="toggle-image-input-btn"
-            onClick={() => setShowScreenshotCapture(true)}
-          >
-            🎯 高级截图识别
-          </button>
-          <button 
-            className="toggle-image-input-btn"
-            onClick={() => setShowImageInput(!showImageInput)}
-          >
-            {showImageInput ? '📝 切换到文字输入' : '📸 上传图片识别'}
-          </button>
-        </div>
-
         {/* 截图识别模块 */}
         {showImageInput ? (
           <ImageInputProcessor onTextExtracted={handleTextExtracted} />
         ) : (
-          <EnhancedInput 
+          <GalgameInput
             value={inputText}
             onChange={setInputText}
             onSubmit={handleSubmit}
             loading={isLoading}
-            timer={timer}
+            timerMs={timerMs}
             onCancel={handleCancel}
+            onToggleScreenshot={() => setShowScreenshotCapture(true)}
+            onToggleImage={() => setShowImageInput(!showImageInput)}
+            showImageInput={showImageInput}
+            selectedStyle={selectedStyle}
+            onStyleChange={setSelectedStyle}
           />
         )}
       </div>
