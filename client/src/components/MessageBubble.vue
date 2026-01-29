@@ -2,6 +2,7 @@
 import { computed } from "vue";
 import { Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Sparkles } from "lucide-vue-next";
 import Card from "@/components/ui/card/Card.vue";
+import OptionCard from "@/components/OptionCard.vue"; // 🆕 v3.0 沉浸式情感交互
 import type { ChatMessage, ChoiceOption } from "@/stores/useGameStore";
 
 const props = defineProps<{
@@ -15,10 +16,15 @@ const emit = defineEmits<{
   (e: "feedback", payload: { id: string; type: "like" | "dislike" | "reset" }): void;
   (e: "typing"): void;
   (e: "delete", messageId: string): void;
+  (e: "score-popup", score: number, x: number, y: number): void; // 🎨 v4.0: 属性弹窗事件
 }>();
 
 const handleSelect = (option: ChoiceOption) => {
   emit("select", option);
+};
+
+const handleScorePopup = (score: number, x: number, y: number) => {
+  emit("score-popup", score, x, y);
 };
 
 const isActionable = computed(() =>
@@ -113,28 +119,15 @@ const glowClass = computed(() => {
 
     <div v-else-if="props.message.type === 'options'" class="group relative w-full">
       <div class="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900/40 p-6 mb-8" :class="[lineClass, glowClass]">
+        <!-- 🆕 v3.0: 使用新的 OptionCard 组件 -->
         <div v-if="!props.message.selectedOptionId" class="grid gap-3">
-          <Card
+          <OptionCard
             v-for="option in props.message.options || []"
             :key="option.id"
-            class="group cursor-pointer border border-border/40 bg-white/5 p-4 text-sm shadow-md"
-            @click="handleSelect(option)"
-          >
-            <div class="flex items-start justify-between gap-3">
-              <div class="space-y-1">
-                <p class="text-base font-medium">{{ option.text }}</p>
-                <p v-if="option.effect" class="text-xs text-muted-foreground">
-                  {{ option.effect }}
-                </p>
-              </div>
-              <span
-                v-if="option.style"
-                class="rounded-full border border-border/60 px-2 py-0.5 text-[10px] uppercase tracking-widest text-muted-foreground"
-              >
-                {{ option.style }}
-              </span>
-            </div>
-          </Card>
+            :option="option"
+            @select="handleSelect"
+            @score-popup="handleScorePopup"
+          />
         </div>
 
         <div v-else class="relative text-xl font-bold tracking-wide">

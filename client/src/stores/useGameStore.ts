@@ -7,7 +7,10 @@ export type MessageType = "text" | "options" | "selection" | "thinking";
 export interface ChoiceOption {
   id: string;
   text: string;
+  kaomoji?: string;    // v3.1: 独立的颜文字
+  score?: number;      // v3.1: 好感度评分 (-3 ~ +3)
   style?: "romantic" | "humorous" | "cold" | "gentle" | string;
+  style_name?: string; // v3.1: 风格名称
   effect?: string;
   emoji?: string;
   type?: string;

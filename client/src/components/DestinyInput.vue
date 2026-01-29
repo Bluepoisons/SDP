@@ -47,65 +47,69 @@ const isReady = computed(() => !props.loading && input.value.trim().length > 0);
 
 <template>
   <div class="w-full">
-    <p v-if="props.loading" class="mb-3 text-center text-xs tracking-[0.3em] text-muted">
-      {{ props.statusText }}
-    </p>
-
-    <div class="relative rounded-2xl border border-white/10 border-t border-t-white/10 bg-[#09090b]/95 shadow-2xl shadow-black/50 transition-all duration-300 ease-out gpu-accelerated effects-blur">
+    <!-- 🎮 v5.0: 悬浮控制台面板 -->
+    <div class="input-cockpit">
+      <!-- 🔝 状态指示条 -->
       <div
-        class="absolute left-6 right-6 top-0 h-px bg-gradient-to-r from-transparent via-indigo-400/80 to-transparent transition-opacity"
-        :class="props.loading ? 'opacity-100 animate-pulse' : 'opacity-40'"
-      ></div>
-      <div class="flex items-end gap-4 px-6 py-5">
+        v-if="props.loading"
+        class="absolute left-0 right-0 top-0 h-[2px] overflow-hidden"
+      >
+        <div class="h-full w-1/3 bg-gradient-to-r from-transparent via-[var(--accent-color)] to-transparent animate-pulse"></div>
+      </div>
+      
+      <!-- 💬 主输入区 -->
+      <div class="flex items-end gap-4">
         <Textarea
           v-model="input"
           :textarea-ref="textarea"
           :placeholder="props.placeholder"
-          class="min-h-[64px] w-full resize-none border-none bg-transparent text-lg tracking-wide text-zinc-100 placeholder:text-zinc-500 focus-visible:ring-0"
+          class="min-h-[64px] flex-1 resize-none border-none bg-transparent text-base text-[var(--input-text)] placeholder:text-[var(--input-text)] placeholder:opacity-40 focus-visible:ring-0"
           :disabled="props.loading"
+          style="font-family: var(--font-primary); letter-spacing: var(--letter-spacing-normal);"
         />
 
+        <!-- 🎯 功能按钮组 -->
         <div class="flex items-center gap-2">
-          <Tooltip content="Capture Reality">
+          <Tooltip content="截图识别">
             <Button
               variant="ghost"
               size="icon"
-              class="h-10 w-10 rounded-full border border-border/60 bg-transparent text-foreground/80 hover:bg-white/10"
+              class="h-10 w-10 rounded-full border border-[var(--input-panel-border)] bg-transparent hover:bg-[var(--btn-primary-hover)]"
               @click="emit('capture')"
             >
               📷
             </Button>
           </Tooltip>
-          <Tooltip content="Upload Image">
+          <Tooltip content="上传图片">
             <Button
               variant="ghost"
               size="icon"
-              class="h-10 w-10 rounded-full border border-border/60 bg-transparent text-foreground/80 hover:bg-white/10"
+              class="h-10 w-10 rounded-full border border-[var(--input-panel-border)] bg-transparent hover:bg-[var(--btn-primary-hover)]"
               @click="emit('upload')"
             >
               🖼️
             </Button>
           </Tooltip>
 
-          <Tooltip :content="props.loading ? 'Cancel' : 'Generate'">
+          <!-- 🔘 主生成按钮 (跳动的心脏 / 旋转的星盘) -->
+          <Tooltip :content="props.loading ? '取消生成' : '生成选项'">
             <Button
-              class="h-11 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 px-6 text-sm font-semibold text-white shadow-lg shadow-indigo-500/40 transition-all duration-300 ease-out hover:scale-105"
+              class="btn-action btn-pulse h-12 w-12 rounded-full text-white shadow-2xl transition-all"
               :disabled="!isReady && !props.loading"
               @click="props.loading ? emit('cancel') : emit('generate')"
             >
-              <span v-if="!props.loading">Generate</span>
-              <span v-else class="flex items-center gap-2">
-                <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                Channeling
+              <span class="text-2xl">
+                {{ props.loading ? '⏸' : '▶' }}
               </span>
             </Button>
           </Tooltip>
         </div>
       </div>
 
-      <div class="flex items-center justify-between border-t border-white/10 px-6 py-2 text-xs text-zinc-500">
-        <span>⌘ / Ctrl + Enter to cast</span>
-        <span>{{ props.loading ? "Channeling..." : "Ready to weave destiny" }}</span>
+      <!-- 📊 底部状态栏 -->
+      <div class="mt-2 flex items-center justify-between text-xs opacity-60">
+        <span style="font-family: var(--font-mono);">⌘ / Ctrl + Enter</span>
+        <span>{{ props.statusText }}</span>
       </div>
     </div>
   </div>

@@ -120,19 +120,22 @@ async def chat_endpoint(request: ChatRequest):
                 {
                     "style": "ERROR", 
                     "style_name": "系统错误", 
-                    "text": "服务器连接失败，请检查网络设置或 API Key。", 
+                    "text": "服务器连接失败，请检查网络设置或 API Key。",
+                    "kaomoji": "(╥﹏╥)",  # 🆕 错误时的颜文字
                     "score": 0
                 },
                 {
                     "style": "ERROR", 
                     "style_name": "重试", 
-                    "text": "点击重新生成试试看？", 
+                    "text": "点击重新生成试试看？",
+                    "kaomoji": "(｡•́︿•̀｡)",  # 🆕 错误时的颜文字
                     "score": 0
                 },
                 {
                     "style": "ERROR", 
                     "style_name": "等待", 
-                    "text": "稍等片刻再试...", 
+                    "text": "稍等片刻再试...",
+                    "kaomoji": "(´･_･`)",  # 🆕 错误时的颜文字
                     "score": 0
                 }
             ]
@@ -184,10 +187,14 @@ async def generate_dialog(request: LegacyGenerateRequest):
             }
             emoji = emoji_map.get(opt.get("style", ""), "💬")
             
+            # 🆕 v3.1: 完整传递所有字段
             formatted_options.append({
                 "id": chr(65 + idx),  # A, B, C
                 "text": opt.get("text", ""),
-                "style": opt.get("style_name", "未知"),
+                "kaomoji": opt.get("kaomoji", ""),  # 🆕 颜文字
+                "score": score,                      # 🆕 评分
+                "style": opt.get("style", ""),       # 风格代码
+                "style_name": opt.get("style_name", "未知"),  # 风格名称
                 "emoji": emoji,
                 "favorChange": favor_change,
                 "type": "default",

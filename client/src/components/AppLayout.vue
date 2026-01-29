@@ -7,6 +7,7 @@ import DestinyInput from "@/components/DestinyInput.vue";
 import ChatStream from "@/components/ChatStream.vue";
 import { useGameStore, type SessionSummary } from "@/stores/useGameStore";
 import { useConnectionStore } from "@/stores/useConnectionStore";
+import { useUiSettings } from "@/stores/useUiSettings";
 import { useAIProcess } from "@/composables/useAIProcess";
 import { recordFeedback } from "@/services/api";
 
@@ -14,14 +15,26 @@ import { recordFeedback } from "@/services/api";
 import { Settings } from "lucide-vue-next";
 import SettingsModal from "@/components/SettingsModal.vue";
 
+// 🎨 v4.0: GALGAME 风格组件
+import ThemeToggle from "@/components/ThemeToggle.vue";
+import ScorePopup from "@/components/ScorePopup.vue";
+import DynamicBackground from "@/components/DynamicBackground.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
+const uiSettings = useUiSettings();
 
 const inputText = ref("");
 const isSidebarCollapsed = ref(false);
-const isSettingsOpen = ref(false); // 🆕 设置面板开关
+const isSettingsOpen = ref(false);
+const scorePopupRef = ref<InstanceType<typeof ScorePopup> | null>(null);
 
 const { isThinking, startThinking, stopThinking, thinkingStage, thinkingDuration } = useAIProcess();
+
+// 🎯 处理属性弹窗
+const handleScorePopup = (score: number, x: number, y: number) => {
+  scorePopupRef.value?.trigger('好感度', score, x, y, 'favor');
+};
 
 const toggleSidebar = () => {
   isSidebarCollapsed.value = !isSidebarCollapsed.value;
@@ -62,7 +75,12 @@ const handleGenerate = async () => {
   gameStore.setLoading(true);
 
   try {
-    const history = buildHistoryPayload(gameStore.currentSession.messages);
+    // 🆕 Task 2 & 3: 根据记忆上限截取历史记录
+    const allMessages = gameStore.currentSession.messages;
+    const limit = uiSettings.memoryLimit;
+    const recentMessages = limit > 0 ? allMessages.slice(-limit) : [];
+    
+    const history = buildHistoryPayload(recentMessages);
 
     const res = await startThinking({
       text,
@@ -269,8 +287,10 @@ const orbClass = computed(() => {
 </script>
 
 <template>
-  <div class="h-screen w-screen overflow-hidden bg-[#0a0a0b] text-zinc-100">
-    <div class="fixed inset-0 -z-10 bg-[#0a0a0b]"></div>
+  <!-- 🌌 v5.0: 动态背景 -->
+  <DynamicBackground />
+  
+  <div class="h-screen w-screen overflow-hidden text-zinc-100">
     <div class="relative flex h-full w-full">
       <aside
         class="flex h-full w-[280px] flex-col border-r border-white/5 bg-black/20 px-4 py-6 transition effects-blur"
@@ -372,7 +392,11 @@ const orbClass = computed(() => {
 
         <div class="relative flex-1 overflow-hidden">
           <div class="mx-auto h-full max-w-3xl px-6 py-6 gpu-accelerated">
-            <ChatStream @regenerate="handleRegenerate" @feedback="handleFeedback" />
+            <ChatStream 
+              @regenerate="handleRegenerate" 
+              @feedback="handleFeedback"
+              @score-popup="handleScorePopup"
+            />
           </div>
         </div>
 
@@ -393,5 +417,11 @@ const orbClass = computed(() => {
 
     <!-- 🆕 Task 2 & 3: 设置面板模态框 -->
     <SettingsModal :open="isSettingsOpen" @close="isSettingsOpen = false" />
+    
+    <!-- 🎨 v4.0: 主题切换按钮 -->
+    <ThemeToggle />
+    
+    <!-- 💫 v4.0: 属性弹窗容器 -->
+    <ScorePopup ref="scorePopupRef" />
   </div>
 </template>

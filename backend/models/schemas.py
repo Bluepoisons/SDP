@@ -28,11 +28,12 @@ class ChatRequest(BaseModel):
         return v 
 
 class ReplyOption(BaseModel):
-    """单个回复选项"""
-    style: str = Field(..., description="风格代码 (e.g. TSUNDERE)")
-    style_name: str = Field(..., description="风格显示名称 (e.g. 傲娇)")
-    text: str = Field(..., description="回复内容，包含颜文字")
-    score: int = Field(..., ge=-3, le=3, description="好感度/情商评分 (-3 到 3)")
+    """单个回复选项 - v3.0 沉浸式情感交互"""
+    style: str = Field(..., description="风格代码 (e.g. TSUNDERE) - 后端保留用于调试")
+    style_name: str = Field(..., description="风格显示名称 (e.g. 傲娇) - 前端不再显示")
+    text: str = Field(..., description="纯净的回复文本（不含颜文字）")
+    kaomoji: str = Field(..., description="提取出的颜文字，如 (≧∇≦)/")
+    score: int = Field(..., ge=-3, le=3, description="好感度/情商评分 (-3=灾难 ~ +3=心动)")
 
     @field_validator('text')
     @classmethod

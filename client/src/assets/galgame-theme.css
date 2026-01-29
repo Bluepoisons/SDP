@@ -1,0 +1,398 @@
+/* 
+ * 🎨 GALGAME 风格主题系统 v5.0 - 星夜与心跳
+ * Starry Night & Heartbeat - 双模态情感交互界面
+ * Design: 资深 Galgame 界面设计师
+ */
+
+/* 字体引入 - 使用 Google Fonts 作为备选 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=M+PLUS+Rounded+1c:wght@300;400;500;700&display=swap');
+
+/* 🌌 默认主题：星之海 (Galactic Night) - Dark Mode */
+:root {
+  /* 🎯 主字体栈 - 优先级递减 */
+  --font-primary: "M PLUS Rounded 1c", "Noto Sans JP", "Microsoft YaHei UI", "PingFang SC", 
+                  "Hiragino Sans GB", "Source Han Sans CN", "WenQuanYi Micro Hei", sans-serif;
+  
+  /* ✍️ 手写感字体（用于特殊场景） */
+  --font-handwrite: "Noto Sans JP", "Segoe Print", "Bradley Hand", cursive;
+  
+  /* 🔢 等宽字体（颜文字专用） */
+  --font-mono: "Consolas", "Monaco", "Courier New", monospace;
+  
+  /* 📏 字间距与行高 */
+  --letter-spacing-tight: -0.01em;
+  --letter-spacing-normal: 0.02em;
+  --letter-spacing-wide: 0.08em;
+  
+  --line-height-tight: 1.4;
+  --line-height-normal: 1.7;
+  --line-height-loose: 2.0;
+  
+  /* 🌌 星之海配色 - Dark Mode */
+  --bg-primary: #0f172a;              /* Slate 900 深空黑 */
+  --bg-secondary: #1e293b;            /* Slate 800 次级背景 */
+  --bg-gradient-start: #0f172a;
+  --bg-gradient-end: #312e81;         /* Indigo 900 深紫 */
+  
+  --bubble-bg-user: rgba(30, 41, 59, 0.8);    /* 用户：深灰蓝 */
+  --bubble-bg-ai: rgba(0, 0, 0, 0.4);         /* AI：半透明黑 */
+  --bubble-border: rgba(34, 211, 238, 0.3);   /* Cyan 青色光晕 */
+  --bubble-text: #e2e8f0;                      /* Slate 200 */
+  
+  --accent-color: #38bdf8;            /* Cyan-400 科技感 */
+  --accent-secondary: #a78bfa;        /* Purple-400 神秘感 */
+  
+  --input-panel-bg: rgba(30, 41, 59, 0.8);
+  --input-panel-border: rgba(148, 163, 184, 0.2);
+  --input-text: #f1f5f9;
+  
+  --btn-primary-from: #38bdf8;
+  --btn-primary-to: #818cf8;
+  --btn-primary-shadow: rgba(56, 189, 248, 0.5);
+  --btn-primary-hover: rgba(56, 189, 248, 0.2);
+  
+  --glow-color: rgba(56, 189, 248, 0.6);
+  --star-color: rgba(255, 255, 255, 0.8);
+  
+  /* 🎭 动画时长 */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-typing: 50ms;
+}
+
+/* 🌙 默认深色主题：星之海 */
+body {
+  font-family: var(--font-primary);
+  letter-spacing: var(--letter-spacing-normal);
+  line-height: var(--line-height-normal);
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  background-attachment: fixed;
+  color: var(--bubble-text);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 💗 粉色主题：恋之毒 (Love Potion) */
+body.theme-pink {
+  --bg-primary: #fdf2f8;              /* Pink 50 */
+  --bg-secondary: #fce7f3;            /* Pink 100 */
+  --bg-gradient-start: #fdf2f8;
+  --bg-gradient-end: #fbcfe8;         /* Pink 200 */
+  
+  /* 🎯 关键设计：粉色背景 + 黑色气泡 */
+  --bubble-bg-user: #18181b;          /* Zinc 950 纯黑 */
+  --bubble-bg-ai: #18181b;            /* AI 也用黑色 */
+  --bubble-border: rgba(219, 39, 119, 0.4);    /* Pink 600 边框 */
+  --bubble-text: #fbcfe8;             /* Pink 200 文字 */
+  
+  --accent-color: #db2777;            /* Pink 600 */
+  --accent-secondary: #ec4899;        /* Pink 500 */
+  
+  --input-panel-bg: rgba(255, 255, 255, 0.6);
+  --input-panel-border: rgba(219, 39, 119, 0.3);
+  --input-text: #18181b;
+  
+  --btn-primary-from: #db2777;
+  --btn-primary-to: #ec4899;
+  --btn-primary-shadow: rgba(219, 39, 119, 0.6);
+  --btn-primary-hover: rgba(219, 39, 119, 0.2);
+  
+  --glow-color: rgba(219, 39, 119, 0.6);
+  --star-color: rgba(236, 72, 153, 0.8);
+  
+  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  color: var(--input-text);
+}
+
+/* 📝 文本类型样式 */
+.text-dialogue {
+  font-size: 1rem;
+  line-height: var(--line-height-loose);
+  letter-spacing: var(--letter-spacing-wide);
+  font-weight: 400;
+}
+
+.text-option {
+  font-size: 0.95rem;
+  line-height: var(--line-height-normal);
+  letter-spacing: var(--letter-spacing-normal);
+  font-weight: 500;
+}
+
+.text-kaomoji {
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+  letter-spacing: 0;
+}
+
+.text-handwrite {
+  font-family: var(--font-handwrite);
+  letter-spacing: var(--letter-spacing-wide);
+}
+
+/* 🎬 打字机效果基础样式 */
+.typewriter-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1.2em;
+  background: currentColor;
+  margin-left: 2px;
+  animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* ✨ 选项高亮效果 */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(236, 72, 153, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(236, 72, 153, 0.6);
+  }
+}
+
+@keyframes shake-subtle {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.option-romantic {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+.option-mysterious {
+  animation: pulse-glow 2s ease-in-out infinite;
+  box-shadow: 0 0 20px rgba(147, 51, 234, 0.6) !important;
+}
+
+.option-highlight {
+  animation: shake-subtle 0.5s ease-in-out;
+}
+
+/* 💖 心跳特效 */
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  10%, 30% { transform: scale(1.1); }
+  20%, 40% { transform: scale(1.05); }
+}
+
+.effect-heartbeat {
+  animation: heartbeat 1s ease-in-out infinite;
+}
+
+/* ⭐ 星星闪烁 */
+@keyframes star-twinkle {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+
+.effect-star {
+  animation: star-twinkle 1.5s ease-in-out infinite;
+}
+
+/* 🎯 分支过渡动画 */
+@keyframes branch-zoom {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(1.5); opacity: 0; }
+}
+
+.transition-branch {
+  animation: branch-zoom 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* 📊 属性变化弹窗 */
+@keyframes score-popup {
+  0% {
+    transform: translateY(0) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: translateY(-20px) scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-40px) scale(1);
+    opacity: 0;
+  }
+}
+
+.score-popup {
+  animation: score-popup 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+  font-weight: 700;
+  font-size: 1.5rem;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+/* 🎨 悬停发光效果增强 */
+.option-card:hover {
+  transform: scale(1.02) translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3),
+              0 0 20px var(--glow-color, rgba(236, 72, 153, 0.4));
+  transition: all var(--duration-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 🌟 快进按钮样式 */
+.fast-forward-btn {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.2);
+  border: 2px solid rgba(59, 130, 246, 0.5);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-normal);
+  z-index: 50;
+}
+
+.fast-forward-btn:hover {
+  background: rgba(59, 130, 246, 0.4);
+  transform: scale(1.1);
+}
+
+.fast-forward-btn.active {
+  background: rgba(59, 130, 246, 0.6);
+  border-color: rgba(59, 130, 246, 0.8);
+}
+
+/* 🎭 主题切换按钮 */
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--duration-normal);
+  z-index: 50;
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(180deg);
+}
+
+body.light-theme .theme-toggle {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+body.light-theme .theme-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+/* 🎮 控制台按钮动效 (The Juice) */
+.btn-action {
+  position: relative;
+  transform: skewX(-10deg);
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+  box-shadow: 0 4px 20px var(--btn-primary-shadow);
+}
+
+.btn-action span {
+  display: block;
+  transform: skewX(10deg);
+}
+
+.btn-action:hover {
+  transform: skewX(-10deg) translateY(-2px);
+  box-shadow: 0 6px 30px var(--btn-primary-shadow);
+}
+
+.btn-action:active {
+  transform: skewX(-10deg) scale(0.95);
+}
+
+/* 🎬 脉冲光效 */
+@keyframes pulse-light {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--glow-color), 0 0 40px var(--glow-color);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--glow-color), 0 0 80px var(--glow-color);
+  }
+}
+
+.btn-pulse {
+  animation: pulse-light 2s ease-in-out infinite;
+}
+
+/* 💗 跳动的心脏按钮 (粉色模式) */
+@keyframes heart-beat {
+  0%, 100% {
+    transform: scale(1);
+  }
+  14%, 42% {
+    transform: scale(1.15);
+  }
+  28%, 70% {
+    transform: scale(1.05);
+  }
+}
+
+body.theme-pink .btn-action {
+  animation: heart-beat 1.2s ease-in-out infinite;
+}
+
+/* 🌀 旋转星盘 (星空模式) */
+@keyframes rotate-star {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-starfield::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: conic-gradient(from 0deg, transparent, var(--accent-color), transparent);
+  border-radius: inherit;
+  animation: rotate-star 3s linear infinite;
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* 🎯 悬浮控制台面板 */
+.input-cockpit {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(90%, 800px);
+  background: var(--input-panel-bg);
+  border: 1px solid var(--input-panel-border);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  z-index: 40;
+}
+
+body.theme-pink .input-cockpit {
+  box-shadow: 0 8px 32px rgba(219, 39, 119, 0.3);
+}

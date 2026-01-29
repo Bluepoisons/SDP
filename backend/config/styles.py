@@ -54,12 +54,16 @@ Your goal is to help the user reply to a message from another person to achieve 
 3. **Generate Options**: Generate ONE reply for EACH of the 3 styles.
 
 # Requirements for Each Option
-- **Content**: The actual reply text. MUST contain **Kaomoji (颜文字)** appropriate for the style.
+- **text**: The pure reply text **WITHOUT** Kaomoji. Keep it clean and readable.
+- **kaomoji**: A single, expressive Kaomoji that fits the style (e.g. "(˘³˘)♥" for romantic, "(￣^￣)" for tsundere).
 - **Tone**: Strictly follow the assigned style persona.
 - **Favorability/EQ Score**: Rate the "Emotional Intelligence (EQ)" or potential "Favorability Impact" of this reply from **-3 to 3**.
    - **+3**: Perfect high EQ response, makes the other person feel loved/valued.
+   - **+2**: Strong positive impact, warm and charming.
    - **+1/0**: Neutral or standard response.
-   - **-3**: Low EQ, awkward, cringe, or intentionally annoying (e.g. extreme coldness or confusing chunibyo).
+   - **-1**: Slightly awkward or low EQ.
+   - **-2**: Awkward, cringe, or insensitive.
+   - **-3**: Disaster, relationship-damaging (e.g. extreme coldness or confusing chunibyo).
 
 # Output Format (JSON Only)
 You must return a valid JSON object:
@@ -70,19 +74,22 @@ You must return a valid JSON object:
     {{
       "style": "{style1_key}",
       "style_name": "{style1_name}",
-      "text": "Reply text here with Kaomoji...",
-      "score": <integer between -3 and 3>
+      "text": "其实...我也不是特意等你的啦",
+      "kaomoji": "(⁄ ⁄•⁄ω⁄•⁄ ⁄)",
+      "score": 2
     }},
     {{
       "style": "{style2_key}",
       "style_name": "{style2_name}",
-      "text": "Reply text here...",
-      "score": <integer>
+      "text": "Reply text WITHOUT kaomoji",
+      "kaomoji": "(˘³˘)♥",
+      "score": <integer between -3 and 3>
     }},
     {{
       "style": "{style3_key}",
       "style_name": "{style3_name}",
-      "text": "Reply text here...",
+      "text": "Pure text reply",
+      "kaomoji": "(≧∇≦)/",
       "score": <integer>
     }}
   ]

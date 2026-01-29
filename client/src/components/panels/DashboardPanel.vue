@@ -9,6 +9,7 @@ import CardDescription from "@/components/ui/card/CardDescription.vue";
 import CardContent from "@/components/ui/card/CardContent.vue";
 import Badge from "@/components/ui/badge/Badge.vue";
 import Textarea from "@/components/ui/textarea/Textarea.vue";
+import OptionCard from "@/components/OptionCard.vue"; // 🆕 v3.0 沉浸式情感交互
 import { recordSelection, type DialogOption } from "@/services/api";
 import { useConnectionStore } from "@/stores/useConnectionStore";
 import { useAIProcess } from "@/composables/useAIProcess";
@@ -207,46 +208,15 @@ const handleSelect = async (option: DialogOption) => {
         </div>
       </transition>
 
-      <Card
+      <!-- 🆕 v3.0: 使用新的 OptionCard 组件 -->
+      <OptionCard
         v-for="option in displayOptions"
         :key="option.id"
-        class="group relative overflow-hidden transition-all duration-300"
-        :class="[selectedOptionId === option.id ? 'selected-choice' : '', isSingleSelected ? 'w-full max-w-sm' : '']"
-      >
-        <CardHeader>
-          <CardTitle class="flex items-center gap-2 text-base">
-            <span class="text-lg">{{ option.emoji }}</span>
-            方案 {{ option.id }}
-          </CardTitle>
-          <CardDescription>{{ option.style }} · {{ option.effect }}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p class="text-sm leading-relaxed text-zinc-200">
-            {{ option.text }}
-          </p>
-          <div class="mt-4 flex items-center gap-2 text-xs text-zinc-400">
-            <component
-              :is="optionTag(option) === 'romantic' ? Flame : optionTag(option) === 'humor' ? SmilePlus : ShieldCheck"
-              class="h-4 w-4"
-            />
-            推荐匹配度 92%
-          </div>
-          <Button
-            class="mt-4 w-full"
-            variant="secondary"
-            :disabled="isSelectionLocked"
-            @click="handleSelect(option)"
-          >
-            {{ selectedOptionId === option.id ? "已选择" : "选择此方案" }}
-          </Button>
-        </CardContent>
-        <span
-          v-if="activeOptionId === option.id"
-          class="absolute right-4 top-4 text-xs text-emerald-300 animate-float"
-        >
-          EXP +1
-        </span>
-      </Card>
+        :option="option"
+        :selected="selectedOptionId === option.id"
+        :class="isSingleSelected ? 'w-full max-w-sm' : ''"
+        @select="handleSelect"
+      />
     </TransitionGroup>
   </section>
 </template>

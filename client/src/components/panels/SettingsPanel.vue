@@ -34,6 +34,12 @@ const shadowEnabled = computed({
   set: (value: boolean) => uiSettings.setShadowEnabled(value),
 });
 
+// 🆕 Task 2 & 3: 记忆容量设置
+const memoryLimit = computed({
+  get: () => uiSettings.memoryLimit,
+  set: (val: number) => uiSettings.setMemoryLimit(val),
+});
+
 const triggerTraining = () => {
   isTraining.value = true;
   window.setTimeout(() => {
@@ -178,6 +184,52 @@ const triggerTraining = () => {
           </div>
           <input type="checkbox" v-model="shadowEnabled" class="h-4 w-4" />
         </label>
+      </CardContent>
+    </Card>
+
+    <!-- 🆕 Task 2 & 3: 记忆容量设置 -->
+    <Card class="border-zinc-800 bg-zinc-900/20 backdrop-blur-md">
+      <CardHeader>
+        <CardTitle class="flex items-center gap-2 text-xl">
+          🧠 记忆容量 (Context Window)
+        </CardTitle>
+        <CardDescription>
+          控制对话历史记录的最大消息数 (0-60 条)
+        </CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-6">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium">当前上限</span>
+            <span class="font-mono text-lg font-bold text-indigo-400">{{ memoryLimit }}</span>
+          </div>
+          <input
+            type="range"
+            min="0"
+            max="60"
+            step="2"
+            v-model.number="memoryLimit"
+            class="w-full accent-indigo-500"
+          />
+          <div class="flex justify-between text-xs text-zinc-500">
+            <span>0 (失忆模式)</span>
+            <span>30 (推荐)</span>
+            <span>60 (超长记忆)</span>
+          </div>
+        </div>
+        
+        <div v-if="memoryLimit > 30" class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+          <p class="text-xs text-amber-300">
+            ⚠️ 超过 30 条可能影响生成速度与 token 消耗
+          </p>
+        </div>
+        
+        <div class="rounded-lg border border-zinc-800 bg-zinc-900/60 p-3">
+          <p class="text-xs text-zinc-400 leading-relaxed">
+            💡 <strong>灵活上限策略</strong>：当历史记录少于设定值时，自动使用全部记录。<br>
+            例如：设置 10 条，但当前只有 3 条消息 → 实际发送 3 条。
+          </p>
+        </div>
       </CardContent>
     </Card>
   </section>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useGameStore, type ChoiceOption } from "@/stores/useGameStore";
-import Card from "@/components/ui/card/Card.vue";
+import OptionCard from "@/components/OptionCard.vue"; // 🆕 v3.0 沉浸式情感交互
 
 const props = defineProps<{
   options: ChoiceOption[];
@@ -38,31 +38,15 @@ const handleSelect = (option: ChoiceOption) => {
       <p class="mb-4 text-center text-xs uppercase tracking-[0.4em] text-zinc-400">
         Destiny Choice
       </p>
+      <!-- 🆕 v3.0: 使用新的 OptionCard 组件 -->
       <TransitionGroup name="choice" tag="div" class="grid gap-4">
-        <Card
+        <OptionCard
           v-for="option in props.options"
           :key="option.id"
-          class="group relative cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-zinc-100 backdrop-blur-xl transition-all duration-300 ease-out hover:-translate-y-1 hover:scale-[1.02] hover:border-indigo-400/60"
-          :class="styleClass(option)"
-          @click="handleSelect(option)"
-        >
-          <div class="flex items-start justify-between gap-4">
-            <div>
-              <p class="text-base font-medium">{{ option.text }}</p>
-              <p v-if="option.effect" class="mt-1 text-xs text-zinc-400">{{ option.effect }}</p>
-            </div>
-            <span v-if="option.style" class="rounded-full border border-white/10 px-2 py-0.5 text-[10px] uppercase tracking-widest text-zinc-400">
-              {{ option.style }}
-            </span>
-          </div>
-
-          <span
-            v-if="activeOptionId === option.id"
-            class="absolute right-4 top-4 text-xs text-emerald-300 animate-float"
-          >
-            EXP +1
-          </span>
-        </Card>
+          :option="option"
+          :selected="activeOptionId === option.id"
+          @select="handleSelect"
+        />
       </TransitionGroup>
 
       <transition name="toast">

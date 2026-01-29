@@ -39,10 +39,15 @@ const scrollToBottom = async () => {
 const emit = defineEmits<{
   (e: "regenerate", messageId: string): void;
   (e: "feedback", payload: { id: string; type: "like" | "dislike" | "reset" }): void;
+  (e: "score-popup", score: number, x: number, y: number): void; // 🎨 v4.0: 属性弹窗事件
 }>();
 
 const handleSelect = (option: ChoiceOption) => {
   gameStore.handleOptionSelection(option);
+};
+
+const handleScorePopup = (score: number, x: number, y: number) => {
+  emit("score-popup", score, x, y);
 };
 
 const handleRegenerate = (messageId: string) => {
@@ -87,6 +92,7 @@ watch(messages, scrollToBottom, { deep: true });
             @feedback="handleFeedback"
             @typing="handleTyping"
             @delete="handleDelete"
+            @score-popup="handleScorePopup"
           />
         </div>
         <div ref="bottomRef" class="h-px" />
