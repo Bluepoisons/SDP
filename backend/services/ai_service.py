@@ -1,98 +1,79 @@
-import asyncio
+"""
+AI Service - 核心 LLM 调用服务
+使用 AsyncOpenAI 原生异步客户端 + Loguru 结构化日志
+"""
 import json
 import os
 from typing import Any, Dict
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from loguru import logger
+from openai import AsyncOpenAI
 from pydantic import ValidationError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
-from schemas import GameResponse
+from models.schemas import GameResponse
+from config.styles import build_system_prompt
 
 class AIService:
-    # Style Personality Guide for Prompt Engineering
-    STYLE_GUIDE = {
-        "TSUNDERE": {
-            "personality": "傲娇 (Tsundere): 内心想关心对方，但嘴上必须拒绝或嘲讽。不坦率，容易害羞后生气。",
-            "kaomoji": "(￣^￣), (⁄ ⁄•⁄ω⁄•⁄ ⁄), (｀ε´), (｡•ˇ‸ˇ•｡)",
-            "inner_voice": "内心常常挣扎于'想帮忙但不想显得在意'，会在心里吐槽自己或对方。"
-        },
-        "YANDERE": {
-            "personality": "病娇 (Yandere): 表面温柔体贴，内心充满极端的占有欲和嫉妒。爱意扭曲，透着危险的气息。",
-            "kaomoji": "(♡_♡), (..•˘_˘•..), (◕‿◕), (◉_◉)",
-            "inner_voice": "内心充满对玩家的执念，会计算如何让对方永远留在身边，思维略带偏执。"
-        },
-        "KUUDERE": {
-            "personality": "三无 (Kuudere): 外表冷淡无表情，说话简短毒舌，内心其实极其理性且偶尔关心对方。",
-            "kaomoji": "(._.), (ー_ー), (¬_¬), ( ̄ー ̄)",
-            "inner_voice": "内心以极其理性的方式分析局势，偶尔会冒出'真是麻烦'或'为什么要在意这种事'的吐槽。"
-        },
-        "GENKI": {
-            "personality": "元气 (Genki): 充满活力和好奇心，把一切当作冒险，说话带感叹号，情绪外放。",
-            "kaomoji": "(≧∇≦)/, (☆▽☆), (^▽^), ヾ(≧▽≦*)o",
-            "inner_voice": "内心也保持高能量，会把现状脑补成冒险剧情，对一切都充满期待。"
-        }
-    }
-
+    """
+    AI 服务类 - 负责与 LLM 交互
+    
+    Features:
+    - AsyncOpenAI 原生异步客户端（高并发性能优化）
+    - Tenacity 自动重试机制（容错性）
+    - Loguru 结构化日志（可观测性）
+    - Pydantic 数据校验（类型安全）
+    """
+    
     def __init__(self) -> None:
+        logger.info("🚀 [AIService] Initializing AI Service...")
         self._refresh_config()
 
     def _refresh_config(self) -> None:
+        """加载环境变量配置"""
         load_dotenv(override=True)
         self.api_key = os.getenv("SILICONFLOW_API_KEY", "")
         self.model = os.getenv("AI_MODEL", "Qwen/Qwen2.5-72B-Instruct")
         self.max_tokens = int(os.getenv("AI_MAX_TOKENS", "2048"))
         self.temperature = float(os.getenv("AI_TEMPERATURE", "0.85"))
-        self.client = OpenAI(api_key=self.api_key, base_url="https://api.siliconflow.cn/v1")
+        
+        # 使用 AsyncOpenAI 原生异步客户端
+        self.client = AsyncOpenAI(
+            api_key=self.api_key,
+            base_url="https://api.siliconflow.cn/v1"
+        )
+        
+        logger.success(f"✅ [Config] Model: {self.model} | Tokens: {self.max_tokens} | Temp: {self.temperature}")
 
     def _parse_response(self, raw_content: str) -> Dict[str, Any]:
-        clean_content = raw_content.replace("```json", "").replace("```", "").strip()
-        data = json.loads(clean_content)
-        validated = GameResponse(**data)
-        return validated.model_dump()
-
-    def _build_system_prompt(self, style: str) -> str:
-        """构建结构化的 System Prompt，根据 style 动态注入人设。"""
-        style_info = self.STYLE_GUIDE.get(style, self.STYLE_GUIDE["TSUNDERE"])
+        """
+        解析 LLM 返回的 JSON 响应并验证数据结构
         
-        prompt = f"""# Role Definition
-You are a **Galgame Engine** designed to generate immersive dialogue with distinct personality traits.
-
-# Current Character Style
-**{style_info['personality']}**
-
-**Recommended Kaomoji**: {style_info['kaomoji']}
-
-**Inner Voice Characteristics**: {style_info['inner_voice']}
-
-# Output Requirements
-You **MUST** return a JSON object with the following structure:
-
-```json
-{{
-  "summary": "<角色的内心独白/心理活动>（禁止使用颜文字，语气符合内心人设，可以是吐槽、分析或情绪波动）",
-  "text": "<角色实际说出口的话>（必须包含大量符合人设的颜文字 Kaomoji，体现外在表现）",
-  "mood": "<情绪标签: angry/shy/happy/dark/neutral/excited/love>",
-  "scene": "<当前场景的简短描述，如'夕阳下的教室'、'深夜的图书馆'等>",
-  "options": ["<选项1>", "<选项2>", "<选项3>"]
-}}
-```
-
-# Field Explanation
-1. **summary**: 角色的真实心理活动，**不对外显示**，玩家只能"窥探"到内心想法。必须符合人设的内在逻辑（如傲娇的矛盾、病娇的执念、三无的冷静分析、元气的脑补剧情）。
-2. **text**: 角色实际说出的话，**对玩家展示**。必须使用颜文字强化情感表达，体现人设的外在行为。
-3. **mood**: 当前情绪状态，用于 UI 渲染。
-4. **scene**: 场景描述，用于氛围营造。
-5. **options**: 给玩家的 3 个互动选项，符合当前剧情走向。
-
-# Critical Constraints
-- **summary** 字段：禁止颜文字，语气冷静或符合内心人设的吐槽/分析。
-- **text** 字段：必须包含至少 2 个符合人设的颜文字。
-- **Output Format**: 严格遵守 JSON 格式，不要添加任何 Markdown 代码块标记。
-- **Language**: 全部使用中文回复（除 JSON 字段名）。
-"""
-        return prompt
+        Args:
+            raw_content: LLM 返回的原始字符串
+            
+        Returns:
+            验证后的字典数据
+            
+        Raises:
+            json.JSONDecodeError: JSON 解析失败
+            ValidationError: Pydantic 数据验证失败
+        """
+        # 清理可能的 Markdown 代码块标记
+        clean_content = raw_content.replace("```json", "").replace("```", "").strip()
+        
+        logger.debug(f"📝 [Parse] Raw content length: {len(clean_content)}")
+        
+        # JSON 解析
+        data = json.loads(clean_content)
+        
+        # Pydantic 验证
+        validated = GameResponse(**data)
+        
+        logger.debug(f"✅ [Validate] Mood: {validated.mood} | Scene: {validated.scene}")
+        
+        return validated.model_dump()
 
     @retry(
         stop=stop_after_attempt(3),
@@ -101,13 +82,29 @@ You **MUST** return a JSON object with the following structure:
         reraise=True,
     )
     async def generate_response(self, user_input: str, style: str) -> Dict[str, Any]:
-        """生成 AI 响应，使用高级提示工程确保 summary 和 text 的严格区分。"""
+        """
+        生成 AI 响应 - 使用原生异步客户端
+        
+        Args:
+            user_input: 用户输入文本
+            style: 风格代码 (TSUNDERE/YANDERE/KUUDERE/GENKI)
+            
+        Returns:
+            包含 summary, text, mood, scene, options 的字典
+            
+        Raises:
+            Exception: API 调用失败或数据验证失败
+        """
         self._refresh_config()
-        system_prompt = self._build_system_prompt(style)
+        
+        # 从配置模块动态构建 Prompt
+        system_prompt = build_system_prompt(style)
+        
+        logger.info(f"⚡ [Request] Style: {style} | Input: {user_input[:30]}...")
 
         try:
-            response = await asyncio.to_thread(
-                self.client.chat.completions.create,
+            # 直接 await 原生异步方法，无需 asyncio.to_thread
+            response = await self.client.chat.completions.create(
                 model=self.model,
                 messages=[
                     {"role": "system", "content": system_prompt},
@@ -119,8 +116,16 @@ You **MUST** return a JSON object with the following structure:
             )
 
             raw_content = response.choices[0].message.content
-            return self._parse_response(raw_content)
+            result = self._parse_response(raw_content)
+            
+            logger.success(f"✅ [LLM] Generation successful | Options: {len(result.get('options', []))}")
+            
+            return result
+            
         except Exception as exc:
+            logger.error(f"❌ [LLM] Failed: {exc}")
             raise exc
 
+
+# 创建全局实例供 main.py 导入
 ai_service = AIService()

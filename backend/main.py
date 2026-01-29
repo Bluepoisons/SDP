@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from loguru import logger
 import uvicorn
 import time
 import os
@@ -11,10 +12,12 @@ load_dotenv()
 
 from services.ai_service import ai_service
 from services.db_service import db_service
-from schemas import ChatRequest, GameResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest
+from models.schemas import ChatRequest, GameResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest
 
 # 初始化 App
 app = FastAPI(title="SDP Python Backend")
+
+logger.info("🚀 [FastAPI] Application starting...")
 
 # ==========================================
 # 1. 解决 Network Error 的核心：CORS 配置
@@ -59,12 +62,22 @@ async def health_check():
 # 我们这里写两个以防万一，随后你在前端统一
 @app.post("/api/chat", response_model=GameResponse)
 async def chat_endpoint(request: ChatRequest):
+    """
+    新版聊天接口 - 使用 AsyncOpenAI
+    
+    Request: {user_input, style}
+    Response: {summary, text, mood, scene, options}
+    """
+    logger.info(f"📨 [/api/chat] Received request | Style: {request.style}")
+    
     try:
         result = await ai_service.generate_response(request.user_input, request.style)
+        logger.success(f"✅ [/api/chat] Response generated successfully")
         return result
     except Exception as exc:
-        print(f"🔥 Final Failure: {exc}")
+        logger.error(f"❌ [/api/chat] Failed: {exc}")
         return {
+            "summary": "系统出现了一些波动...",
             "text": "系统连接波动，请稍后再试... (._.)",
             "mood": "neutral",
             "scene": "error_screen",
@@ -75,7 +88,15 @@ async def chat_endpoint(request: ChatRequest):
 @app.post("/api/generate")
 @app.post("/generate")
 async def generate_dialog(request: LegacyGenerateRequest):
+    """
+    兼容旧版前端的接口 - 支持 Vue 组件
+    
+    Request: {text, style, userId, history, sessionId}
+    Response: {success, data: {options: [{id, text, style, emoji, favorChange}]}}
+    """
     start_time = time.perf_counter()
+    
+    logger.info(f"📨 [/api/generate] Legacy request | Style: {request.style}")
 
     style = request.style or "TSUNDERE"
     if style not in {"TSUNDERE", "YANDERE", "KUUDERE", "GENKI"}:
@@ -83,8 +104,9 @@ async def generate_dialog(request: LegacyGenerateRequest):
 
     try:
         ai_result = await ai_service.generate_response(request.text, style)
+        logger.success(f"✅ [/api/generate] Legacy response generated")
     except Exception as exc:
-        print(f"Legacy generate failed: {exc}")
+        logger.error(f"❌ [/api/generate] Failed: {exc}")
         return JSONResponse(
             status_code=200,
             content={
