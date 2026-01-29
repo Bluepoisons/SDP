@@ -39,6 +39,22 @@ cd D:\All_codes\galonline\backend
 **注意**：必须在 `backend` 目录中启动，否则会报 "Could not import module 'main'" 错误。
 
 **最新更新 (2026-01-29)**：
+
+### v2.1 - 历史记忆与日志系统 🧠📝
+- ✅ **Task 2 后端增强**：
+  - 🧠 历史上下文记忆系统（8-32条可配置）
+  - 📝 系统日志查看接口 `/api/system/logs`
+  - 🔄 AI 现在能理解对话背景，给出连贯建议
+  - 📊 日志自动滚动管理（10MB切分，7天保留）
+
+- ✅ **Task 3 前端功能升级**：
+  - ⚙️ 现代化设置面板（玻璃态设计 + Framer Motion动画）
+  - 🎚️ 记忆深度滑块（8-32条，实时调节）
+  - 🖥️ 开发者日志查看器（终端风格，实时刷新）
+  - 🗑️ 一键清除所有会话记录
+  - 📈 统计信息显示（会话数、记忆模式）
+
+### v2.0 - 恋爱军师系统 💘
 - ✅ 后端已重构为"恋爱军师"模式（5种风格：高冷/傲娇/元气/谄媚/中二）
 - ✅ 自动随机抽取 3 种风格生成回复建议
 - ✅ 每个选项包含情商评分 (-3 到 +3)
@@ -48,8 +64,11 @@ cd D:\All_codes\galonline\backend
   - 好感度标签带图标（💚💖💬💔❌）和发光效果
   - 悬停时边框光晕增强，提供即时视觉反馈
 - 📄 详细说明见：
+  - [TASK2_3_IMPLEMENTATION_SUMMARY.md](TASK2_3_IMPLEMENTATION_SUMMARY.md) - 完整实现总结
+  - [TASK2_MEMORY_LOGS.md](backend/TASK2_MEMORY_LOGS.md) - 后端记忆与日志系统
   - [FRONTEND_COMPATIBILITY_FIX.md](backend/FRONTEND_COMPATIBILITY_FIX.md) - 后端接口兼容
   - [FAVOR_SYSTEM_DESIGN.md](client/FAVOR_SYSTEM_DESIGN.md) - 好感度视觉系统
+  - [TESTING_GUIDE.md](TESTING_GUIDE.md) - 快速测试指南
 
 ### 3. 前端设置 (Client)
 前端使用 Electron + React（主渲染）/ Vue 3（历史/备用）。
