@@ -6,6 +6,7 @@ import ImageInputProcessor from './ImageInputProcessor';
 import ScreenshotCapture from './ScreenshotCapture';
 import GalgameOptions from './GalgameOptions'; // Import the new component
 import GalgameInput from './GalgameInput';
+import SettingsModal from './SettingsModal'; // Task 2 & 3: 设置面板
 
 // 打字机效果组件 - 升级为支持 Markdown
 const Typewriter = ({ text, speed = 20 }) => {
@@ -148,6 +149,7 @@ const DialogProcessor = () => {
   const [hoveredOptionId, setHoveredOptionId] = useState(null);
   const [showImageInput, setShowImageInput] = useState(false);
   const [showScreenshotCapture, setShowScreenshotCapture] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false); // Task 2 & 3: 设置面板状态
   const timerStartRef = React.useRef(0);
   
   const { 
@@ -237,10 +239,46 @@ const DialogProcessor = () => {
 
   return (
     <div className="dialog-container">
-      <div className="app-header" style={{ padding: '20px 40px', textAlign: 'center', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+      <div className="app-header" style={{ 
+        padding: '20px 40px', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        borderBottom: '1px solid rgba(0,0,0,0.05)' 
+      }}>
         <h1 className="app-logo" style={{ fontSize: '1.8em', margin: 0, whiteSpace: 'nowrap' }}>
           <span>✨</span> SmartDialog Processor
         </h1>
+        
+        {/* Task 2 & 3: 设置按钮 */}
+        <button
+          onClick={() => setIsSettingsOpen(true)}
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+            border: 'none',
+            borderRadius: '12px',
+            padding: '10px 20px',
+            color: 'white',
+            fontSize: '16px',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.3s ease',
+            boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 6px 20px rgba(102, 126, 234, 0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 4px 15px rgba(102, 126, 234, 0.4)';
+          }}
+        >
+          <span style={{ fontSize: '20px' }}>⚙️</span>
+          <span>设置</span>
+        </button>
       </div>
 
       <div className="messages-list">
@@ -380,6 +418,12 @@ const DialogProcessor = () => {
           onClose={() => setShowScreenshotCapture(false)}
         />
       )}
+      
+      {/* Task 2 & 3: 设置面板 */}
+      <SettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)} 
+      />
     </div>
   );
 };
