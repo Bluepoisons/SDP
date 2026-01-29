@@ -22,12 +22,14 @@ export const checkHealth = async () => {
   }
 };
 
-export const processDialog = async (text, userId, style, signal, modelSource = 'external') => {
+export const processDialog = async (text, userId, style, signal, modelSource = 'external', history = []) => {
   try {
+    // Task 2: 支持传递历史上下文
     const response = await api.post('/api/generate', { 
       text, 
       userId, 
-      style 
+      style,
+      history  // 新增历史参数
     }, { signal });
     return response.data;
   } catch (error) {

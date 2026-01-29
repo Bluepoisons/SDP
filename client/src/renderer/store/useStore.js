@@ -27,6 +27,23 @@ const useStore = create(
       // Settings
       modelSource: 'external', // 'external' | 'local'
       setModelSource: (source) => set({ modelSource: source }),
+      
+      // Task 2: Memory & Logs Settings
+      memoryMax: 8, // 默认记忆深度 8 条
+      setMemoryMax: (value) => set({ memoryMax: Math.min(32, Math.max(8, value)) }),
+      showLogs: false,
+      toggleLogs: () => set(state => ({ showLogs: !state.showLogs })),
+      logs: '',
+      fetchLogs: async (lines = 100) => {
+        try {
+          const response = await fetch(`http://127.0.0.1:8000/api/system/logs?lines=${lines}`);
+          const logs = await response.text();
+          set({ logs });
+        } catch (err) {
+          console.error('Failed to fetch logs:', err);
+          set({ logs: 'Error fetching logs: ' + err.message });
+        }
+      },
 
       // Actions
       initStore: () => {
@@ -75,7 +92,7 @@ const useStore = create(
       },
 
       generateOptions: async (text, style = 'neutral') => {
-        const { abortController, currentSessionId } = get();
+        const { abortController, currentSessionId, memoryMax } = get();
         if (abortController) abortController.abort();
 
         const controller = new AbortController();
@@ -91,8 +108,24 @@ const useStore = create(
         }));
 
         try {
-          const { userId, modelSource } = get();
-          const result = await processDialog(text, userId, style, controller.signal, modelSource);
+          const { userId, modelSource, sessions } = get();
+          
+          // Task 2: 构建历史上下文（截取最近的 memoryMax 条消息）
+          const currentSession = sessions.find(s => s.id === currentSessionId);
+          const allMessages = currentSession?.messages || [];
+          
+          // 转换为后端期望的格式
+          const history = allMessages
+            .slice(-memoryMax)  // 截取最近的 N 条
+            .filter(msg => msg.role === 'user' || msg.role === 'ai')  // 排除 system 消息
+            .map(msg => ({
+              role: msg.role === 'ai' ? 'assistant' : 'user',
+              content: msg.role === 'ai' ? (msg.options?.[0]?.text || msg.content) : msg.content
+            }));
+          
+          console.log('[Store] Sending request with history:', history.length, 'messages');
+          
+          const result = await processDialog(text, userId, style, controller.signal, modelSource, history);
 
           if (!result || result.success === false) {
             const msg = result?.message || '生成失败，请稍后重试。';

@@ -5,12 +5,27 @@ from typing import List, Optional, Any, Literal
 
 class ChatRequest(BaseModel):
     """
-    用户请求模型
+    用户请求模型（升级版 - 支持记忆上下文）
     在新版中，style 由后端随机生成，前端只需要传对方的话
     """
-    user_input: str = Field(..., description="对方发来的消息")
+    user_input: str = Field(..., description="对方发来的最新消息")
     # 可选保留 style 以兼容旧接口测试，但实际业务逻辑中主要由后端随机
-    style: Optional[str] = None 
+    style: Optional[str] = None
+    # 新增: 历史对话上下文，用于让 AI 理解前文
+    # 格式: [{"role": "user", "content": "..."}, {"role": "assistant", "content": "..."}]
+    history: List[dict] = Field(default=[], description="对话历史上下文，最多保留32条")
+    
+    @field_validator('history')
+    @classmethod
+    def validate_history(cls, v: List[dict]) -> List[dict]:
+        """验证历史记录格式并限制长度"""
+        if len(v) > 32:
+            raise ValueError("历史记录不能超过32条")
+        # 简单校验格式
+        for msg in v:
+            if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
+                raise ValueError("历史记录格式错误，需要包含 role 和 content 字段")
+        return v 
 
 class ReplyOption(BaseModel):
     """单个回复选项"""

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, PlainTextResponse
 from loguru import logger
 import uvicorn
 import time
@@ -9,6 +9,25 @@ from dotenv import load_dotenv
 
 # Load environment variables BEFORE importing services that use them
 load_dotenv()
+
+# ==========================================
+# 配置日志文件 (Task 2 - 日志查看功能)
+# ==========================================
+LOG_DIR = "logs"
+LOG_FILE = os.path.join(LOG_DIR, "love_advisor.log")
+
+# 确保日志目录存在
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
+
+# 配置 loguru 写入文件：10MB 滚动，保留 7 天
+logger.add(
+    LOG_FILE,
+    rotation="10 MB",
+    retention="7 days",
+    encoding="utf-8",
+    format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
+)
 
 from services.ai_service import ai_service
 from services.db_service import db_service
@@ -55,18 +74,42 @@ async def health_check():
         "model": os.getenv("AI_MODEL", "")
     }
 
+@app.get("/api/system/logs", response_class=PlainTextResponse)
+async def get_system_logs(lines: int = 100):
+    """
+    获取最近的系统日志 (Task 2 - 日志查看接口)
+    
+    Args:
+        lines: 返回最后 N 行日志，默认 100 行
+        
+    Returns:
+        纯文本格式的日志内容
+    """
+    if not os.path.exists(LOG_FILE):
+        return "Log file not found. Please check if the backend has been started."
+    
+    try:
+        with open(LOG_FILE, "r", encoding="utf-8") as f:
+            all_lines = f.readlines()
+            # 返回最后 N 行
+            last_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+            return "".join(last_lines)
+    except Exception as e:
+        logger.error(f"❌ [/api/system/logs] Error reading logs: {e}")
+        return f"Error reading logs: {str(e)}"
+
 @app.post("/api/chat", response_model=AdvisorResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    恋爱军师核心接口
-    Request: { user_input: "..." }
+    恋爱军师核心接口（支持历史上下文）
+    Request: { user_input: "...", history: [{role: "user", content: "..."}] }
     Response: { analysis: "...", options: [ ... ] }
     """
-    logger.info(f"📨 [/api/chat] Received: {request.user_input}")
+    logger.info(f"📨 [/api/chat] Received: {request.user_input} | History: {len(request.history)} messages")
     
     try:
-        # 只需要传 text，风格由后端随机
-        result = await ai_service.generate_response(request.user_input)
+        # 传入 user_input 和 history，风格由后端随机
+        result = await ai_service.generate_response(request.user_input, request.history)
         return result
     except Exception as exc:
         logger.error(f"❌ [/api/chat] Error: {exc}")
@@ -101,7 +144,7 @@ async def chat_endpoint(request: ChatRequest):
 @app.post("/generate")
 async def generate_dialog(request: LegacyGenerateRequest):
     """
-    兼容旧版前端的接口 - 将新格式转换为旧格式
+    兼容旧版前端的接口 - 将新格式转换为旧格式（支持历史记录）
     
     前端期望格式:
     {
@@ -114,11 +157,14 @@ async def generate_dialog(request: LegacyGenerateRequest):
     }
     """
     start_time = time.perf_counter()
-    logger.info(f"📨 [/api/generate] Legacy request redirecting to new chat endpoint")
+    logger.info(f"📨 [/api/generate] Legacy request (with history: {len(request.history or [])} msgs)")
     
     try:
-        # 调用新接口获取恋爱军师响应
-        chat_request = ChatRequest(user_input=request.text)
+        # 调用新接口获取恋爱军师响应（支持历史）
+        chat_request = ChatRequest(
+            user_input=request.text,
+            history=request.history or []  # Task 2: 传递历史记录
+        )
         advisor_response = await chat_endpoint(chat_request)
         
         # 转换为旧格式

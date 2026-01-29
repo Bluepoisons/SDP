@@ -1,14 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useStore from '../store/useStore';
+import SettingsModal from './SettingsModal';
 
 const Settings = () => {
   const { modelSource, setModelSource } = useStore();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="content-padding">
-      <h2>系统设置</h2>
-      
-      <div className="card settings-card">
+    <>
+      <div className="content-padding">
+        <h2>系统设置</h2>
+        
+        {/* 打开完整设置面板按钮 */}
+        <div className="card settings-card mb-4">
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold rounded-lg hover:from-cyan-600 hover:to-blue-600 transition-all shadow-lg hover:shadow-xl"
+          >
+            ⚙️ 打开完整设置面板
+          </button>
+          <p className="text-sm text-gray-500 mt-2 text-center">
+            包含记忆深度、日志查看等高级功能
+          </p>
+        </div>
+        
+        <div className="card settings-card">
         <h3>模型来源</h3>
         <div className="setting-item">
           <label className="radio-label">
@@ -60,6 +76,10 @@ const Settings = () => {
         </div>
       )}
     </div>
+    
+    {/* Task 2: 完整设置面板（包含记忆深度和日志查看） */}
+    <SettingsModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+  </>
   );
 };
 

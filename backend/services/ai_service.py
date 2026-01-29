@@ -62,18 +62,56 @@ class AIService:
             logger.error(f"❌ [Parse] Schema Error: {e}")
             raise e
 
+    def _build_context_prompt(self, user_input: str, history: list, selected_styles: list) -> str:
+        """
+        构建带上下文的 Prompt
+        
+        Args:
+            user_input: 对方最新消息
+            history: 历史对话记录 [{"role": "user", "content": "..."}, ...]
+            selected_styles: 已选择的3种风格
+            
+        Returns:
+            完整的 system prompt
+        """
+        # 1. 格式化历史记录
+        context_str = ""
+        if history:
+            context_str = "\n# 📜 Conversation History (Recent Context)\n"
+            context_str += "以下是之前的对话上下文，用于理解当前局势的背景：\n"
+            for i, msg in enumerate(history, 1):
+                role = "对方" if msg.get("role") == "user" else "你之前的建议"
+                content = msg.get("content", "")
+                context_str += f"{i}. {role}: {content}\n"
+            context_str += "\n---\n"
+        
+        # 2. 获取基础 prompt
+        base_prompt = build_advisor_prompt(user_input, selected_styles)
+        
+        # 3. 将 context 插入到 Input 之前
+        if context_str:
+            final_prompt = base_prompt.replace(
+                "# Input - The Other Person's Message", 
+                f"{context_str}# Input - The Other Person's Message (最新消息)"
+            )
+        else:
+            final_prompt = base_prompt
+            
+        return final_prompt
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),
         retry=retry_if_exception_type((json.JSONDecodeError, ValidationError, Exception)),
         reraise=True,
     )
-    async def generate_response(self, user_input: str) -> Dict[str, Any]:
+    async def generate_response(self, user_input: str, history: list = []) -> Dict[str, Any]:
         """
-        生成恋爱军师建议
+        生成恋爱军师建议（支持历史上下文）
         
         Args:
             user_input: 对方发来的文本
+            history: 历史对话记录，用于上下文理解
             
         Returns:
             AdvisorResponse 的字典形式 (analysis, options)
@@ -83,12 +121,12 @@ class AIService:
         # 1. 随机抽取 3 种风格
         selected_styles = get_random_styles(3)
         style_names = [s['name'] for s in selected_styles]
-        logger.info(f"🎲 [Random] Selected styles: {style_names}")
+        logger.info(f"🎲 [Random] Styles: {style_names} | History Depth: {len(history)}")
         
-        # 2. 构建 Prompt
-        system_prompt = build_advisor_prompt(user_input, selected_styles)
+        # 2. 构建带记忆的 Prompt
+        system_prompt = self._build_context_prompt(user_input, history, selected_styles)
         
-        logger.info(f"⚡ [Request] Input: {user_input[:30]}...")
+        logger.info(f"⚡ [Request] Input: {user_input[:30]}... | Context: {len(history)} messages")
 
         try:
             # 3. 调用 LLM
@@ -97,7 +135,7 @@ class AIService:
                 messages=[
                     {"role": "system", "content": system_prompt},
                     # 也可以选择把 user_input 放在这里再次强调，或者仅靠 system prompt
-                    {"role": "user", "content": f"对方发来：{user_input}"},
+                    {"role": "user", "content": f"对方最新消息：{user_input}"},
                 ],
                 temperature=self.temperature,
                 max_tokens=self.max_tokens,
