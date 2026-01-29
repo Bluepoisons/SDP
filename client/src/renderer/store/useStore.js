@@ -92,12 +92,28 @@ const useStore = create(
       },
 
       generateOptions: async (text, style = 'neutral') => {
-        const { abortController, currentSessionId, memoryMax } = get();
+        const { abortController, currentSessionId, memoryMax, sessions } = get();
         if (abortController) abortController.abort();
 
         const controller = new AbortController();
         set({ isLoading: true, error: null, abortController: controller });
 
+        // Task 2: 先构建历史上下文（在添加新消息之前）
+        const currentSession = sessions.find(s => s.id === currentSessionId);
+        const allMessages = currentSession?.messages || [];
+        
+        // 转换为后端期望的格式（不包含当前这条新消息）
+        const history = allMessages
+          .slice(-memoryMax)  // 截取最近的 N 条
+          .filter(msg => msg.role === 'user' || msg.role === 'ai')  // 排除 system 消息
+          .map(msg => ({
+            role: msg.role === 'ai' ? 'assistant' : 'user',
+            content: msg.role === 'ai' ? (msg.options?.[0]?.text || msg.content) : msg.content
+          }));
+        
+        console.log('[Store] Sending request with history:', history.length, 'messages, memoryMax:', memoryMax);
+
+        // 添加用户新消息到 session
         const userMsg = { role: 'user', content: text, timestamp: Date.now() };
         set(state => ({
           sessions: state.sessions.map(s => 
@@ -108,22 +124,7 @@ const useStore = create(
         }));
 
         try {
-          const { userId, modelSource, sessions } = get();
-          
-          // Task 2: 构建历史上下文（截取最近的 memoryMax 条消息）
-          const currentSession = sessions.find(s => s.id === currentSessionId);
-          const allMessages = currentSession?.messages || [];
-          
-          // 转换为后端期望的格式
-          const history = allMessages
-            .slice(-memoryMax)  // 截取最近的 N 条
-            .filter(msg => msg.role === 'user' || msg.role === 'ai')  // 排除 system 消息
-            .map(msg => ({
-              role: msg.role === 'ai' ? 'assistant' : 'user',
-              content: msg.role === 'ai' ? (msg.options?.[0]?.text || msg.content) : msg.content
-            }));
-          
-          console.log('[Store] Sending request with history:', history.length, 'messages');
+          const { userId, modelSource } = get();
           
           const result = await processDialog(text, userId, style, controller.signal, modelSource, history);
 
@@ -217,7 +218,13 @@ const useStore = create(
     {
       name: 'galonline-storage', // unique name
       storage: createJSONStorage(() => localStorage),
-      partialize: (state) => ({ sessions: state.sessions, currentSessionId: state.currentSessionId, userId: state.userId }),
+      partialize: (state) => ({ 
+        sessions: state.sessions, 
+        currentSessionId: state.currentSessionId, 
+        userId: state.userId,
+        memoryMax: state.memoryMax, // Task 2: 持久化记忆深度设置
+        modelSource: state.modelSource
+      }),
     }
   )
 );
