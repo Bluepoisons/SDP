@@ -147,3 +147,210 @@ const charCount = computed(() => input.value.length);
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 🎮 驾驶舱主体 - 悬浮控制台 */
+.input-cockpit {
+  position: relative;
+  padding: 1rem 1.25rem;
+  background: var(--input-panel-bg);
+  border: 1px solid var(--input-panel-border);
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+/* 聚焦时呼吸灯光效 */
+.input-cockpit.idle-glow {
+  border-color: var(--accent-color);
+  box-shadow: 
+    0 0 20px var(--glow-color),
+    inset 0 0 30px rgba(0, 0, 0, 0.3);
+  animation: breathe-glow 3s ease-in-out infinite;
+}
+
+@keyframes breathe-glow {
+  0%, 100% { box-shadow: 0 0 20px var(--glow-color), inset 0 0 30px rgba(0, 0, 0, 0.3); }
+  50% { box-shadow: 0 0 35px var(--glow-strong), inset 0 0 40px rgba(0, 0, 0, 0.4); }
+}
+
+/* 🔝 HUD 扫描线 */
+.hud-scan {
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--accent-color) 50%,
+    transparent 100%
+  );
+  animation: scan-down 4s linear infinite;
+}
+
+@keyframes scan-down {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(200%); }
+}
+
+/* 🎵 波形动画 */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 16px;
+}
+
+.waveform-bar {
+  width: 3px;
+  height: 100%;
+  background: var(--accent-color);
+  border-radius: 2px;
+  animation: wave-bounce 0.8s ease-in-out infinite;
+}
+
+.waveform-bar:nth-child(1) { animation-delay: 0s; }
+.waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+.waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+.waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+.waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+
+@keyframes wave-bounce {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
+
+/* 📝 装饰文字 */
+.deco-text {
+  font-family: var(--font-tech, 'Rajdhani', monospace);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+/* 💬 玻璃面板输入区 */
+.glass-panel {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--input-panel-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.glass-panel:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 15px var(--glow-color);
+}
+
+/* 📏 底部刻度线 */
+.hud-scale {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent-color) 0px,
+    var(--accent-color) 1px,
+    transparent 1px,
+    transparent 10px
+  );
+}
+
+/* 🎯 斜切功能按钮 */
+.btn-skew {
+  border-radius: 6px;
+  transform: skewX(var(--skew-angle-subtle, -6deg));
+  transition: all 0.2s ease;
+}
+
+.btn-skew:hover {
+  box-shadow: 0 0 12px var(--glow-color);
+}
+
+.btn-skew:active {
+  transform: skewX(var(--skew-angle-subtle, -6deg)) scale(0.95) translateY(1px);
+}
+
+/* 心跳模式：圆润按钮 */
+:global(body.theme-heartbeat) .btn-skew {
+  transform: skewX(0);
+  border-radius: 9999px;
+}
+
+:global(body.theme-heartbeat) .btn-skew:active {
+  transform: scale(0.95) translateY(1px);
+}
+
+/* 🔘 扳机按钮 */
+.trigger-btn {
+  width: 56px;
+  height: 56px;
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px var(--btn-primary-shadow);
+  
+  /* 深潜模式：菱形 */
+  border-radius: 8px;
+  transform: rotate(45deg);
+}
+
+.trigger-btn > * {
+  transform: rotate(-45deg);
+}
+
+.trigger-btn:hover:not(:disabled) {
+  box-shadow: 0 6px 30px var(--glow-strong);
+  transform: rotate(45deg) scale(1.05);
+}
+
+.trigger-btn:active:not(:disabled) {
+  transform: rotate(45deg) scale(0.95);
+}
+
+/* 心跳模式：圆形扳机 */
+:global(body.theme-heartbeat) .trigger-btn {
+  border-radius: 50%;
+  transform: rotate(0);
+}
+
+:global(body.theme-heartbeat) .trigger-btn > * {
+  transform: rotate(0);
+}
+
+:global(body.theme-heartbeat) .trigger-btn:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
+:global(body.theme-heartbeat) .trigger-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* 科技感角落 */
+.tech-corner {
+  position: relative;
+}
+
+.tech-corner::before,
+.tech-corner::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--accent-color);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.tech-corner::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.tech-corner::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+</style>

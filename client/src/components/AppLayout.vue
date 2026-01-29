@@ -24,6 +24,10 @@ import DynamicBackground from "@/components/DynamicBackground.vue";
 import SystemLogo from "@/components/SystemLogo.vue";
 import MouseLight from "@/components/MouseLight.vue";
 
+// 💠 v7.0: Gal-chat 品牌系统
+import GalChatLogo from "@/components/GalChatLogo.vue";
+import SystemStatus from "@/components/SystemStatus.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
 const uiSettings = useUiSettings();
@@ -301,13 +305,12 @@ const orbClass = computed(() => {
         class="flex h-full w-[280px] flex-col border-r border-[var(--input-panel-border)] bg-[var(--bg-secondary)]/50 px-4 py-6 transition backdrop-blur-lg"
         :class="isSidebarCollapsed ? 'w-[92px]' : ''"
       >
+        <!-- 🏷️ v7.0: Gal-chat 品牌 Logo -->
+        <div class="mb-4">
+          <GalChatLogo :collapsed="isSidebarCollapsed" />
+        </div>
+        
         <div class="space-y-4">
-          <!-- 🏷️ v6.0: 图腾化 Logo -->
-          <SystemLogo v-if="!isSidebarCollapsed" />
-          <div v-else class="flex justify-center">
-            <div class="h-10 w-10 rounded-xl bg-[var(--accent-color)]/20 idle-breathe"></div>
-          </div>
-          
           <div class="flex items-center justify-between gap-2">
             <Button variant="ghost" size="icon" @click="toggleSidebar" class="ml-auto">
               {{ isSidebarCollapsed ? '›' : '‹' }}
@@ -319,7 +322,7 @@ const orbClass = computed(() => {
             style="box-shadow: 0 4px 20px var(--btn-primary-shadow);"
             @click="gameStore.createNewSession"
           >
-            <span>新建对话</span>
+            <span>{{ isSidebarCollapsed ? '+' : '新建对话' }}</span>
           </Button>
         </div>
 
@@ -328,7 +331,7 @@ const orbClass = computed(() => {
         <ScrollArea class="flex-1 pr-2">
           <div class="space-y-6">
             <div v-for="(items, label) in groupedSessions" :key="label" v-show="items.length">
-              <p class="text-xs uppercase tracking-[0.2em] text-zinc-500">
+              <p v-if="!isSidebarCollapsed" class="text-xs uppercase tracking-[0.2em] text-zinc-500">
                 {{ label }}
               </p>
               <div class="mt-2 space-y-2">
@@ -340,7 +343,7 @@ const orbClass = computed(() => {
                   :class="session.id === gameStore.currentSession.id ? 'bg-white/10 text-white border-indigo-500/60' : ''"
                   @click="gameStore.loadSession(session.id)"
                 >
-                  <span class="truncate">{{ session.title || '未命名对话' }}</span>
+                  <span class="truncate">{{ isSidebarCollapsed ? '💬' : (session.title || '未命名对话') }}</span>
                 </Button>
               </div>
             </div>
@@ -349,16 +352,13 @@ const orbClass = computed(() => {
 
         <Separator class="my-4" />
 
-        <div class="space-y-2 text-xs text-zinc-400">
-          <div class="flex items-center gap-2">
-            <span
-              class="h-2 w-2 rounded-full"
-              :class="connectionStore.isConnected ? 'bg-emerald-400' : 'bg-red-400'"
-            />
-            <span>模型：{{ connectionStore.modelName || '模型未就绪' }}</span>
-          </div>
-          <div>后端：{{ connectionStore.isConnected ? '已连接' : '未连接' }}</div>
-        </div>
+        <!-- 🔧 v7.0: 系统状态区 (左下角) -->
+        <SystemStatus 
+          :is-connected="connectionStore.isConnected"
+          :model-name="connectionStore.modelName || '未连接'"
+          :collapsed="isSidebarCollapsed"
+          @open-settings="isSettingsOpen = true"
+        />
       </aside>
 
       <section class="relative flex flex-1 flex-col overflow-hidden">
@@ -370,24 +370,15 @@ const orbClass = computed(() => {
             </h2>
           </div>
           
-          <div class="flex items-center gap-4">
-            <!-- 连接状态 -->
-            <div class="text-xs text-zinc-400">
-              {{ connectionStore.isConnected ? '连接正常' : '未连接' }}
-            </div>
-
-            <!-- 🆕 Task 2 & 3: 设置按钮 -->
-            <button
-              class="group relative flex items-center justify-center rounded-full bg-gradient-to-r from-[#667eea] to-[#764ba2] p-2 text-white shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5 hover:shadow-indigo-500/50"
-              @click="isSettingsOpen = true"
-            >
-              <Settings class="h-4 w-4 transition-transform duration-500 group-hover:rotate-180" />
-              
-              <!-- Tooltip -->
-              <span class="absolute top-full mt-2 hidden whitespace-nowrap rounded bg-black/80 px-2 py-1 text-xs text-white backdrop-blur group-hover:block">
-                系统设置
-              </span>
-            </button>
+          <!-- 📊 状态指示器 (简化版) -->
+          <div class="flex items-center gap-3">
+            <span 
+              class="inline-block h-2 w-2 rounded-full animate-pulse"
+              :class="connectionStore.isConnected ? 'bg-emerald-400' : 'bg-red-400'"
+            ></span>
+            <span class="text-xs text-zinc-500 font-mono tracking-wider">
+              {{ connectionStore.isConnected ? 'LINK.OK' : 'LINK.ERR' }}
+            </span>
           </div>
         </header>
 
