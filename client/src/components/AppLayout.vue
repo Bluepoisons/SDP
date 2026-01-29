@@ -20,6 +20,10 @@ import ThemeToggle from "@/components/ThemeToggle.vue";
 import ScorePopup from "@/components/ScorePopup.vue";
 import DynamicBackground from "@/components/DynamicBackground.vue";
 
+// 🎮 v6.0: 世界线变动增强
+import SystemLogo from "@/components/SystemLogo.vue";
+import MouseLight from "@/components/MouseLight.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
 const uiSettings = useUiSettings();
@@ -287,40 +291,39 @@ const orbClass = computed(() => {
 </script>
 
 <template>
-  <!-- 🌌 v5.0: 动态背景 -->
+  <!-- 🌌 v6.0: 动态背景 + 鼠标光源 -->
   <DynamicBackground />
+  <MouseLight />
   
-  <div class="h-screen w-screen overflow-hidden text-zinc-100">
+  <div class="h-screen w-screen overflow-hidden text-[var(--bubble-text)]">
     <div class="relative flex h-full w-full">
       <aside
-        class="flex h-full w-[280px] flex-col border-r border-white/5 bg-black/20 px-4 py-6 transition effects-blur"
+        class="flex h-full w-[280px] flex-col border-r border-[var(--input-panel-border)] bg-[var(--bg-secondary)]/50 px-4 py-6 transition backdrop-blur-lg"
         :class="isSidebarCollapsed ? 'w-[92px]' : ''"
       >
         <div class="space-y-4">
+          <!-- 🏷️ v6.0: 图腾化 Logo -->
+          <SystemLogo v-if="!isSidebarCollapsed" />
+          <div v-else class="flex justify-center">
+            <div class="h-10 w-10 rounded-xl bg-[var(--accent-color)]/20 idle-breathe"></div>
+          </div>
+          
           <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-3">
-              <div class="h-10 w-10 rounded-xl bg-white/10"></div>
-              <div>
-                <p class="text-lg font-semibold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                  SmartDialog
-                </p>
-                <p class="text-xs text-zinc-400">Memory Archives</p>
-              </div>
-            </div>
-            <Button variant="ghost" size="icon" @click="toggleSidebar">
+            <Button variant="ghost" size="icon" @click="toggleSidebar" class="ml-auto">
               {{ isSidebarCollapsed ? '›' : '‹' }}
             </Button>
           </div>
 
           <Button
-            class="w-full rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 text-white shadow-lg shadow-indigo-500/30"
+            class="btn-skew w-full bg-gradient-to-r from-[var(--btn-primary-from)] to-[var(--btn-primary-to)] text-white shadow-lg"
+            style="box-shadow: 0 4px 20px var(--btn-primary-shadow);"
             @click="gameStore.createNewSession"
           >
-            新建对话
+            <span>新建对话</span>
           </Button>
         </div>
 
-        <Separator class="my-4" />
+        <Separator class="my-4 bg-[var(--input-panel-border)]" />
 
         <ScrollArea class="flex-1 pr-2">
           <div class="space-y-6">

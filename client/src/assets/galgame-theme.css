@@ -1,108 +1,139 @@
 /* 
- * 🎨 GALGAME 风格主题系统 v5.0 - 星夜与心跳
- * Starry Night & Heartbeat - 双模态情感交互界面
- * Design: 资深 Galgame 界面设计师
+ * 🎨 GALGAME 风格主题系统 v6.0 - 世界线变动
+ * World Shift: Deep Dive ↔ Heartbeat
+ * Design: 资深二次元游戏 UI 设计师
  */
 
-/* 字体引入 - 使用 Google Fonts 作为备选 */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=M+PLUS+Rounded+1c:wght@300;400;500;700&display=swap');
+/* 📦 字体引入 - 科技感 + 日系 */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@400;500;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
-/* 🌌 默认主题：星之海 (Galactic Night) - Dark Mode */
+/* 🌌 Mode A: 深潜 (Deep Dive) - 赛博星空 */
 :root {
-  /* 🎯 主字体栈 - 优先级递减 */
-  --font-primary: "M PLUS Rounded 1c", "Noto Sans JP", "Microsoft YaHei UI", "PingFang SC", 
-                  "Hiragino Sans GB", "Source Han Sans CN", "WenQuanYi Micro Hei", sans-serif;
-  
-  /* ✍️ 手写感字体（用于特殊场景） */
-  --font-handwrite: "Noto Sans JP", "Segoe Print", "Bradley Hand", cursive;
-  
-  /* 🔢 等宽字体（颜文字专用） */
+  /* 🎯 字体系统 */
+  --font-primary: "M PLUS Rounded 1c", "Noto Sans JP", "Microsoft YaHei UI", sans-serif;
+  --font-display: "Orbitron", "Rajdhani", sans-serif;    /* Logo/标题专用 */
+  --font-tech: "Rajdhani", "Consolas", monospace;        /* 科技感数字 */
   --font-mono: "Consolas", "Monaco", "Courier New", monospace;
   
   /* 📏 字间距与行高 */
   --letter-spacing-tight: -0.01em;
   --letter-spacing-normal: 0.02em;
-  --letter-spacing-wide: 0.08em;
+  --letter-spacing-wide: 0.15em;      /* 更宽的标题间距 */
+  --letter-spacing-ultra: 0.3em;      /* 极宽装饰文字 */
   
   --line-height-tight: 1.4;
   --line-height-normal: 1.7;
   --line-height-loose: 2.0;
   
-  /* 🌌 星之海配色 - Dark Mode */
-  --bg-primary: #0f172a;              /* Slate 900 深空黑 */
-  --bg-secondary: #1e293b;            /* Slate 800 次级背景 */
-  --bg-gradient-start: #0f172a;
-  --bg-gradient-end: #312e81;         /* Indigo 900 深紫 */
+  /* 🌌 深潜配色 - HSL 动态色板 */
+  --hue-primary: 222;                 /* 深蓝基调 */
+  --hue-accent: 192;                  /* 青色强调 */
   
-  --bubble-bg-user: rgba(30, 41, 59, 0.8);    /* 用户：深灰蓝 */
-  --bubble-bg-ai: rgba(0, 0, 0, 0.4);         /* AI：半透明黑 */
-  --bubble-border: rgba(34, 211, 238, 0.3);   /* Cyan 青色光晕 */
-  --bubble-text: #e2e8f0;                      /* Slate 200 */
+  --bg-primary: hsl(var(--hue-primary), 47%, 11%);      /* #0f172a */
+  --bg-secondary: hsl(var(--hue-primary), 33%, 15%);    /* #1e293b */
+  --bg-tertiary: hsl(var(--hue-primary), 24%, 10%);     /* 更深层 */
+  --bg-gradient-start: hsl(var(--hue-primary), 47%, 11%);
+  --bg-gradient-end: hsl(263, 70%, 26%);                /* Indigo 深紫 */
   
-  --accent-color: #38bdf8;            /* Cyan-400 科技感 */
-  --accent-secondary: #a78bfa;        /* Purple-400 神秘感 */
+  /* 💬 对话框 - 玻璃质感 */
+  --bubble-bg-user: hsla(var(--hue-primary), 33%, 18%, 0.8);
+  --bubble-bg-ai: hsla(0, 0%, 0%, 0.5);
+  --bubble-border: hsla(var(--hue-accent), 82%, 56%, 0.3);
+  --bubble-text: hsl(210, 40%, 96%);
+  --bubble-glow: 0 0 20px hsla(var(--hue-accent), 82%, 56%, 0.3);
   
-  --input-panel-bg: rgba(30, 41, 59, 0.8);
-  --input-panel-border: rgba(148, 163, 184, 0.2);
-  --input-text: #f1f5f9;
+  /* 🎨 强调色 */
+  --accent-color: hsl(var(--hue-accent), 89%, 57%);     /* Cyan-400 */
+  --accent-secondary: hsl(270, 76%, 75%);               /* Purple-400 */
+  --accent-danger: hsl(0, 84%, 60%);                    /* 危险红 */
   
-  --btn-primary-from: #38bdf8;
-  --btn-primary-to: #818cf8;
-  --btn-primary-shadow: rgba(56, 189, 248, 0.5);
-  --btn-primary-hover: rgba(56, 189, 248, 0.2);
+  /* 🎮 控制台 */
+  --input-panel-bg: hsla(var(--hue-primary), 33%, 18%, 0.9);
+  --input-panel-border: hsla(210, 14%, 66%, 0.2);
+  --input-text: hsl(210, 40%, 98%);
   
-  --glow-color: rgba(56, 189, 248, 0.6);
-  --star-color: rgba(255, 255, 255, 0.8);
+  /* 🔘 按钮 */
+  --btn-primary-from: hsl(var(--hue-accent), 89%, 57%);
+  --btn-primary-to: hsl(231, 97%, 72%);
+  --btn-primary-shadow: hsla(var(--hue-accent), 89%, 57%, 0.5);
+  --btn-primary-hover: hsla(var(--hue-accent), 89%, 57%, 0.2);
+  
+  /* ✨ 霓虹光晕 */
+  --glow-color: hsla(var(--hue-accent), 89%, 57%, 0.6);
+  --glow-strong: hsla(var(--hue-accent), 89%, 57%, 0.9);
+  --star-color: hsla(0, 0%, 100%, 0.8);
   
   /* 🎭 动画时长 */
   --duration-fast: 150ms;
   --duration-normal: 300ms;
   --duration-slow: 500ms;
   --duration-typing: 50ms;
+  --duration-breath: 4s;              /* 呼吸动画 */
+  
+  /* 📐 斜切角度 */
+  --skew-angle: -12deg;
+  --skew-angle-subtle: -6deg;
 }
 
-/* 🌙 默认深色主题：星之海 */
+/* 🌙 深潜模式基础样式 */
 body {
   font-family: var(--font-primary);
   letter-spacing: var(--letter-spacing-normal);
   line-height: var(--line-height-normal);
-  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  background: 
+    /* 噪点纹理叠加 */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
   background-attachment: fixed;
   color: var(--bubble-text);
   font-weight: 400;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
 
-/* 💗 粉色主题：恋之毒 (Love Potion) */
-body.theme-pink {
-  --bg-primary: #fdf2f8;              /* Pink 50 */
-  --bg-secondary: #fce7f3;            /* Pink 100 */
-  --bg-gradient-start: #fdf2f8;
-  --bg-gradient-end: #fbcfe8;         /* Pink 200 */
+/* 💗 Mode B: 心跳 (Heartbeat) - 恋爱中毒 */
+body.theme-heartbeat {
+  --hue-primary: 330;                 /* 粉色基调 */
+  --hue-accent: 330;
   
-  /* 🎯 关键设计：粉色背景 + 黑色气泡 */
-  --bubble-bg-user: #18181b;          /* Zinc 950 纯黑 */
-  --bubble-bg-ai: #18181b;            /* AI 也用黑色 */
-  --bubble-border: rgba(219, 39, 119, 0.4);    /* Pink 600 边框 */
-  --bubble-text: #fbcfe8;             /* Pink 200 文字 */
+  --bg-primary: hsl(330, 100%, 98%);              /* 极淡粉 */
+  --bg-secondary: hsl(330, 100%, 95%);
+  --bg-tertiary: hsl(330, 60%, 92%);
+  --bg-gradient-start: hsl(330, 100%, 98%);
+  --bg-gradient-end: hsl(330, 82%, 90%);
   
-  --accent-color: #db2777;            /* Pink 600 */
-  --accent-secondary: #ec4899;        /* Pink 500 */
+  /* 🎯 关键：粉色背景 + 黑色气泡 (地雷系美学) */
+  --bubble-bg-user: hsl(240, 6%, 10%);            /* 纯黑 */
+  --bubble-bg-ai: hsl(240, 6%, 10%);
+  --bubble-border: hsla(330, 79%, 51%, 0.5);
+  --bubble-text: hsl(330, 82%, 90%);              /* 亮粉色文字 */
+  --bubble-glow: 0 0 30px hsla(330, 79%, 51%, 0.4);
   
-  --input-panel-bg: rgba(255, 255, 255, 0.6);
-  --input-panel-border: rgba(219, 39, 119, 0.3);
-  --input-text: #18181b;
+  --accent-color: hsl(330, 79%, 51%);             /* Pink-600 */
+  --accent-secondary: hsl(330, 81%, 60%);
   
-  --btn-primary-from: #db2777;
-  --btn-primary-to: #ec4899;
-  --btn-primary-shadow: rgba(219, 39, 119, 0.6);
-  --btn-primary-hover: rgba(219, 39, 119, 0.2);
+  --input-panel-bg: hsla(0, 0%, 100%, 0.7);
+  --input-panel-border: hsla(330, 79%, 51%, 0.3);
+  --input-text: hsl(240, 6%, 10%);
   
-  --glow-color: rgba(219, 39, 119, 0.6);
-  --star-color: rgba(236, 72, 153, 0.8);
+  --btn-primary-from: hsl(330, 79%, 51%);
+  --btn-primary-to: hsl(330, 81%, 60%);
+  --btn-primary-shadow: hsla(330, 79%, 51%, 0.6);
+  --btn-primary-hover: hsla(330, 79%, 51%, 0.2);
   
-  background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  --glow-color: hsla(330, 79%, 51%, 0.6);
+  --glow-strong: hsla(330, 79%, 51%, 0.9);
+  --star-color: hsla(330, 81%, 60%, 0.8);
+  
+  /* 心跳模式：圆润 UI */
+  --skew-angle: 0deg;
+  --skew-angle-subtle: 0deg;
+  
+  background: 
+    /* 全息粉噪点 */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.05'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
   color: var(--input-text);
 }
 
@@ -382,17 +413,404 @@ body.theme-pink .btn-action {
   position: fixed;
   bottom: 2rem;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) skewX(var(--skew-angle-subtle));
   width: min(90%, 800px);
   background: var(--input-panel-bg);
   border: 1px solid var(--input-panel-border);
   backdrop-filter: blur(20px);
-  border-radius: 24px;
+  border-radius: 16px;
   padding: 1rem 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 0 60px var(--glow-color),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
   z-index: 40;
 }
 
-body.theme-pink .input-cockpit {
-  box-shadow: 0 8px 32px rgba(219, 39, 119, 0.3);
+.input-cockpit > * {
+  transform: skewX(calc(var(--skew-angle-subtle) * -1));
+}
+
+body.theme-heartbeat .input-cockpit {
+  transform: translateX(-50%);
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 32px hsla(330, 79%, 51%, 0.3),
+    0 0 80px hsla(330, 79%, 51%, 0.2);
+}
+
+body.theme-heartbeat .input-cockpit > * {
+  transform: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌀 世界线变动 (World Shift) - Glitch 转场动画
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Glitch 故障效果 */
+@keyframes glitch-shift {
+  0% {
+    clip-path: inset(0 0 100% 0);
+    transform: translate(0);
+  }
+  10% {
+    clip-path: inset(20% 0 60% 0);
+    transform: translate(-5px, 2px);
+  }
+  20% {
+    clip-path: inset(40% 0 40% 0);
+    transform: translate(5px, -2px);
+  }
+  30% {
+    clip-path: inset(60% 0 20% 0);
+    transform: translate(-3px, 1px);
+  }
+  40% {
+    clip-path: inset(80% 0 5% 0);
+    transform: translate(3px, -1px);
+  }
+  50%, 100% {
+    clip-path: inset(0);
+    transform: translate(0);
+  }
+}
+
+@keyframes glitch-color {
+  0%, 100% {
+    filter: hue-rotate(0deg);
+  }
+  25% {
+    filter: hue-rotate(90deg) saturate(1.5);
+  }
+  50% {
+    filter: hue-rotate(180deg) saturate(2);
+  }
+  75% {
+    filter: hue-rotate(270deg) saturate(1.5);
+  }
+}
+
+@keyframes scanline-down {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.world-shift-active {
+  animation: glitch-color 0.5s ease-out;
+}
+
+.world-shift-active::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(
+    transparent 0%,
+    var(--glow-color) 50%,
+    transparent 100%
+  );
+  height: 4px;
+  animation: scanline-down 0.3s linear;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎭 非对称美学 (Asymmetry & Tech-Wear)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 斜切按钮基础 */
+.btn-skew {
+  transform: skewX(var(--skew-angle));
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-skew > * {
+  display: block;
+  transform: skewX(calc(var(--skew-angle) * -1));
+}
+
+.btn-skew:hover {
+  transform: skewX(var(--skew-angle)) translateY(-2px);
+  box-shadow: 0 6px 30px var(--btn-primary-shadow);
+}
+
+.btn-skew:active {
+  transform: skewX(var(--skew-angle)) scale(0.95);
+}
+
+/* 心跳模式按钮（圆润） */
+body.theme-heartbeat .btn-skew {
+  transform: skewX(0);
+  border-radius: 9999px;
+}
+
+body.theme-heartbeat .btn-skew > * {
+  transform: skewX(0);
+}
+
+/* 装饰性角标 */
+.tech-corner {
+  position: relative;
+}
+
+.tech-corner::before,
+.tech-corner::after {
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--accent-color);
+  opacity: 0.5;
+}
+
+.tech-corner::before {
+  top: -2px;
+  left: -2px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.tech-corner::after {
+  bottom: -2px;
+  right: -2px;
+  border-left: none;
+  border-top: none;
+}
+
+/* 装饰性文字 */
+.deco-text {
+  font-family: var(--font-tech);
+  font-size: 0.625rem;
+  letter-spacing: var(--letter-spacing-ultra);
+  text-transform: uppercase;
+  opacity: 0.4;
+  user-select: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ 呼吸动画 & 待机状态 (Idle Animations)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes glow-breathe {
+  0%, 100% {
+    box-shadow: 0 0 20px var(--glow-color);
+  }
+  50% {
+    box-shadow: 0 0 40px var(--glow-strong);
+  }
+}
+
+@keyframes border-breathe {
+  0%, 100% {
+    border-color: var(--bubble-border);
+  }
+  50% {
+    border-color: var(--accent-color);
+  }
+}
+
+.idle-breathe {
+  animation: breathe var(--duration-breath) ease-in-out infinite;
+}
+
+.idle-glow {
+  animation: glow-breathe var(--duration-breath) ease-in-out infinite;
+}
+
+.idle-border {
+  animation: border-breathe var(--duration-breath) ease-in-out infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🔆 鼠标跟随光源 (Mouse Light Effect)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.mouse-light {
+  position: fixed;
+  width: 400px;
+  height: 400px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    var(--glow-color) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.15;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.3s;
+}
+
+body.theme-heartbeat .mouse-light {
+  background: radial-gradient(
+    circle,
+    hsla(330, 79%, 51%, 0.4) 0%,
+    transparent 70%
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎮 HUD 元素 (Heads-Up Display)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 刻度线装饰 */
+.hud-scale {
+  position: relative;
+}
+
+.hud-scale::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 100%;
+  height: 1px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--accent-color) 0px,
+    var(--accent-color) 2px,
+    transparent 2px,
+    transparent 8px
+  );
+  opacity: 0.3;
+}
+
+/* 扫描光标 */
+@keyframes scan-cursor {
+  0%, 100% {
+    left: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.hud-scan::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 2px;
+  height: 100%;
+  background: var(--accent-color);
+  box-shadow: 0 0 10px var(--accent-color);
+  animation: scan-cursor 3s ease-in-out infinite;
+}
+
+/* 音频波形容器 */
+.waveform {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 24px;
+}
+
+.waveform-bar {
+  width: 3px;
+  background: var(--accent-color);
+  border-radius: 2px;
+  animation: wave-bounce 0.8s ease-in-out infinite;
+}
+
+@keyframes wave-bounce {
+  0%, 100% { height: 4px; }
+  50% { height: 100%; }
+}
+
+.waveform-bar:nth-child(1) { animation-delay: 0s; }
+.waveform-bar:nth-child(2) { animation-delay: 0.1s; }
+.waveform-bar:nth-child(3) { animation-delay: 0.2s; }
+.waveform-bar:nth-child(4) { animation-delay: 0.3s; }
+.waveform-bar:nth-child(5) { animation-delay: 0.4s; }
+
+/* ═══════════════════════════════════════════════════════════════════
+   🏷️ 玻璃质感面板 (Glass Morphism)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.glass-panel {
+  background: var(--bubble-bg-ai);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 
+    var(--bubble-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+body.theme-heartbeat .glass-panel {
+  border-color: var(--bubble-border);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   📐 发送按钮 - 扳机 (Trigger Button)
+   ═══════════════════════════════════════════════════════════════════ */
+
+.trigger-btn {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+  box-shadow: 
+    0 4px 20px var(--btn-primary-shadow),
+    inset 0 2px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  animation: glow-breathe var(--duration-breath) ease-in-out infinite;
+}
+
+.trigger-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 
+    0 8px 40px var(--btn-primary-shadow),
+    inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.trigger-btn:active {
+  transform: scale(0.95);
+  box-shadow: 
+    0 2px 10px var(--btn-primary-shadow),
+    inset 0 -2px 0 rgba(255, 255, 255, 0.1),
+    inset 0 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+/* 深潜模式：菱形扳机 */
+body:not(.theme-heartbeat) .trigger-btn {
+  border-radius: 8px;
+  transform: rotate(45deg);
+}
+
+body:not(.theme-heartbeat) .trigger-btn > * {
+  transform: rotate(-45deg);
+}
+
+body:not(.theme-heartbeat) .trigger-btn:hover {
+  transform: rotate(45deg) scale(1.1);
+}
+
+body:not(.theme-heartbeat) .trigger-btn:active {
+  transform: rotate(45deg) scale(0.95);
 }
