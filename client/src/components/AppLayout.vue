@@ -10,11 +10,16 @@ import { useConnectionStore } from "@/stores/useConnectionStore";
 import { useAIProcess } from "@/composables/useAIProcess";
 import { recordFeedback } from "@/services/api";
 
+// 🆕 Task 2 & 3: 设置按钮相关引入
+import { Settings } from "lucide-vue-next";
+import SettingsModal from "@/components/SettingsModal.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
 
 const inputText = ref("");
 const isSidebarCollapsed = ref(false);
+const isSettingsOpen = ref(false); // 🆕 设置面板开关
 
 const { isThinking, startThinking, stopThinking, thinkingStage, thinkingDuration } = useAIProcess();
 
@@ -341,8 +346,25 @@ const orbClass = computed(() => {
               {{ connectionStore.modelName || '模型未就绪' }}
             </h2>
           </div>
-          <div class="text-xs text-zinc-400">
-            {{ connectionStore.isConnected ? '连接正常' : '未连接' }}
+          
+          <div class="flex items-center gap-4">
+            <!-- 连接状态 -->
+            <div class="text-xs text-zinc-400">
+              {{ connectionStore.isConnected ? '连接正常' : '未连接' }}
+            </div>
+
+            <!-- 🆕 Task 2 & 3: 设置按钮 -->
+            <button
+              class="group relative flex items-center justify-center rounded-full bg-gradient-to-r from-[#667eea] to-[#764ba2] p-2 text-white shadow-lg shadow-indigo-500/30 transition-all hover:-translate-y-0.5 hover:shadow-indigo-500/50"
+              @click="isSettingsOpen = true"
+            >
+              <Settings class="h-4 w-4 transition-transform duration-500 group-hover:rotate-180" />
+              
+              <!-- Tooltip -->
+              <span class="absolute top-full mt-2 hidden whitespace-nowrap rounded bg-black/80 px-2 py-1 text-xs text-white backdrop-blur group-hover:block">
+                系统设置
+              </span>
+            </button>
           </div>
         </header>
 
@@ -368,5 +390,8 @@ const orbClass = computed(() => {
         </div>
       </section>
     </div>
+
+    <!-- 🆕 Task 2 & 3: 设置面板模态框 -->
+    <SettingsModal :open="isSettingsOpen" @close="isSettingsOpen = false" />
   </div>
 </template>
