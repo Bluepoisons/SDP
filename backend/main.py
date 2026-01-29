@@ -11,7 +11,7 @@ load_dotenv()
 
 from services.ai_service import ai_service
 from services.db_service import db_service
-from models.schemas import DialogRequest, SelectionRequest, FeedbackRequest
+from schemas import FeedbackRequest, GameRequest, SelectionRequest
 
 # 初始化 App
 app = FastAPI(title="SDP Python Backend")
@@ -58,8 +58,8 @@ async def health_check():
 # 假设前端请求的是 /api/generate 或 /generate
 # 我们这里写两个以防万一，随后你在前端统一
 @app.post("/api/generate")
-@app.post("/generate") 
-async def generate_dialog(request: DialogRequest):
+@app.post("/generate")
+async def generate_dialog(request: GameRequest):
     print(f"收到前端请求: {request.text}")
     start_time = time.perf_counter()
     
@@ -69,11 +69,9 @@ async def generate_dialog(request: DialogRequest):
 
     # 2. Generate Options (async)
     ai_result = await ai_service.generate_dialog_options(
-        scene=request.text,
-        user_style=request.style,
+        text=request.text,
+        style=request.style,
         history=request.history,
-        user_id=request.userId or "",
-        regenerate_id=request.regenerateId
     )
     generation_time_ms = int((time.perf_counter() - start_time) * 1000)
 
@@ -90,33 +88,16 @@ async def generate_dialog(request: DialogRequest):
             }
         )
 
-    # --- Data Transformation for Frontend Contract ---
-    # The frontend expects objects with { id, text, style, effect, favorChange, emoji }
-    # But AI service returns strings like "Content... 【Style】"
-    
-    formatted_options = []
     raw_options_list = ai_result.get("options", [])
 
-    style_emoji_map = {
-        "romantic": {"emoji": "💖", "effect": "好感度++", "type": "romantic", "label": "直球"},
-        "humorous": {"emoji": "✨", "effect": "气氛活跃", "type": "humor", "label": "幽默"},
-        "cold": {"emoji": "❄️", "effect": "心理博弈", "type": "serious", "label": "高冷"},
-        "neutral": {"emoji": "💬", "effect": "平淡", "type": "default", "label": "普通"}
-    }
-
-    for opt in raw_options_list:
-        s_key = opt.get("style", "neutral")
-        meta = style_emoji_map.get(s_key, style_emoji_map["neutral"])
-        formatted_options.append({
-            "id": opt.get("id"),
-            "text": opt.get("text"),
-            "style": meta["label"],
-            "effect": meta["effect"],
-            "emoji": meta["emoji"],
-            "type": meta["type"],
-            "favorChange": 5 if s_key == "romantic" else (3 if s_key == "humorous" else 0),
-            "description": opt.get("style")
-        })
+    stored_options = [
+        {
+            "id": f"opt-{idx + 1}",
+            "text": option_text,
+            "style": "unknown",
+        }
+        for idx, option_text in enumerate(raw_options_list)
+    ]
 
     # 3. Save Session
     session_id = None
@@ -126,8 +107,8 @@ async def generate_dialog(request: DialogRequest):
             user_id=request.userId,
             text=request.text,
             style=request.style,
-            options=formatted_options,
-            scene_summary=ai_result.get("sceneSummary", ""),
+            options=stored_options,
+            scene_summary=ai_result.get("scene", ""),
             messages=request.clientMessages or request.history
         )
 
@@ -136,8 +117,10 @@ async def generate_dialog(request: DialogRequest):
         "data": {
             "sessionId": session_id,
             "originalText": request.text,
-            "options": formatted_options,
-            "sceneSummary": ai_result.get("sceneSummary", ""),
+            "text": ai_result.get("text", ""),
+            "mood": ai_result.get("mood", "neutral"),
+            "scene": ai_result.get("scene", ""),
+            "options": raw_options_list,
             "style": request.style,
             "generationTimeMs": generation_time_ms,
         }
@@ -148,7 +131,7 @@ async def generate_dialog(request: DialogRequest):
 @app.post("/api/selection")
 @app.post("/api/dialog/selection")
 async def record_selection(request: SelectionRequest):
-    print(f"收到选择: {request.optionId}")
+    print(f"收到选择: {request.optionIndex}")
     
     session = db_service.get_session(request.sessionId)
     if not session:
@@ -156,26 +139,28 @@ async def record_selection(request: SelectionRequest):
         print(f"Session {request.sessionId} not found")
         # raise HTTPException(status_code=404, detail="Session not found")
 
-    selected_option_text = ""
-    selected_style = "unknown"
+    selected_option_text = request.optionText or ""
     if session:
         options = session.get("generatedOptions", [])
-        selected_option = next((opt for opt in options if opt.get("id") == request.optionId), None)
-        if selected_option:
-            selected_option_text = selected_option.get("text", "")
-            selected_style = selected_option.get("type") or selected_option.get("style") or "unknown"
+        if selected_option_text == "" and request.optionIndex is not None:
+            if 0 <= request.optionIndex < len(options):
+                selected_option = options[request.optionIndex]
+                if isinstance(selected_option, dict):
+                    selected_option_text = selected_option.get("text", "")
+                else:
+                    selected_option_text = str(selected_option)
     
     selection = db_service.create_selection(
         session_id=request.sessionId,
-        option_id=request.optionId,
-        user_id=request.userId
+        option_id=f"opt-{(request.optionIndex or 0) + 1}",
+        user_id=request.userId or ""
     )
 
     if session and selected_option_text:
         db_service.append_to_training_set(
             scene=session.get("originalText", ""),
             selected_option=selected_option_text,
-            style=selected_style
+            style="unknown"
         )
 
     user_stats = db_service.get_user_stats(request.userId)
