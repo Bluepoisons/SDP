@@ -1,51 +1,41 @@
-from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import List, Literal, Optional
 
-from pydantic import BaseModel, Field, ValidationError, conlist
-
-
-class StyleCode(str, Enum):
-    TSUNDERE = "TSUNDERE"
-    YANDERE = "YANDERE"
-    KUUDERE = "KUUDERE"
-    GENKI = "GENKI"
+from pydantic import BaseModel, Field, field_validator
 
 
-class MoodCode(str, Enum):
-    angry = "angry"
-    shy = "shy"
-    happy = "happy"
-    sad = "sad"
-    neutral = "neutral"
-    excited = "excited"
-    calm = "calm"
-    confused = "confused"
-    embarrassed = "embarrassed"
+StyleType = Literal["TSUNDERE", "YANDERE", "KUUDERE", "GENKI"]
+MoodType = Literal["angry", "shy", "happy", "dark", "neutral", "excited", "love"]
 
 
-class GameRequest(BaseModel):
-    """生成对话的请求体。"""
+class ChatRequest(BaseModel):
+    user_input: str
+    style: StyleType = "TSUNDERE"
 
-    text: str = Field(..., min_length=1, description="玩家输入文本")
-    style: StyleCode = Field(default=StyleCode.TSUNDERE, description="风格代码")
-    userId: Optional[str] = Field(default=None, description="用户 ID")
-    history: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="历史对话")
-    sessionId: Optional[str] = Field(default=None, description="会话 ID")
-    clientMessages: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="客户端消息列表")
+
+class LegacyGenerateRequest(BaseModel):
+    text: str
+    style: Optional[str] = "TSUNDERE"
+    userId: Optional[str] = None
+    history: Optional[List[dict]] = None
+    sessionId: Optional[str] = None
+    clientMessages: Optional[List[dict]] = None
 
 
 class GameResponse(BaseModel):
-    """模型输出的结构化结果（严格校验）。"""
+    summary: str = Field(..., description="角色的内心独白/心理活动（无颜文字，冷静或符合内心人设的吐槽）")
+    text: str = Field(..., description="角色实际对玩家说出口的话（必须包含大量颜文字 Kaomoji）")
+    mood: str = Field(default="neutral", description="情绪标签")
+    scene: str = Field(default="default", description="场景描述")
+    options: List[str] = Field(..., min_length=1, max_length=4, description="给玩家的选项")
 
-    text: str = Field(..., min_length=1, description="角色回复")
-    mood: MoodCode = Field(..., description="情绪标签")
-    scene: str = Field(..., min_length=1, description="场景描述")
-    options: conlist(str, min_items=1, max_items=4) = Field(..., description="选项列表")
+    @field_validator("mood", mode="before")
+    @classmethod
+    def validate_mood(cls, value: str) -> str:
+        valid_moods = ["angry", "shy", "happy", "dark", "neutral", "excited", "love"]
+        return value if value in valid_moods else "neutral"
 
 
 class SelectionRequest(BaseModel):
-    """选项上报请求体。"""
-
     sessionId: str
     optionIndex: Optional[int] = None
     optionText: Optional[str] = None
@@ -62,6 +52,6 @@ class FeedbackRequest(BaseModel):
 
 class APIResponse(BaseModel):
     success: bool
-    data: Optional[Any] = None
+    data: Optional[dict] = None
     message: Optional[str] = None
     errorType: Optional[str] = None

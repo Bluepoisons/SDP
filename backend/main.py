@@ -11,7 +11,7 @@ load_dotenv()
 
 from services.ai_service import ai_service
 from services.db_service import db_service
-from schemas import FeedbackRequest, GameRequest, SelectionRequest
+from schemas import ChatRequest, GameResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest
 
 # 初始化 App
 app = FastAPI(title="SDP Python Backend")
@@ -57,73 +57,71 @@ async def health_check():
 
 # 假设前端请求的是 /api/generate 或 /generate
 # 我们这里写两个以防万一，随后你在前端统一
+@app.post("/api/chat", response_model=GameResponse)
+async def chat_endpoint(request: ChatRequest):
+    try:
+        result = await ai_service.generate_response(request.user_input, request.style)
+        return result
+    except Exception as exc:
+        print(f"🔥 Final Failure: {exc}")
+        return {
+            "text": "系统连接波动，请稍后再试... (._.)",
+            "mood": "neutral",
+            "scene": "error_screen",
+            "options": ["重试"],
+        }
+
+
 @app.post("/api/generate")
 @app.post("/generate")
-async def generate_dialog(request: GameRequest):
-    print(f"收到前端请求: {request.text}")
+async def generate_dialog(request: LegacyGenerateRequest):
     start_time = time.perf_counter()
-    
-    # 1. Ensure user exists
-    if request.userId:
-        db_service.get_or_create_user(request.userId)
 
-    # 2. Generate Options (async)
-    ai_result = await ai_service.generate_dialog_options(
-        text=request.text,
-        style=request.style,
-        history=request.history,
-    )
-    generation_time_ms = int((time.perf_counter() - start_time) * 1000)
+    style = request.style or "TSUNDERE"
+    if style not in {"TSUNDERE", "YANDERE", "KUUDERE", "GENKI"}:
+        style = "TSUNDERE"
 
-    if ai_result.get("error"):
+    try:
+        ai_result = await ai_service.generate_response(request.text, style)
+    except Exception as exc:
+        print(f"Legacy generate failed: {exc}")
         return JSONResponse(
             status_code=200,
             content={
                 "success": False,
-                "message": ai_result.get("error"),
-                "errorType": ai_result.get("errorType", "unknown"),
+                "message": "模型生成失败",
+                "errorType": "unknown",
                 "data": {
-                    "generationTimeMs": generation_time_ms
-                }
-            }
+                    "generationTimeMs": int((time.perf_counter() - start_time) * 1000)
+                },
+            },
         )
 
-    raw_options_list = ai_result.get("options", [])
-
-    stored_options = [
+    options = ai_result.get("options", [])
+    formatted_options = [
         {
-            "id": f"opt-{idx + 1}",
+            "id": chr(65 + idx),
             "text": option_text,
             "style": "unknown",
+            "effect": "",
+            "emoji": "💬",
+            "favorChange": 0,
+            "type": "default",
+            "description": "",
         }
-        for idx, option_text in enumerate(raw_options_list)
+        for idx, option_text in enumerate(options)
     ]
-
-    # 3. Save Session
-    session_id = None
-    if request.userId:
-        session_id = db_service.save_session(
-            session_id=request.sessionId,
-            user_id=request.userId,
-            text=request.text,
-            style=request.style,
-            options=stored_options,
-            scene_summary=ai_result.get("scene", ""),
-            messages=request.clientMessages or request.history
-        )
 
     payload = {
         "success": True,
         "data": {
-            "sessionId": session_id,
+            "sessionId": request.sessionId,
             "originalText": request.text,
-            "text": ai_result.get("text", ""),
-            "mood": ai_result.get("mood", "neutral"),
-            "scene": ai_result.get("scene", ""),
-            "options": raw_options_list,
-            "style": request.style,
-            "generationTimeMs": generation_time_ms,
-        }
+            "options": formatted_options,
+            "sceneSummary": ai_result.get("scene", ""),
+            "style": style,
+            "generationTimeMs": int((time.perf_counter() - start_time) * 1000),
+        },
     }
 
     return payload

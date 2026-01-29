@@ -1,173 +1,129 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
+import axios from 'axios';
 import useGameStore from '../store/useGameStore';
-import useTypewriter from '../hooks/useTypewriter';
+import { useTypewriter } from '../hooks/useTypewriter';
 
-const SCENE_CLASS_MAP = {
-  '夕阳下的教室': 'bg-gradient-to-br from-amber-500/20 via-slate-900/40 to-indigo-900/50',
-  '雨夜的走廊': 'bg-gradient-to-br from-slate-900/60 via-indigo-900/40 to-blue-900/40',
-  '放学后的天台': 'bg-gradient-to-br from-sky-500/20 via-slate-900/40 to-purple-900/40',
+const SCENE_COLORS = {
+  "夕阳下的教室": "bg-orange-900",
+  "雨夜的街道": "bg-slate-900",
+  "赛博朋克风的卧室": "bg-purple-900",
+  "废弃的工厂": "bg-stone-800",
+  "开满樱花的神社": "bg-pink-900",
+  "default": "bg-gray-900",
 };
 
-const MOOD_PORTRAIT_MAP = {
-  shy: '/assets/portraits/shy.png',
-  angry: '/assets/portraits/angry.png',
-  happy: '/assets/portraits/happy.png',
-  sad: '/assets/portraits/sad.png',
-  neutral: '/assets/portraits/neutral.png',
+const MOOD_EMOJIS = {
+  angry: "😠",
+  shy: "😳",
+  happy: "😄",
+  excited: "🤩",
+  dark: "👁️",
+  love: "😍",
+  neutral: "😐",
 };
-
-const STYLE_OPTIONS = [
-  { code: 'TSUNDERE', label: '傲娇' },
-  { code: 'YANDERE', label: '病娇' },
-  { code: 'KUUDERE', label: '三无' },
-  { code: 'GENKI', label: '元气' },
-];
 
 const GameInterface = () => {
-  const [inputText, setInputText] = useState('');
-  const {
-    currentStyle,
-    loading,
-    error,
-    scene,
-    mood,
-    text,
-    options,
-    selectedOptionIndex,
-    setStyle,
-    generateDialog,
-    cancelGeneration,
-    selectOption,
-  } = useGameStore();
+  const { currentStyle, setStyle, isLoading, setLoading, gameState, setGameState } = useGameStore();
+  const [input, setInput] = useState("");
+  const { displayedText, isTyping } = useTypewriter(gameState.text, 40);
 
-  const backgroundClass = useMemo(() => {
-    if (!scene) return 'bg-slate-950';
-    return SCENE_CLASS_MAP[scene] || 'bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950';
-  }, [scene]);
+  const handleSend = async (msg) => {
+    if (!msg || isLoading) return;
 
-  const portraitSrc = MOOD_PORTRAIT_MAP[mood] || MOOD_PORTRAIT_MAP.neutral;
-  const { displayedText, isComplete } = useTypewriter(text, 28);
-
-  const handleSubmit = (event) => {
-    if (event) event.preventDefault();
-    if (!inputText.trim()) return;
-    generateDialog(inputText.trim());
-    setInputText('');
+    setLoading(true);
+    try {
+      const response = await axios.post('http://127.0.0.1:8000/api/chat', {
+        user_input: msg,
+        style: currentStyle,
+      });
+      setGameState(response.data);
+    } catch (error) {
+      console.error('API Error:', error);
+      alert('AI 好像睡着了，请检查后端是否启动');
+    } finally {
+      setLoading(false);
+      setInput('');
+    }
   };
 
-  return (
-    <div className={`min-h-screen ${backgroundClass} text-slate-100 transition-colors duration-500`}>
-      <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-10">
-        <header className="flex flex-col gap-3">
-          <h1 className="text-2xl font-semibold tracking-[0.2em]">SDP - SmartDialog Processor</h1>
-          <p className="text-sm text-slate-400">沉浸式 Galgame 对话引擎 · 模型 JSON 协议输出</p>
-        </header>
+  const sceneKey = Object.keys(SCENE_COLORS).find((key) => gameState.scene.includes(key));
+  const bgColor = sceneKey ? SCENE_COLORS[sceneKey] : SCENE_COLORS.default;
 
-        <section className="flex flex-col gap-4 rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-2xl backdrop-blur">
-          <div className="flex flex-wrap items-center gap-3">
-            {STYLE_OPTIONS.map((item) => (
+  return (
+    <div className={`w-full h-screen flex flex-col items-center justify-center transition-colors duration-1000 ${bgColor} text-white`}>
+      <div className="absolute top-4 right-4 z-10">
+        <select
+          value={currentStyle}
+          onChange={(event) => setStyle(event.target.value)}
+          className="bg-black/50 border border-white/30 rounded px-3 py-1 text-sm outline-none hover:bg-black/70 transition"
+        >
+          <option value="TSUNDERE">傲娇 (Tsundere)</option>
+          <option value="YANDERE">病娇 (Yandere)</option>
+          <option value="KUUDERE">三无 (Kuudere)</option>
+          <option value="GENKI">元气 (Genki)</option>
+        </select>
+      </div>
+
+      <div className="absolute top-4 left-4 bg-black/30 px-3 py-1 rounded text-xs text-white/70">
+        📍 {gameState.scene}
+      </div>
+
+      <div className="flex flex-col items-center gap-6 mb-10">
+        {gameState.summary && (
+          <div className="mb-4 w-[600px] bg-black/40 border-l-4 border-blue-400 p-3 rounded text-sm text-blue-100 italic animate-fade-in">
+            <span>🧠 心理活动: </span>
+            {gameState.summary}
+          </div>
+        )}
+
+        <div className={`text-9xl filter drop-shadow-2xl transition-transform duration-300 ${isTyping ? 'animate-pulse' : ''}`}>
+          {MOOD_EMOJIS[gameState.mood] || "😐"}
+        </div>
+
+        <div className="w-[600px] min-h-[120px] bg-black/60 backdrop-blur-md border border-white/10 rounded-xl p-6 shadow-2xl relative">
+          <div className="absolute -top-3 left-4 bg-blue-600 px-3 py-1 text-xs font-bold rounded shadow">
+            AI 角色
+          </div>
+
+          <p className="text-lg leading-relaxed font-medium tracking-wide">
+            {isLoading ? <span className="animate-pulse">正在思考回复...</span> : displayedText}
+            {!isLoading && isTyping && <span className="inline-block w-2 h-5 bg-white ml-1 animate-blink"></span>}
+          </p>
+        </div>
+      </div>
+
+      <div className="w-[600px] flex flex-col gap-3">
+        {!isTyping && !isLoading && (
+          <div className="grid grid-cols-1 gap-2 animate-fade-in-up">
+            {gameState.options.map((opt, idx) => (
               <button
-                key={item.code}
-                type="button"
-                onClick={() => setStyle(item.code)}
-                className={`rounded-full border px-4 py-1 text-xs tracking-[0.2em] transition-all ${
-                  currentStyle === item.code
-                    ? 'border-indigo-400 bg-indigo-400/20 text-indigo-200'
-                    : 'border-white/10 text-slate-300 hover:border-indigo-300/60'
-                }`}
+                key={idx}
+                onClick={() => handleSend(opt)}
+                className="bg-white/10 hover:bg-white/20 hover:scale-[1.02] border border-white/20 text-left px-4 py-3 rounded-lg transition-all duration-200 text-sm active:scale-95"
               >
-                {item.label}
+                👉 {opt}
               </button>
             ))}
           </div>
+        )}
 
-          <div className="grid gap-6 md:grid-cols-[160px_1fr]">
-            <div className="flex items-center justify-center">
-              <div className="relative h-40 w-32 overflow-hidden rounded-xl border border-white/10 bg-slate-950/70">
-                <img
-                  src={portraitSrc}
-                  alt={mood}
-                  className="h-full w-full object-cover"
-                  onError={(event) => {
-                    event.currentTarget.style.display = 'none';
-                  }}
-                />
-                <div className="absolute bottom-2 left-2 rounded-md bg-black/60 px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-slate-200">
-                  {mood}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <div className="rounded-xl border border-white/10 bg-black/40 p-4 text-lg leading-relaxed">
-                {displayedText || '等待你的输入...'}
-                {!isComplete && text && <span className="ml-1 inline-block h-5 w-0.5 animate-pulse bg-indigo-400" />}
-              </div>
-
-              <div
-                className={`grid gap-3 transition-all duration-500 ${
-                  isComplete && options.length > 0 ? 'opacity-100' : 'pointer-events-none opacity-0'
-                }`}
-              >
-                {options.map((option, index) => (
-                  <button
-                    key={option}
-                    type="button"
-                    onClick={() => selectOption(index)}
-                    className={`rounded-xl border border-white/10 bg-slate-900/60 p-4 text-left text-sm transition-all hover:border-indigo-300/60 hover:bg-slate-900/80 ${
-                      selectedOptionIndex === index ? 'border-indigo-400 bg-indigo-500/10' : ''
-                    }`}
-                  >
-                    <span className="mr-2 text-indigo-300">选项 {index + 1}</span>
-                    {option}
-                  </button>
-                ))}
-              </div>
-
-              {!isComplete && text && (
-                <p className="text-xs text-slate-500">旁白打字机进行中，选项将在完成后显示。</p>
-              )}
-            </div>
-          </div>
-        </section>
-
-        <form
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-slate-900/70 p-6 shadow-2xl backdrop-blur"
-        >
-          <textarea
-            value={inputText}
-            onChange={(event) => setInputText(event.target.value)}
-            rows={3}
-            placeholder="输入对话文本，驱动剧情发展..."
-            className="w-full resize-none rounded-xl border border-white/10 bg-slate-950/80 p-4 text-sm text-slate-200 focus:border-indigo-400 focus:outline-none"
-            disabled={loading}
+        <div className="flex gap-2 mt-4">
+          <input
+            type="text"
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            onKeyDown={(event) => event.key === 'Enter' && handleSend(input)}
+            placeholder="或者输入你想说的话..."
+            className="flex-1 bg-black/30 border border-white/20 rounded px-4 py-2 outline-none focus:border-blue-400 transition"
           />
-          <div className="flex items-center justify-between">
-            <div className="text-xs text-slate-500">
-              {scene ? `当前场景：${scene}` : '尚未生成场景'}
-            </div>
-            <div className="flex items-center gap-3">
-              {loading && (
-                <button
-                  type="button"
-                  onClick={cancelGeneration}
-                  className="rounded-full border border-red-400/60 px-4 py-1 text-xs text-red-300"
-                >
-                  取消
-                </button>
-              )}
-              <button
-                type="submit"
-                disabled={loading}
-                className="rounded-full bg-indigo-500 px-5 py-2 text-xs font-semibold tracking-[0.2em] text-white transition hover:bg-indigo-400 disabled:opacity-60"
-              >
-                {loading ? '生成中...' : '生成'}
-              </button>
-            </div>
-          </div>
-          {error && <p className="text-xs text-red-300">{error}</p>}
-        </form>
+          <button
+            onClick={() => handleSend(input)}
+            disabled={isLoading}
+            className="bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 px-6 py-2 rounded font-bold transition-colors"
+          >
+            发送
+          </button>
+        </div>
       </div>
     </div>
   );
