@@ -32,8 +32,24 @@ cd backend
 
 pip install -r requirements.txt
 # 启动开发服务器
-uvicorn main:app --reload --host 127.0.0.1 --port 8000
+cd D:\All_codes\galonline\backend
+.\.venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
 ```
+
+**注意**：必须在 `backend` 目录中启动，否则会报 "Could not import module 'main'" 错误。
+
+**最新更新 (2026-01-29)**：
+- ✅ 后端已重构为"恋爱军师"模式（5种风格：高冷/傲娇/元气/谄媚/中二）
+- ✅ 自动随机抽取 3 种风格生成回复建议
+- ✅ 每个选项包含情商评分 (-3 到 +3)
+- ✅ 前端兼容性已修复（旧接口 `/api/generate` 自动转换格式）
+- ✨ **新增好感度可视化系统**：
+  - 根据评分显示不同颜色边框（绿色=高情商，红色=低情商）
+  - 好感度标签带图标（💚💖💬💔❌）和发光效果
+  - 悬停时边框光晕增强，提供即时视觉反馈
+- 📄 详细说明见：
+  - [FRONTEND_COMPATIBILITY_FIX.md](backend/FRONTEND_COMPATIBILITY_FIX.md) - 后端接口兼容
+  - [FAVOR_SYSTEM_DESIGN.md](client/FAVOR_SYSTEM_DESIGN.md) - 好感度视觉系统
 
 ### 3. 前端设置 (Client)
 前端使用 Electron + React（主渲染）/ Vue 3（历史/备用）。

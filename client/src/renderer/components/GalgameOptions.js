@@ -155,6 +155,13 @@ const GalgameOptions = ({ sceneSummary, options, onSelect, thinkingTimeMs, selec
           >
             {visibleOptions.map((opt) => {
               const theme = getThemeColor(opt);
+              
+              // 根据好感度设置边框颜色
+              const favorBorderColor = opt.favorChange >= 2 ? '#22c55e' :  // 绿色 (高情商)
+                                      opt.favorChange >= 1 ? '#84cc16' :   // 黄绿色
+                                      opt.favorChange === 0 ? theme.borderColor : // 默认主题色
+                                      opt.favorChange >= -1 ? '#fb923c' :  // 橙色
+                                      '#ef4444';                          // 红色 (低情商)
 
               return (
                 <motion.button
@@ -168,14 +175,17 @@ const GalgameOptions = ({ sceneSummary, options, onSelect, thinkingTimeMs, selec
                   }
                   style={{
                     backgroundColor: '#000000',
-                    borderColor: theme.borderColor,
+                    borderColor: favorBorderColor,
                   }}
                   whileTap={{ scale: 0.98 }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = '#0a0a0a';
+                    // 悬停时增强边框光效
+                    e.currentTarget.style.boxShadow = `0 0 20px ${favorBorderColor}80, 0 10px 40px rgba(0,0,0,0.5)`;
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = '#000000';
+                    e.currentTarget.style.boxShadow = '';
                   }}
                 >
                   {/* 内容 */}
@@ -215,15 +225,36 @@ const GalgameOptions = ({ sceneSummary, options, onSelect, thinkingTimeMs, selec
                           | {opt.effect}
                         </span>
                       )}
-                      {(opt.favorChange !== undefined && opt.favorChange !== 0) && (
+                      {/* 好感度评分显示 - 根据分数显示不同颜色 */}
+                      {(opt.favorChange !== undefined) && (
                         <span 
-                          className="ml-auto text-base font-bold"
+                          className="ml-auto text-lg font-bold px-3 py-1 rounded-lg transition-all duration-300"
                           style={{
                             color: '#FFFFFF',
+                            backgroundColor: opt.favorChange >= 2 ? 'rgba(34, 197, 94, 0.3)' : 
+                                           opt.favorChange >= 1 ? 'rgba(132, 204, 22, 0.3)' :
+                                           opt.favorChange === 0 ? 'rgba(107, 114, 128, 0.3)' :
+                                           opt.favorChange >= -1 ? 'rgba(251, 146, 60, 0.3)' :
+                                           'rgba(239, 68, 68, 0.3)',
+                            border: opt.favorChange >= 2 ? '2px solid rgb(34, 197, 94)' :
+                                   opt.favorChange >= 1 ? '2px solid rgb(132, 204, 22)' :
+                                   opt.favorChange === 0 ? '2px solid rgb(107, 114, 128)' :
+                                   opt.favorChange >= -1 ? '2px solid rgb(251, 146, 60)' :
+                                   '2px solid rgb(239, 68, 68)',
                             textShadow: '0 3px 6px rgba(0,0,0,1)',
+                            boxShadow: opt.favorChange >= 2 ? '0 0 15px rgba(34, 197, 94, 0.5)' :
+                                      opt.favorChange >= 1 ? '0 0 15px rgba(132, 204, 22, 0.5)' :
+                                      opt.favorChange === 0 ? '0 0 10px rgba(107, 114, 128, 0.3)' :
+                                      opt.favorChange >= -1 ? '0 0 15px rgba(251, 146, 60, 0.5)' :
+                                      '0 0 15px rgba(239, 68, 68, 0.5)',
                           }}
                         >
-                          {opt.favorChange > 0 ? `+${opt.favorChange}` : opt.favorChange} 💖
+                          {opt.favorChange > 0 ? `+${opt.favorChange}` : opt.favorChange} 
+                          {opt.favorChange >= 2 ? ' 💚' : 
+                           opt.favorChange >= 1 ? ' 💖' : 
+                           opt.favorChange === 0 ? ' 💬' : 
+                           opt.favorChange >= -1 ? ' 💔' : 
+                           ' ❌'}
                         </span>
                       )}
                     </div>

@@ -12,10 +12,10 @@ load_dotenv()
 
 from services.ai_service import ai_service
 from services.db_service import db_service
-from models.schemas import ChatRequest, GameResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest
+from models.schemas import ChatRequest, AdvisorResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest
 
 # 初始化 App
-app = FastAPI(title="SDP Python Backend")
+app = FastAPI(title="Love Advisor Backend")
 
 logger.info("🚀 [FastAPI] Application starting...")
 
@@ -39,15 +39,11 @@ app.add_middleware(
 )
 
 # ==========================================
-# 2. 数据模型 (Moved to models/schemas.py)
-# ==========================================
-
-# ==========================================
 # 3. 路由定义 (Endpoint)
 # ==========================================
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "Python 后端正在运行！"}
+    return {"status": "ok", "message": "恋爱军师后端正在运行！"}
 
 @app.get("/bridge/health")
 async def health_check():
@@ -55,98 +51,129 @@ async def health_check():
     return {
         "status": "ok",
         "message": "Backend is healthy",
+        "mode": "Love Advisor",
         "model": os.getenv("AI_MODEL", "")
     }
 
-# 假设前端请求的是 /api/generate 或 /generate
-# 我们这里写两个以防万一，随后你在前端统一
-@app.post("/api/chat", response_model=GameResponse)
+@app.post("/api/chat", response_model=AdvisorResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    新版聊天接口 - 使用 AsyncOpenAI
-    
-    Request: {user_input, style}
-    Response: {summary, text, mood, scene, options}
+    恋爱军师核心接口
+    Request: { user_input: "..." }
+    Response: { analysis: "...", options: [ ... ] }
     """
-    logger.info(f"📨 [/api/chat] Received request | Style: {request.style}")
+    logger.info(f"📨 [/api/chat] Received: {request.user_input}")
     
     try:
-        result = await ai_service.generate_response(request.user_input, request.style)
-        logger.success(f"✅ [/api/chat] Response generated successfully")
+        # 只需要传 text，风格由后端随机
+        result = await ai_service.generate_response(request.user_input)
         return result
     except Exception as exc:
-        logger.error(f"❌ [/api/chat] Failed: {exc}")
+        logger.error(f"❌ [/api/chat] Error: {exc}")
+        # 兜底返回，防止前端白屏
         return {
-            "summary": "系统出现了一些波动...",
-            "text": "系统连接波动，请稍后再试... (._.)",
-            "mood": "neutral",
-            "scene": "error_screen",
-            "options": ["重试"],
+            "analysis": "系统连接波动，无法分析局势...(T_T)",
+            "options": [
+                {
+                    "style": "ERROR", 
+                    "style_name": "系统错误", 
+                    "text": "服务器连接失败，请检查网络设置或 API Key。", 
+                    "score": 0
+                },
+                {
+                    "style": "ERROR", 
+                    "style_name": "重试", 
+                    "text": "点击重新生成试试看？", 
+                    "score": 0
+                },
+                {
+                    "style": "ERROR", 
+                    "style_name": "等待", 
+                    "text": "稍等片刻再试...", 
+                    "score": 0
+                }
+            ]
         }
 
 
+# 保留旧版接口用于兼容性（前端格式适配）
 @app.post("/api/generate")
 @app.post("/generate")
 async def generate_dialog(request: LegacyGenerateRequest):
     """
-    兼容旧版前端的接口 - 支持 Vue 组件
+    兼容旧版前端的接口 - 将新格式转换为旧格式
     
-    Request: {text, style, userId, history, sessionId}
-    Response: {success, data: {options: [{id, text, style, emoji, favorChange}]}}
+    前端期望格式:
+    {
+      success: true,
+      data: {
+        sceneSummary: "...",
+        options: [{id, text, style, emoji, favorChange}],
+        generationTimeMs: 1000
+      }
+    }
     """
     start_time = time.perf_counter()
+    logger.info(f"📨 [/api/generate] Legacy request redirecting to new chat endpoint")
     
-    logger.info(f"📨 [/api/generate] Legacy request | Style: {request.style}")
-
-    style = request.style or "TSUNDERE"
-    if style not in {"TSUNDERE", "YANDERE", "KUUDERE", "GENKI"}:
-        style = "TSUNDERE"
-
     try:
-        ai_result = await ai_service.generate_response(request.text, style)
-        logger.success(f"✅ [/api/generate] Legacy response generated")
+        # 调用新接口获取恋爱军师响应
+        chat_request = ChatRequest(user_input=request.text)
+        advisor_response = await chat_endpoint(chat_request)
+        
+        # 转换为旧格式
+        formatted_options = []
+        for idx, opt in enumerate(advisor_response.get("options", [])):
+            # 根据评分映射好感度变化
+            score = opt.get("score", 0)
+            favor_change = score  # 直接使用评分作为好感度变化
+            
+            # 根据风格选择 emoji
+            emoji_map = {
+                "COLD": "❄️",
+                "TSUNDERE": "💢",
+                "GENKI": "✨",
+                "FLATTERING": "🥺",
+                "CHUNIBYO": "🌙"
+            }
+            emoji = emoji_map.get(opt.get("style", ""), "💬")
+            
+            formatted_options.append({
+                "id": chr(65 + idx),  # A, B, C
+                "text": opt.get("text", ""),
+                "style": opt.get("style_name", "未知"),
+                "emoji": emoji,
+                "favorChange": favor_change,
+                "type": "default",
+                "description": f"情商评分: {score:+d}",
+                "effect": ""
+            })
+        
+        generation_time_ms = int((time.perf_counter() - start_time) * 1000)
+        
+        return {
+            "success": True,
+            "data": {
+                "sessionId": request.sessionId or "temp-session",
+                "originalText": request.text,
+                "sceneSummary": advisor_response.get("analysis", ""),
+                "options": formatted_options,
+                "style": request.style or "random",
+                "generationTimeMs": generation_time_ms
+            }
+        }
+        
     except Exception as exc:
         logger.error(f"❌ [/api/generate] Failed: {exc}")
-        return JSONResponse(
-            status_code=200,
-            content={
-                "success": False,
-                "message": "模型生成失败",
-                "errorType": "unknown",
-                "data": {
-                    "generationTimeMs": int((time.perf_counter() - start_time) * 1000)
-                },
-            },
-        )
-
-    options = ai_result.get("options", [])
-    formatted_options = [
-        {
-            "id": chr(65 + idx),
-            "text": option_text,
-            "style": "unknown",
-            "effect": "",
-            "emoji": "💬",
-            "favorChange": 0,
-            "type": "default",
-            "description": "",
+        return {
+            "success": False,
+            "message": f"生成失败: {str(exc)}",
+            "errorType": "generation_error",
+            "data": {
+                "generationTimeMs": int((time.perf_counter() - start_time) * 1000)
+            }
         }
-        for idx, option_text in enumerate(options)
-    ]
 
-    payload = {
-        "success": True,
-        "data": {
-            "sessionId": request.sessionId,
-            "originalText": request.text,
-            "options": formatted_options,
-            "sceneSummary": ai_result.get("scene", ""),
-            "style": style,
-            "generationTimeMs": int((time.perf_counter() - start_time) * 1000),
-        },
-    }
-
-    return payload
 
 @app.post("/api/selection")
 @app.post("/api/dialog/selection")

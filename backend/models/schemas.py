@@ -1,16 +1,41 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Any, Literal
 
+# ==================== 新版：恋爱军师模型 ====================
+
+class ChatRequest(BaseModel):
+    """
+    用户请求模型
+    在新版中，style 由后端随机生成，前端只需要传对方的话
+    """
+    user_input: str = Field(..., description="对方发来的消息")
+    # 可选保留 style 以兼容旧接口测试，但实际业务逻辑中主要由后端随机
+    style: Optional[str] = None 
+
+class ReplyOption(BaseModel):
+    """单个回复选项"""
+    style: str = Field(..., description="风格代码 (e.g. TSUNDERE)")
+    style_name: str = Field(..., description="风格显示名称 (e.g. 傲娇)")
+    text: str = Field(..., description="回复内容，包含颜文字")
+    score: int = Field(..., ge=-3, le=3, description="好感度/情商评分 (-3 到 3)")
+
+    @field_validator('text')
+    @classmethod
+    def validate_text(cls, v: str) -> str:
+        if len(v) < 1:
+            raise ValueError("回复内容不能为空")
+        return v
+
+class AdvisorResponse(BaseModel):
+    """AI军师的最终响应"""
+    analysis: str = Field(..., description="对当前局势/对方情绪的分析总结")
+    options: List[ReplyOption] = Field(..., min_length=3, max_length=3, description="3个不同风格的回复建议")
+
+
+# ==================== 旧版兼容模型 (保留以防报错) ====================
 # 风格类型定义
 StyleType = Literal["TSUNDERE", "YANDERE", "KUUDERE", "GENKI"]
 MoodType = Literal["angry", "shy", "happy", "dark", "neutral", "excited", "love"]
-
-# ==================== 请求模型 ====================
-
-class ChatRequest(BaseModel):
-    """新版聊天请求模型"""
-    user_input: str = Field(..., description="用户输入的文本")
-    style: StyleType = Field(default="TSUNDERE", description="对话风格")
 
 
 class DialogRequest(BaseModel):
