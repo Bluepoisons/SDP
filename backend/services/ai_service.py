@@ -1,5 +1,5 @@
 """
-AI Service - 恋爱军师核心逻辑
+AI Service - 恋爱军师核心逻辑 v8.0 指挥官系统
 """
 import json
 import os
@@ -12,16 +12,22 @@ from pydantic import ValidationError
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 # 引入新定义的 Schema 和 Config
-from models.schemas import AdvisorResponse
-from config.styles import build_advisor_prompt, get_random_styles
+from models.schemas import AdvisorResponse, SituationAnalysis
+from config.styles import (
+    build_advisor_prompt, 
+    build_analyze_prompt, 
+    build_execute_prompt,
+    get_random_styles
+)
 
 class AIService:
     """
-    AI 服务类 - 恋爱军师版
+    AI 服务类 - v8.0 指挥官系统
+    支持双阶段处理: Analyze (态势感知) -> Execute (战术执行)
     """
     
     def __init__(self) -> None:
-        logger.info("🚀 [AIService] Initializing Dating Advisor Service...")
+        logger.info("🚀 [AIService] Initializing Commander System v8.0...")
         self._refresh_config()
 
     def _refresh_config(self) -> None:
@@ -39,6 +45,22 @@ class AIService:
         )
         
         logger.success(f"✅ [Config] Model: {self.model} | Temp: {self.temperature}")
+
+    def _detect_burst_mode(self, text: str) -> tuple[bool, int]:
+        """
+        检测连发消息模式
+        Returns: (is_burst, pressure_level)
+        """
+        lines = text.strip().split('\n')
+        line_count = len(lines)
+        
+        # 计算短消息占比（<=5字符的行）
+        short_lines = sum(1 for line in lines if len(line.strip()) <= 5)
+        
+        is_burst = line_count >= 3 or (line_count >= 2 and short_lines >= 2)
+        pressure_level = min(line_count, 5)  # 最高5级
+        
+        return is_burst, pressure_level
 
     def _parse_response(self, raw_content: str) -> Dict[str, Any]:
         """
@@ -60,6 +82,23 @@ class AIService:
             raise e
         except ValidationError as e:
             logger.error(f"❌ [Parse] Schema Error: {e}")
+            raise e
+
+    def _parse_analysis_response(self, raw_content: str) -> Dict[str, Any]:
+        """
+        解析态势感知响应 (SituationAnalysis)
+        """
+        clean_content = raw_content.replace("```json", "").replace("```", "").strip()
+        
+        try:
+            data = json.loads(clean_content)
+            validated = SituationAnalysis(**data)
+            return validated.model_dump()
+        except json.JSONDecodeError as e:
+            logger.error(f"❌ [Analyze Parse] JSON Error: {e}")
+            raise e
+        except ValidationError as e:
+            logger.error(f"❌ [Analyze Parse] Schema Error: {e}")
             raise e
 
     def _build_context_prompt(self, user_input: str, history: list, selected_styles: list) -> str:
@@ -98,6 +137,132 @@ class AIService:
             final_prompt = base_prompt
             
         return final_prompt
+
+    # ==================== v8.0 新增：双阶段 API ====================
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        retry=retry_if_exception_type((json.JSONDecodeError, ValidationError, Exception)),
+        reraise=True,
+    )
+    async def analyze_situation(self, user_input: str, history: list = []) -> Dict[str, Any]:
+        """
+        v8.0 Phase 1: 态势感知 (Situation Awareness)
+        分析对方情绪、意图和语境压迫感
+        
+        Args:
+            user_input: 对方发来的消息（支持多行连发）
+            history: 历史对话上下文
+            
+        Returns:
+            SituationAnalysis 的字典形式
+        """
+        self._refresh_config()
+        
+        # 1. 预检测连发模式
+        is_burst, pressure_level = self._detect_burst_mode(user_input)
+        logger.info(f"🎯 [Analyze] Input: {user_input[:30]}... | Burst: {is_burst} | Pressure: {pressure_level}")
+        
+        # 2. 构建分析 Prompt
+        system_prompt = build_analyze_prompt(user_input, history)
+        
+        try:
+            # 3. 调用 LLM 进行心理侧写
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"请分析以下消息：\n{user_input}"},
+                ],
+                temperature=0.7,  # 分析阶段降低随机性
+                max_tokens=512,   # 分析输出较短
+                response_format={"type": "json_object"},
+            )
+            
+            raw_content = response.choices[0].message.content
+            result = self._parse_analysis_response(raw_content)
+            
+            # 4. 用预检测结果覆盖（更准确）
+            result["burst_detected"] = is_burst
+            result["pressure_level"] = max(result.get("pressure_level", 0), pressure_level)
+            
+            logger.success(f"✅ [Analyze] Strategy: {result.get('strategy')} | Emotion: {result.get('emotion_score')}")
+            
+            return result
+            
+        except Exception as exc:
+            logger.error(f"❌ [Analyze] Failed: {exc}")
+            # 返回默认分析结果
+            return {
+                "summary": "无法完成态势分析，请手动调整参数。",
+                "emotion_score": 0,
+                "intent": "UNKNOWN",
+                "strategy": "COMFORT",
+                "confidence": 0.5,
+                "burst_detected": is_burst,
+                "pressure_level": pressure_level
+            }
+    
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        retry=retry_if_exception_type((json.JSONDecodeError, ValidationError, Exception)),
+        reraise=True,
+    )
+    async def execute_tactics(
+        self, 
+        user_input: str, 
+        analysis: Dict[str, Any], 
+        history: list = []
+    ) -> Dict[str, Any]:
+        """
+        v8.0 Phase 2: 战术执行 (Tactical Execution)
+        基于确定的战术策略生成回复选项
+        
+        Args:
+            user_input: 对方原始消息
+            analysis: 经用户确认/修改的战术分析 (SituationAnalysis)
+            history: 历史对话上下文
+            
+        Returns:
+            AdvisorResponse 的字典形式 (analysis, options)
+        """
+        self._refresh_config()
+        
+        # 1. 随机抽取风格
+        selected_styles = get_random_styles(3)
+        style_names = [s['name'] for s in selected_styles]
+        logger.info(f"🎲 [Execute] Styles: {style_names} | Strategy: {analysis.get('strategy')}")
+        
+        # 2. 构建执行 Prompt
+        system_prompt = build_execute_prompt(user_input, analysis, selected_styles, history)
+        
+        try:
+            # 3. 调用 LLM 生成回复
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"基于{analysis.get('strategy')}策略，为以下消息生成3个回复选项：\n{user_input}"},
+                ],
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                response_format={"type": "json_object"},
+            )
+            
+            raw_content = response.choices[0].message.content
+            result = self._parse_response(raw_content)
+            
+            logger.success(f"✅ [Execute] Generated {len(result.get('options', []))} options")
+            
+            return result
+            
+        except Exception as exc:
+            logger.error(f"❌ [Execute] Failed: {exc}")
+            raise exc
+
+    # ==================== 原有接口（保持兼容） ====================
 
     @retry(
         stop=stop_after_attempt(3),

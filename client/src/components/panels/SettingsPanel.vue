@@ -47,14 +47,29 @@ const triggerTraining = () => {
     samplesCollected.value = 0;
   }, 1500);
 };
+
+// 🚧 本地模型锁定 - 点击时抖动反馈
+const localModelRef = ref<HTMLElement | null>(null);
+const shakeLocalModel = () => {
+  const el = document.querySelector('.local-model-locked');
+  if (el) {
+    el.classList.add('shake-deny');
+    setTimeout(() => el.classList.remove('shake-deny'), 500);
+  }
+};
 </script>
 
 <template>
   <section class="space-y-6">
-    <header>
-      <p class="text-xs uppercase tracking-[0.2em] text-zinc-400">系统设置</p>
-      <h1 class="mt-2 text-2xl font-semibold">模型与连接配置</h1>
-      <p class="mt-2 text-sm text-zinc-400">选择你偏好的推理方式，灵活控制响应速度与隐私。</p>
+    <header class="relative">
+      <!-- 🎮 Diegetic UI: 沉浸式标题 -->
+      <div class="flex items-center gap-2">
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+        <p class="text-xs uppercase tracking-[0.3em] text-cyan-400 font-mono">NEURAL_LINK::CONFIG</p>
+        <div class="h-px flex-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent"></div>
+      </div>
+      <h1 class="mt-3 text-2xl font-bold tracking-wide text-center">系统配置终端</h1>
+      <p class="mt-2 text-sm text-zinc-400 text-center">选择推理模式 · 调整神经链路参数</p>
     </header>
 
     <Card>
@@ -76,18 +91,27 @@ const triggerTraining = () => {
             <p class="text-xs text-zinc-400">云端大模型，响应迅速。</p>
           </div>
         </label>
-        <label class="flex items-start gap-3 rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
+        <!-- 🔒 本地模型 - 锁定状态 (Phantom Feature Fix) -->
+        <label 
+          class="local-model-locked flex items-start gap-3 rounded-lg border border-zinc-700 bg-zinc-900/40 p-4 relative overflow-hidden cursor-not-allowed opacity-60 grayscale"
+          @click.prevent="shakeLocalModel"
+        >
           <input
             type="radio"
             name="modelSource"
             value="local"
-            v-model="modelSource"
-            class="mt-1"
+            disabled
+            class="mt-1 cursor-not-allowed"
           />
-          <div>
-            <p class="text-sm font-medium">本地模型 (Python Backend)</p>
-            <p class="text-xs text-zinc-400">本地推理，数据更安全。</p>
+          <div class="flex-1">
+            <div class="flex items-center gap-2">
+              <p class="text-sm font-medium text-zinc-400">本地模型 (Python Backend)</p>
+              <span class="px-1.5 py-0.5 text-[10px] font-bold tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/30 rounded">🚧 LOCKED</span>
+            </div>
+            <p class="text-xs text-zinc-500">模块未加载... (╯▔皿▔)╯</p>
           </div>
+          <!-- 斜纹装饰 -->
+          <div class="absolute inset-0 pointer-events-none opacity-10" style="background: repeating-linear-gradient(45deg, transparent, transparent 10px, currentColor 10px, currentColor 11px);"></div>
         </label>
       </CardContent>
     </Card>

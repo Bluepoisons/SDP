@@ -125,7 +125,8 @@ const handleClick = (event: MouseEvent) => {
       { 'option-romantic': isRomanticOption },
       { 'option-mysterious': isMysteriousOption },
       { 'option-highlight': isHovering },
-      selected ? 'scale-[1.02] ring-2 ring-white/20' : 'hover:scale-[1.03]'
+      { 'shine-effect': isHovering },
+      selected ? 'scale-[1.02] ring-2 ring-white/20' : 'hover:scale-105 active:scale-95'
     ]"
     @click="handleClick"
     @mouseenter="isHovering = true"
@@ -208,5 +209,40 @@ const handleClick = (event: MouseEvent) => {
 
 .group:hover .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* ✨ Shine 扫光效果 (Master's Advice: Hover 时闪光扫过) */
+.shine-effect::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  animation: shine-sweep 0.6s ease-out forwards;
+  pointer-events: none;
+  z-index: 20;
+}
+
+@keyframes shine-sweep {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* 🎮 Active 按压反馈 (The Juice) */
+.option-card:active {
+  transform: scale(0.95) translateY(2px) !important;
+  transition: transform 0.1s ease;
+}
+
+/* 💫 悬浮时轻微上浮 */
+.option-card:hover {
+  transform: translateY(-4px) scale(1.02);
 }
 </style>

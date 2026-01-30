@@ -9,7 +9,7 @@ import { useGameStore, type SessionSummary } from "@/stores/useGameStore";
 import { useConnectionStore } from "@/stores/useConnectionStore";
 import { useUiSettings } from "@/stores/useUiSettings";
 import { useAIProcess } from "@/composables/useAIProcess";
-import { recordFeedback } from "@/services/api";
+import { recordFeedback, type SituationAnalysis } from "@/services/api";
 
 // 🆕 Task 2 & 3: 设置按钮相关引入
 import { Settings } from "lucide-vue-next";
@@ -28,6 +28,13 @@ import MouseLight from "@/components/MouseLight.vue";
 import GalChatLogo from "@/components/GalChatLogo.vue";
 import SystemStatus from "@/components/SystemStatus.vue";
 
+// 💔 v7.1: 情感色彩反馈
+import EmotionFlash from "@/components/EmotionFlash.vue";
+
+// 🎯 v8.0: 指挥官系统
+import TacticsBoard from "@/components/TacticsBoard.vue";
+import ECGMonitor from "@/components/ECGMonitor.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
 const uiSettings = useUiSettings();
@@ -36,12 +43,32 @@ const inputText = ref("");
 const isSidebarCollapsed = ref(false);
 const isSettingsOpen = ref(false);
 const scorePopupRef = ref<InstanceType<typeof ScorePopup> | null>(null);
+const emotionFlashRef = ref<InstanceType<typeof EmotionFlash> | null>(null);
 
-const { isThinking, startThinking, stopThinking, thinkingStage, thinkingDuration } = useAIProcess();
+// v8.0: 使用完整的指挥官系统
+const { 
+  isThinking, 
+  startThinking, 
+  stopThinking, 
+  thinkingStage, 
+  thinkingDuration,
+  // v8.0 新增
+  commanderPhase,
+  currentAnalysis,
+  rawInput,
+  startAnalyze,
+  startExecute,
+  cancelTactics,
+} = useAIProcess();
 
-// 🎯 处理属性弹窗
+// v8.0: 本地编辑的分析结果
+const editedAnalysis = ref<SituationAnalysis | null>(null);
+
+// 🎯 处理属性弹窗 + 情感闪烁
 const handleScorePopup = (score: number, x: number, y: number) => {
   scorePopupRef.value?.trigger('好感度', score, x, y, 'favor');
+  // 💔 触发情感色彩反馈
+  emotionFlashRef.value?.triggerFlash(score);
 };
 
 const toggleSidebar = () => {
@@ -75,6 +102,119 @@ const groupedSessions = computed(() => {
 });
 
 const handleGenerate = async () => {
+  const text = inputText.value.trim();
+  if (!text || isThinking.value) return;
+
+  // v8.0: 使用指挥官系统的双阶段流程
+  gameStore.addMessage({ role: "user", content: text, type: "text" });
+  gameStore.setLoading(true);
+
+  try {
+    // 🆕 Task 2 & 3: 根据记忆上限截取历史记录
+    const allMessages = gameStore.currentSession.messages;
+    const limit = uiSettings.memoryLimit;
+    const recentMessages = limit > 0 ? allMessages.slice(-limit) : [];
+    const history = buildHistoryPayload(recentMessages);
+
+    // v8.0 Phase 1: 态势感知
+    const analyzeRes = await startAnalyze(text, history);
+    
+    if (!analyzeRes || !analyzeRes.success || !analyzeRes.analysis) {
+      gameStore.addMessage({
+        role: "system",
+        content: analyzeRes?.message || "态势分析失败，请稍后重试。",
+        type: "text",
+      });
+      gameStore.setLoading(false);
+      return;
+    }
+
+    // 保存分析结果，进入战术确认阶段
+    editedAnalysis.value = { ...analyzeRes.analysis };
+    inputText.value = ""; // 清空输入框
+    
+    // 注意：此时 gameStore.setLoading 保持 false（战术面板是可编辑的）
+    gameStore.setLoading(false);
+    
+  } catch (error: any) {
+    gameStore.addMessage({
+      role: "system",
+      content: error?.message || "生成失败，请稍后重试。",
+      type: "text",
+    });
+    gameStore.setLoading(false);
+  }
+};
+
+// v8.0: 执行战术（用户确认分析后调用）
+const handleExecuteTactics = async (analysis: SituationAnalysis) => {
+  if (isThinking.value || !rawInput.value) return;
+
+  const thinkingId = gameStore.addThinkingMessage();
+  gameStore.setLoading(true);
+
+  try {
+    const allMessages = gameStore.currentSession.messages;
+    const limit = uiSettings.memoryLimit;
+    const recentMessages = limit > 0 ? allMessages.slice(-limit) : [];
+    const history = buildHistoryPayload(recentMessages);
+
+    // v8.0 Phase 2: 战术执行
+    const executeRes = await startExecute(analysis, history);
+
+    if (!executeRes || !executeRes.success || !executeRes.data) {
+      gameStore.updateMessage(thinkingId, {
+        role: "system",
+        content: executeRes?.message || "战术执行失败，请稍后重试。",
+        type: "text",
+      });
+      return;
+    }
+
+    // 更新 thinking 消息为分析结果
+    gameStore.updateMessage(thinkingId, {
+      role: "assistant",
+      content: executeRes.data.sceneSummary || "",
+      type: "text",
+    });
+
+    // 添加选项消息
+    gameStore.addMessage({
+      role: "assistant",
+      content: "",
+      type: "options",
+      options: executeRes.data.options || [],
+      selectedOptionId: null,
+      selectedText: null,
+    });
+
+    // 清理战术状态
+    editedAnalysis.value = null;
+    
+  } catch (error: any) {
+    gameStore.updateMessage(thinkingId, {
+      role: "system",
+      content: error?.message || "战术执行失败，请稍后重试。",
+      type: "text",
+    });
+  } finally {
+    gameStore.setLoading(false);
+  }
+};
+
+// v8.0: 取消战术面板
+const handleCancelTactics = () => {
+  cancelTactics();
+  editedAnalysis.value = null;
+};
+
+// v8.0: 更新本地分析（用户编辑时）
+const handleUpdateAnalysis = (analysis: SituationAnalysis) => {
+  editedAnalysis.value = analysis;
+};
+
+// 旧版生成方法（保留兼容）
+const handleLegacyGenerate = async () => {
   const text = inputText.value.trim();
   if (!text || isThinking.value) return;
 
@@ -370,7 +510,14 @@ const orbClass = computed(() => {
             </h2>
           </div>
           
-          <!-- 📊 状态指示器 (简化版) -->
+          <!-- � v8.0: 心电图监视器 -->
+          <ECGMonitor
+            :state="commanderPhase === 'analyzing' ? 'analyzing' : (commanderPhase === 'executing' ? 'analyzing' : 'idle')"
+            :emotion-score="editedAnalysis?.emotion_score ?? 0"
+            label="EMOTION"
+          />
+          
+          <!-- �📊 状态指示器 (简化版) -->
           <div class="flex items-center gap-3">
             <span 
               class="inline-block h-2 w-2 rounded-full animate-pulse"
@@ -396,6 +543,18 @@ const orbClass = computed(() => {
 
         <div class="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-black/60 gpu-accelerated effects-blur">
           <div class="mx-auto max-w-3xl px-6 py-4">
+            <!-- 🎯 v8.0: 战术面板 (位于输入框上方) -->
+            <TacticsBoard
+              v-if="commanderPhase === 'tactics' || commanderPhase === 'analyzing' || commanderPhase === 'executing'"
+              :analysis="editedAnalysis"
+              :raw-input="rawInput"
+              :is-analyzing="commanderPhase === 'analyzing'"
+              :is-executing="commanderPhase === 'executing'"
+              @execute="handleExecuteTactics"
+              @cancel="handleCancelTactics"
+              @update:analysis="handleUpdateAnalysis"
+            />
+            
             <DestinyInput
               v-model="inputText"
               :loading="isThinking"
@@ -417,5 +576,8 @@ const orbClass = computed(() => {
     
     <!-- 💫 v4.0: 属性弹窗容器 -->
     <ScorePopup ref="scorePopupRef" />
+    
+    <!-- 💔 v7.1: 情感色彩反馈 -->
+    <EmotionFlash ref="emotionFlashRef" />
   </div>
 </template>

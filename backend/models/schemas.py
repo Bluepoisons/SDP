@@ -1,5 +1,77 @@
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Optional, Any, Literal
+from enum import Enum
+
+# ==================== v8.0：指挥官系统模型 ====================
+
+class IntentType(str, Enum):
+    """对方意图枚举 - 战术分析用"""
+    TESTING_BOUNDARIES = "TESTING_BOUNDARIES"      # 试探边界
+    SEEKING_ATTENTION = "SEEKING_ATTENTION"        # 求关注
+    EXPRESSING_AFFECTION = "EXPRESSING_AFFECTION"  # 表达好感
+    VENTING_EMOTION = "VENTING_EMOTION"            # 发泄情绪
+    CASUAL_CHAT = "CASUAL_CHAT"                    # 闲聊
+    FLIRTING = "FLIRTING"                          # 调情
+    COMPLAINING = "COMPLAINING"                    # 抱怨
+    JEALOUS = "JEALOUS"                            # 吃醋
+    COLD_WAR = "COLD_WAR"                          # 冷战
+    UNKNOWN = "UNKNOWN"                            # 未知
+
+class StrategyType(str, Enum):
+    """应对策略枚举 - 战术执行用"""
+    OFFENSIVE_FLIRT = "OFFENSIVE_FLIRT"            # 进攻调情
+    DEFENSIVE_FLIRT = "DEFENSIVE_FLIRT"            # 防守调情  
+    COMFORT = "COMFORT"                            # 安抚
+    FREEZE = "FREEZE"                              # 冷处理
+    PUSH_PULL = "PUSH_PULL"                        # 推拉战术
+    DIRECT = "DIRECT"                              # 直球
+    PLAYFUL = "PLAYFUL"                            # 俏皮
+    IGNORE = "IGNORE"                              # 忽略
+    APOLOGIZE = "APOLOGIZE"                        # 道歉
+    ESCALATE = "ESCALATE"                          # 升级关系
+
+class SituationAnalysis(BaseModel):
+    """v8.0 态势感知结果 - AI 分析对方情绪与意图"""
+    summary: str = Field(..., description="当前对话局势的简要战术总结")
+    emotion_score: int = Field(ge=-3, le=3, description="对方情绪指数 (-3=暴怒, 0=中性, +3=心动)")
+    intent: str = Field(..., description="推测的对方意图 (IntentType 枚举值)")
+    strategy: str = Field(..., description="AI 建议的应对策略 (StrategyType 枚举值)")
+    confidence: float = Field(ge=0.0, le=1.0, default=0.8, description="分析置信度")
+    burst_detected: bool = Field(default=False, description="是否检测到连发消息模式")
+    pressure_level: int = Field(ge=0, le=5, default=0, description="语境压迫感等级 (0=无, 5=极强)")
+
+class AnalyzeRequest(BaseModel):
+    """v8.0 态势感知请求"""
+    user_input: str = Field(..., description="对方发来的消息 (支持多行/连发)")
+    history: List[dict] = Field(default=[], description="对话历史上下文")
+    
+    @field_validator('history')
+    @classmethod
+    def validate_history(cls, v: List[dict]) -> List[dict]:
+        if len(v) > 32:
+            raise ValueError("历史记录不能超过32条")
+        for msg in v:
+            if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
+                raise ValueError("历史记录格式错误")
+        return v
+
+class AnalyzeResponse(BaseModel):
+    """v8.0 态势感知响应"""
+    success: bool = True
+    analysis: SituationAnalysis
+    raw_input: str = Field(..., description="原始输入（用于前端展示）")
+
+class ExecuteRequest(BaseModel):
+    """v8.0 战术执行请求 - 接受用户确认/修改后的分析"""
+    user_input: str = Field(..., description="对方原始消息")
+    history: List[dict] = Field(default=[], description="对话历史")
+    analysis_context: SituationAnalysis = Field(..., description="经用户确认/修改的战术分析")
+
+class ExecuteResponse(BaseModel):
+    """v8.0 战术执行响应"""
+    success: bool = True
+    analysis: str = Field(..., description="最终采用的局势分析")
+    options: List['ReplyOption'] = Field(..., min_length=3, max_length=3)
 
 # ==================== 新版：恋爱军师模型 ====================
 

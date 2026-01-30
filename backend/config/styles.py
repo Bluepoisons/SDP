@@ -127,3 +127,202 @@ def build_advisor_prompt(user_input: str, selected_styles: List[Dict[str, str]])
         style2_key=s2["key"], style2_name=s2["name"], style2_desc=s2["desc"],
         style3_key=s3["key"], style3_name=s3["name"], style3_desc=s3["desc"],
     )
+
+
+# ==================== v8.0 指挥官系统 Prompt ====================
+
+# 态势感知 Prompt - 专注于"心理侧写"
+ANALYZE_PROMPT_TEMPLATE = """# Role
+你是一名资深的恋爱战术分析师 (Tactical Romance Analyst)。
+你的任务是对对方发来的消息进行**深度心理侧写**，分析其情绪状态、潜在意图和语境压迫感。
+
+# 核心能力
+1. **连发消息识别**: 输入中的换行符 `\\n` 代表对方**连续发送的多条短消息**。这种"刷屏"行为通常表示：
+   - 情绪激动（愤怒/兴奋/焦虑）
+   - 强烈的表达欲望
+   - 试图引起注意或施压
+   - 每多一行，pressure_level +1
+   
+2. **情绪解码**: 从字面和潜台词中判断真实情绪
+3. **意图推测**: 识别对方的核心诉求
+4. **战术建议**: 基于分析给出最优应对策略
+
+# Input - 对方的消息
+```
+{user_input}
+```
+
+{context_section}
+
+# Task
+分析以上消息，输出 JSON 格式的战术报告。
+
+# 意图类型 (intent)
+- TESTING_BOUNDARIES: 试探边界
+- SEEKING_ATTENTION: 求关注  
+- EXPRESSING_AFFECTION: 表达好感
+- VENTING_EMOTION: 发泄情绪
+- CASUAL_CHAT: 闲聊
+- FLIRTING: 调情
+- COMPLAINING: 抱怨
+- JEALOUS: 吃醋
+- COLD_WAR: 冷战
+- UNKNOWN: 无法判断
+
+# 策略类型 (strategy)
+- OFFENSIVE_FLIRT: 主动进攻调情
+- DEFENSIVE_FLIRT: 防守式调情（傲娇、欲擒故纵）
+- COMFORT: 安抚、给予情绪价值
+- FREEZE: 冷处理、不主动
+- PUSH_PULL: 推拉战术（忽冷忽热）
+- DIRECT: 直球表达
+- PLAYFUL: 俏皮玩闹
+- IGNORE: 战略性忽略
+- APOLOGIZE: 认错道歉
+- ESCALATE: 升级关系
+
+# Output Format (JSON)
+```json
+{{
+  "summary": "对当前局势的1-2句话战术总结",
+  "emotion_score": <-3到+3的整数>,
+  "intent": "<意图类型>",
+  "strategy": "<建议策略>",
+  "confidence": <0.0到1.0的浮点数>,
+  "burst_detected": <true/false>,
+  "pressure_level": <0到5的整数>
+}}
+```
+
+# 示例
+输入: "我\\n讨\\n厌\\n你"
+输出:
+```json
+{{
+  "summary": "对方连续发送短句，情绪波动强烈，实为撒娇或试探，非真正讨厌。",
+  "emotion_score": -1,
+  "intent": "TESTING_BOUNDARIES",
+  "strategy": "DEFENSIVE_FLIRT",
+  "confidence": 0.85,
+  "burst_detected": true,
+  "pressure_level": 4
+}}
+```
+"""
+
+# 战术执行 Prompt - 基于确定策略生成回复
+EXECUTE_PROMPT_TEMPLATE = """# Role
+你是一名高情商恋爱军师 (High-EQ Dating Coach)。
+用户已经完成了对方消息的战术分析，现在需要你**基于确定的战术策略**生成 3 个回复选项。
+
+# 战术背景 (Tactical Context)
+- **局势总结**: {summary}
+- **对方情绪**: {emotion_score} (-3=暴怒, 0=中性, +3=心动)
+- **推测意图**: {intent}
+- **采用策略**: {strategy}
+- **连发消息**: {burst_detected}
+- **压迫感等级**: {pressure_level}/5
+
+# 原始消息
+```
+{user_input}
+```
+
+{context_section}
+
+# Task
+基于**{strategy}**策略，生成 3 个不同风格的回复选项。
+
+# 可用风格
+{styles_section}
+
+# 策略执行指南
+{strategy_guide}
+
+# Output Format (JSON)
+```json
+{{
+  "analysis": "基于战术分析的简短点评（可直接复用 summary）",
+  "options": [
+    {{
+      "style": "<风格代码>",
+      "style_name": "<风格名称>",
+      "text": "纯净回复文本（不含颜文字）",
+      "kaomoji": "<合适的颜文字>",
+      "score": <-3到+3的情商评分>
+    }},
+    // ... 共3个选项
+  ]
+}}
+```
+"""
+
+# 策略执行指南映射
+STRATEGY_GUIDES = {
+    "OFFENSIVE_FLIRT": "主动出击，语气大胆直接，制造暧昧张力，适度撩拨。回复要有进攻性但不失分寸。",
+    "DEFENSIVE_FLIRT": "欲擒故纵，表面冷淡但留有余地，让对方主动凑上来。傲娇感拉满。",
+    "COMFORT": "给予充分的情绪价值，温柔包容，让对方感到被理解和重视。避免说教。",
+    "FREEZE": "保持距离，回复简短，不主动延续话题。让对方感受到态度变化但不要太冷漠。",
+    "PUSH_PULL": "一推一拉，先甜后虐或先冷后热，制造情绪起伏，让对方捉摸不透。",
+    "DIRECT": "直球表达心意，坦诚但不卑微，清晰传达想法。",
+    "PLAYFUL": "轻松俏皮，用玩笑和调侃化解紧张，保持愉悦的互动氛围。",
+    "IGNORE": "战略性忽略核心问题，转移话题或故意答非所问，让对方重新找你。",
+    "APOLOGIZE": "真诚认错，态度诚恳但不过度卑微，给出改进承诺。",
+    "ESCALATE": "推动关系进展，提出见面、约会等实质性建议，果断行动。"
+}
+
+def build_analyze_prompt(user_input: str, history: list = []) -> str:
+    """
+    构建 v8.0 态势感知 Prompt
+    """
+    # 格式化历史记录
+    context_section = ""
+    if history:
+        context_section = "# 对话历史 (Context)\n"
+        for msg in history[-6:]:  # 只取最近6条
+            role = "对方" if msg.get("role") == "user" else "你之前的建议"
+            context_section += f"- {role}: {msg.get('content', '')}\n"
+    
+    return ANALYZE_PROMPT_TEMPLATE.format(
+        user_input=user_input,
+        context_section=context_section
+    )
+
+def build_execute_prompt(
+    user_input: str, 
+    analysis: dict, 
+    selected_styles: List[Dict[str, str]],
+    history: list = []
+) -> str:
+    """
+    构建 v8.0 战术执行 Prompt
+    """
+    # 格式化风格
+    styles_section = ""
+    for i, s in enumerate(selected_styles):
+        styles_section += f"- 风格{chr(65+i)}: **{s['name']}** - {s['desc']}\n"
+    
+    # 获取策略指南
+    strategy = analysis.get("strategy", "COMFORT")
+    strategy_guide = STRATEGY_GUIDES.get(strategy, "根据当前局势灵活应对。")
+    
+    # 格式化历史
+    context_section = ""
+    if history:
+        context_section = "# 对话历史\n"
+        for msg in history[-4:]:
+            role = "对方" if msg.get("role") == "user" else "你的建议"
+            context_section += f"- {role}: {msg.get('content', '')}\n"
+    
+    return EXECUTE_PROMPT_TEMPLATE.format(
+        user_input=user_input,
+        summary=analysis.get("summary", ""),
+        emotion_score=analysis.get("emotion_score", 0),
+        intent=analysis.get("intent", "UNKNOWN"),
+        strategy=strategy,
+        burst_detected="是" if analysis.get("burst_detected") else "否",
+        pressure_level=analysis.get("pressure_level", 0),
+        context_section=context_section,
+        styles_section=styles_section,
+        strategy_guide=strategy_guide
+    )

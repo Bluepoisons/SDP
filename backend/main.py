@@ -31,12 +31,15 @@ logger.add(
 
 from services.ai_service import ai_service
 from services.db_service import db_service
-from models.schemas import ChatRequest, AdvisorResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest
+from models.schemas import (
+    ChatRequest, AdvisorResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest,
+    AnalyzeRequest, AnalyzeResponse, ExecuteRequest, ExecuteResponse, SituationAnalysis
+)
 
 # 初始化 App
-app = FastAPI(title="Love Advisor Backend")
+app = FastAPI(title="Love Advisor Backend - Commander System v8.0")
 
-logger.info("🚀 [FastAPI] Application starting...")
+logger.info("🚀 [FastAPI] Commander System v8.0 starting...")
 
 # ==========================================
 # 1. 解决 Network Error 的核心：CORS 配置
@@ -98,10 +101,130 @@ async def get_system_logs(lines: int = 100):
         logger.error(f"❌ [/api/system/logs] Error reading logs: {e}")
         return f"Error reading logs: {str(e)}"
 
+
+# ==================== v8.0 指挥官系统 API ====================
+
+@app.post("/api/analyze")
+async def analyze_endpoint(request: AnalyzeRequest):
+    """
+    v8.0 Phase 1: 态势感知 (Situation Awareness)
+    分析对方消息的情绪、意图和语境压迫感
+    
+    Request: { user_input: "我\\n讨\\n厌\\n你", history: [...] }
+    Response: { success: true, analysis: SituationAnalysis, raw_input: "..." }
+    """
+    logger.info(f"🎯 [/api/analyze] Input: {request.user_input[:50]}... | History: {len(request.history)}")
+    
+    start_time = time.perf_counter()
+    
+    try:
+        analysis = await ai_service.analyze_situation(request.user_input, request.history)
+        
+        analysis_time_ms = int((time.perf_counter() - start_time) * 1000)
+        
+        return {
+            "success": True,
+            "analysis": analysis,
+            "raw_input": request.user_input,
+            "analysisTimeMs": analysis_time_ms
+        }
+    except Exception as exc:
+        logger.error(f"❌ [/api/analyze] Error: {exc}")
+        return {
+            "success": False,
+            "message": f"态势分析失败: {str(exc)}",
+            "analysis": {
+                "summary": "分析系统暂时离线，请手动填写参数或重试。",
+                "emotion_score": 0,
+                "intent": "UNKNOWN",
+                "strategy": "COMFORT",
+                "confidence": 0.0,
+                "burst_detected": False,
+                "pressure_level": 0
+            },
+            "raw_input": request.user_input
+        }
+
+
+@app.post("/api/execute")
+async def execute_endpoint(request: ExecuteRequest):
+    """
+    v8.0 Phase 2: 战术执行 (Tactical Execution)
+    基于用户确认/修改的战术分析生成回复选项
+    
+    Request: { 
+        user_input: "...", 
+        history: [...], 
+        analysis_context: { emotion_score, strategy, ... } 
+    }
+    Response: { success: true, analysis: "...", options: [...] }
+    """
+    strategy = request.analysis_context.strategy
+    logger.info(f"⚔️ [/api/execute] Strategy: {strategy} | Input: {request.user_input[:30]}...")
+    
+    start_time = time.perf_counter()
+    
+    try:
+        result = await ai_service.execute_tactics(
+            request.user_input,
+            request.analysis_context.model_dump(),
+            request.history
+        )
+        
+        execution_time_ms = int((time.perf_counter() - start_time) * 1000)
+        
+        # 格式化选项（兼容旧前端）
+        formatted_options = []
+        for idx, opt in enumerate(result.get("options", [])):
+            score = opt.get("score", 0)
+            emoji_map = {
+                "COLD": "❄️", "TSUNDERE": "💢", "GENKI": "✨",
+                "FLATTERING": "🥺", "CHUNIBYO": "🌙"
+            }
+            emoji = emoji_map.get(opt.get("style", ""), "💬")
+            
+            formatted_options.append({
+                "id": chr(65 + idx),
+                "text": opt.get("text", ""),
+                "kaomoji": opt.get("kaomoji", ""),
+                "score": score,
+                "style": opt.get("style", ""),
+                "style_name": opt.get("style_name", "未知"),
+                "emoji": emoji,
+                "favorChange": score,
+                "type": "default",
+                "description": f"情商评分: {score:+d}",
+                "effect": ""
+            })
+        
+        return {
+            "success": True,
+            "data": {
+                "originalText": request.user_input,
+                "sceneSummary": result.get("analysis", request.analysis_context.summary),
+                "options": formatted_options,
+                "executionTimeMs": execution_time_ms,
+                "appliedStrategy": strategy
+            }
+        }
+        
+    except Exception as exc:
+        logger.error(f"❌ [/api/execute] Error: {exc}")
+        return {
+            "success": False,
+            "message": f"战术执行失败: {str(exc)}",
+            "data": {
+                "executionTimeMs": int((time.perf_counter() - start_time) * 1000)
+            }
+        }
+
+
+# ==================== 原有接口（保持兼容） ====================
+
 @app.post("/api/chat", response_model=AdvisorResponse)
 async def chat_endpoint(request: ChatRequest):
     """
-    恋爱军师核心接口（支持历史上下文）
+    恋爱军师核心接口（支持历史上下文）- 兼容旧版
     Request: { user_input: "...", history: [{role: "user", content: "..."}] }
     Response: { analysis: "...", options: [ ... ] }
     """

@@ -38,7 +38,54 @@ cd D:\All_codes\galonline\backend
 
 **注意**：必须在 `backend` 目录中启动，否则会报 "Could not import module 'main'" 错误。
 
-**最新更新 (2026-01-29)**：
+**最新更新 (2026-01-30)**：
+
+### v8.0 - 指挥官系统 (Commander System) ⚔️🎯
+**核心升级**：从"被动对话生成器"升级为"主动恋爱战术参谋系统"。
+
+- ✅ **Phase 1: 后端架构重构**
+  - 🎯 API 双阶段拆分：`/api/analyze`（态势感知） + `/api/execute`（战术执行）
+  - 📊 新增 `SituationAnalysis` 数据模型（情绪分数、意图推测、策略建议）
+  - 🔍 连发消息检测（`burst_detected`）与压迫感等级（`pressure_level`）
+  - 💡 10种意图类型（试探边界/求关注/吃醋/冷战等）
+  - ⚔️ 10种战术策略（进攻调情/防守调情/安抚/冷处理/推拉等）
+
+- ✅ **Phase 2: 战术面板 (TacticsBoard)**
+  - 📋 可视化 AI 分析结果（局势总结、情绪仪表、意图标签）
+  - ✏️ 用户可编辑战术参数（修改情绪分数、切换策略）
+  - 🚀 [执行战术] 按钮触发 Phase 2 生成
+
+- ✅ **Phase 3: 连发模式 (Burst Mode)**
+  - ⌨️ `Shift + Enter` 换行输入多条消息
+  - ➕ 点击 [+] 按钮添加新气泡
+  - 💬 实时预览气泡堆叠效果
+  - 🔥 后端特别处理连发带来的"情绪压迫感"
+
+- ✅ **Phase 4: 心电图监视器 (ECG Monitor)**
+  - 💓 顶部导航栏实时情绪可视化
+  - 🟢 Idle: 平缓绿色波形
+  - 🟡 Analyzing: 快速黄色波形
+  - 🔴 High Emotion: 剧烈红/粉色波形 + Glitch 效果
+  - 📈 模拟 BPM 显示
+
+**新流程**：`Input → Analyze → (Edit Tactics) → Execute → Options`
+
+---
+
+### v7.1 - UI/UX 专业级打磨 🎨
+- ✅ 输入框光效简化（去除呼吸动画，仅保留 1px 边框光）
+- ✅ 选项卡片 Shine 扫光效果 + 按压反馈
+- ✅ 设置面板 "NEURAL_LINK::CONFIG" 主题
+- ✅ 本地模型锁定状态 + 抖动动画
+- ✅ 自定义滚动条（6px 细轨道）
+- ✅ 情感色彩反馈（EmotionFlash）
+
+### v7.0 - Gal-chat 品牌系统 💠
+- ✅ GalChatLogo 品牌标识
+- ✅ SystemStatus 侧边栏（连接状态 + 设置入口）
+- ✅ ThemeToggle "Divergence Meter" 世界线切换
+
+---
 
 ### v2.1 - 历史记忆与日志系统 🧠📝
 - ✅ **Task 2 后端增强**：

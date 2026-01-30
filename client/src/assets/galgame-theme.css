@@ -92,6 +92,39 @@ body {
   overflow-x: hidden;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   📜 自定义滚动条 (Scrollbar Aesthetics)
+   Master's Advice: 薄型主题色滚动条，悬停时显示
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Webkit 浏览器 (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--accent-color);
+  border-radius: 3px;
+  opacity: 0.5;
+  transition: opacity 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--glow-strong);
+  opacity: 1;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent-color) transparent;
+}
+
 /* 💗 Mode B: 心跳 (Heartbeat) - 恋爱中毒 */
 body.theme-heartbeat {
   --hue-primary: 330;                 /* 粉色基调 */
@@ -975,6 +1008,152 @@ button:active:not(:disabled),
   backface-visibility: hidden;
 }
 
+.effects-blur {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🚧 锁定状态 - Shake 抖动动画 (Phantom Feature Fix)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes shake-deny {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+  20%, 40%, 60%, 80% { transform: translateX(4px); }
+}
+
+.shake-deny {
+  animation: shake-deny 0.5s ease-in-out;
+}
+
+.local-model-locked {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.local-model-locked:hover {
+  opacity: 0.7 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   💔 情感色彩反馈 (Emotional Color Grading)
+   好感度变化时的屏幕边缘闪烁
+   ═══════════════════════════════════════════════════════════════════ */
+
+@keyframes score-flash-positive {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes score-flash-negative {
+  0% { opacity: 0; }
+  50% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.score-flash-positive {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  box-shadow: inset 0 0 100px rgba(236, 72, 153, 0.4);
+  animation: score-flash-positive 0.6s ease-out forwards;
+}
+
+.score-flash-negative {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9998;
+  box-shadow: inset 0 0 100px rgba(239, 68, 68, 0.4);
+  animation: score-flash-negative 0.6s ease-out forwards;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   📖 字体排版增强 (Light Novel Standard)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 叙事文本 - 宽松行高，如轻小说般舒适阅读 */
+.narrative-text {
+  font-family: "Noto Serif SC", "Source Han Serif SC", Georgia, serif;
+  font-size: 1rem;
+  line-height: 1.8;
+  letter-spacing: 0.03em;
+  color: var(--bubble-text);
+}
+
+/* 对话文本 - 圆润可爱 */
+.dialogue-text {
+  font-family: var(--font-primary);
+  font-size: 1rem;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+}
+
+/* 场景描述 - 斜体衬线 */
+.scene-description {
+  font-family: "Noto Serif SC", Georgia, serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--accent-secondary);
+  opacity: 0.9;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎭 设置面板增强样式 (Diegetic UI)
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 科技线边框 */
+.tech-border {
+  position: relative;
+  border: 1px solid var(--accent-color);
+}
+
+.tech-border::before,
+.tech-border::after {
+  content: '';
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--accent-color);
+}
+
+.tech-border::before {
+  top: -4px;
+  left: -4px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.tech-border::after {
+  bottom: -4px;
+  right: -4px;
+  border-left: none;
+  border-top: none;
+}
+
+/* 魔法阵边框 */
+.magic-circle-border {
+  position: relative;
+}
+
+.magic-circle-border::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border: 1px dashed var(--accent-color);
+  border-radius: inherit;
+  opacity: 0.3;
+  animation: rotate-slow 20s linear infinite;
+}
+
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
 .effects-blur {
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
