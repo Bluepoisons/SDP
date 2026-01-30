@@ -109,24 +109,6 @@ watch(showStars, (shouldShow) => {
     initStars();
   }
 });
-</script>;
-    observer.disconnect();
-  });
-});
-
-// 🎨 监听主题切换
-watch(isDarkTheme, (isDark) => {
-  if (animationId) {
-    cancelAnimationFrame(animationId);
-    animationId = null;
-  }
-  
-  if (isDark) {
-    initStars();
-  } else {
-    initHearts();
-  }
-});
 </script>
 
 <template>
