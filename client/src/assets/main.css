@@ -42,6 +42,15 @@ body.theme-morning {
   color: #334155 !important;
 }
 
+/* 🔧 Morning 主题：强制 #app 和所有顶层容器使用亮色背景 */
+body.theme-morning #app,
+body.theme-morning #app > div,
+body.theme-morning .h-screen,
+body.theme-morning .min-h-screen {
+  background-color: transparent !important;
+  background: transparent !important;
+}
+
 .noise-layer {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
   background-size: 120px 120px;

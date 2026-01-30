@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch, computed } from "vue";
+import { onMounted, watch } from "vue";
 import AppLayout from "@/components/AppLayout.vue";
 import { useUiSettings } from "@/stores/useUiSettings";
 
@@ -30,23 +30,11 @@ watch(
   },
   { immediate: true }
 );
-
-// 🟢 根据主题计算根容器背景色（内联样式，确保优先级最高）
-const themeBackgroundStyle = computed(() => {
-  switch (uiSettings.theme) {
-    case 'morning': return { backgroundColor: '#fafbfc' };
-    case 'sunset': return { backgroundColor: '#2e1065' };
-    case 'night': return { backgroundColor: '#0a0a0b' };
-    default: return { backgroundColor: '#0a0a0b' };
-  }
-});
 </script>
 
 <template>
-  <div 
-    class="min-h-screen text-[var(--bubble-text)] transition-colors duration-500"
-    :style="themeBackgroundStyle"
-  >
+  <!-- 🔧 移除内联背景样式，完全依赖 body.theme-xxx 的背景 -->
+  <div class="min-h-screen text-[var(--bubble-text)] transition-colors duration-500">
     <AppLayout />
   </div>
 </template>

@@ -24,7 +24,7 @@ export const useUiSettings = defineStore("uiSettings", {
     blurEnabled: false,
     shadowEnabled: false,
     memoryLimit: 10,
-    theme: "night",       // 🌙 默认深夜主题（最稳定）
+    theme: "morning",     // 🧪 测试：默认清晨主题
     particlesEnabled: true,
   }),
   getters: {
@@ -75,10 +75,7 @@ export const useUiSettings = defineStore("uiSettings", {
     
     // 初始化主题（应用启动时调用）
     initTheme() {
-      // 🔧 临时修复：强制使用 night 主题（清晨主题有 bug 待修复）
-      if (this.theme === 'morning') {
-        this.theme = 'night';
-      }
+      // 直接应用当前主题
       this.setTheme(this.theme);
     },
   },
