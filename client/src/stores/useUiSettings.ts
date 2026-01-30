@@ -1,13 +1,13 @@
 import { defineStore } from "pinia";
 
 /**
- * 🌅 v4.0 时间轮盘主题系统
- * Morning (清晨) ➔ Sunset (黄昏) ➔ Night (深夜) ➔ Morning...
+ * 🌅 v2.1 双主题系统（移除 Morning）
+ * Sunset (黄昏) ↔ Night (深夜)
  */
-type ThemeMode = "morning" | "sunset" | "night";
+type ThemeMode = "sunset" | "night";
 
-// 时间轮盘顺序
-const THEME_CYCLE: ThemeMode[] = ["morning", "sunset", "night"];
+// 双主题循环
+const THEME_CYCLE: ThemeMode[] = ["sunset", "night"];
 
 interface UiSettingsState {
   animationsEnabled: boolean;
@@ -24,19 +24,19 @@ export const useUiSettings = defineStore("uiSettings", {
     blurEnabled: false,
     shadowEnabled: false,
     memoryLimit: 10,
-    theme: "night",       // 🆕 v2.0: 默认深夜主题
+    theme: "sunset",      // 🌆 默认黄昏主题
     particlesEnabled: true,
   }),
   getters: {
-    // v4.0: 获取当前主题图标
+    // 获取当前主题图标
     themeIcon: (state): string => {
       switch (state.theme) {
-        case "morning": return "☀️";
         case "sunset": return "🌆";
         case "night": return "🌙";
+        default: return "🌆";
       }
     },
-    // v4.0: 获取下一个主题
+    // 获取下一个主题
     nextTheme: (state): ThemeMode => {
       const currentIndex = THEME_CYCLE.indexOf(state.theme);
       return THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length];
@@ -56,15 +56,18 @@ export const useUiSettings = defineStore("uiSettings", {
       this.memoryLimit = Math.max(0, Math.min(60, limit));
     },
     
-    // v4.0: 主题切换 (三态循环)
+    // 主题切换 (双态循环)
     setTheme(theme: ThemeMode) {
+      // 兼容：如果是旧的 morning 主题，自动转为 sunset
+      if (theme === "morning" as any) {
+        theme = "sunset";
+      }
       this.theme = theme;
-      // 移除所有主题 class，添加当前主题
       document.body.classList.remove("theme-morning", "theme-sunset", "theme-night");
       document.body.classList.add(`theme-${theme}`);
     },
     
-    // v4.0: 轮盘切换 - 点击循环到下一个主题
+    // 轮盘切换
     cycleTheme() {
       this.setTheme(this.nextTheme);
     },
@@ -73,9 +76,12 @@ export const useUiSettings = defineStore("uiSettings", {
       this.particlesEnabled = value;
     },
     
-    // 初始化主题（应用启动时调用）
+    // 初始化主题
     initTheme() {
-      // 直接应用当前主题
+      // 兼容：如果存储的是 morning，自动转为 sunset
+      if (this.theme === "morning" as any) {
+        this.theme = "sunset";
+      }
       this.setTheme(this.theme);
     },
   },
@@ -83,4 +89,3 @@ export const useUiSettings = defineStore("uiSettings", {
     key: "gal-ui-settings",
   },
 });
-

@@ -3,9 +3,9 @@ import { computed } from "vue";
 import { useUiSettings } from "@/stores/useUiSettings";
 
 /**
- * 🔄 ThemeCycleButton v4.0 - 时间轮盘切换按钮
+ * 🔄 ThemeCycleButton v2.1 - 双主题切换按钮
  * 
- * 点击循环：Morning (☀️) → Sunset (🌆) → Night (🌙) → Morning...
+ * 点击切换：Sunset (🌆) ↔ Night (🌙)
  */
 
 const uiSettings = useUiSettings();
@@ -13,7 +13,6 @@ const uiSettings = useUiSettings();
 // 直接计算主题图标
 const themeIcon = computed(() => {
   switch (uiSettings.theme) {
-    case "morning": return "☀️";
     case "sunset": return "🌆";
     case "night": return "🌙";
     default: return "🌆";
@@ -25,15 +24,14 @@ const currentTheme = computed(() => uiSettings.theme);
 // 主题对应的提示文字
 const themeHint = computed(() => {
   switch (currentTheme.value) {
-    case "morning": return "点击切换至黄昏";
     case "sunset": return "点击切换至深夜";
-    case "night": return "点击切换至清晨";
+    case "night": return "点击切换至黄昏";
     default: return "切换主题";
   }
 });
 
-// 时间轮盘顺序
-const THEME_CYCLE = ["morning", "sunset", "night"] as const;
+// 双主题循环
+const THEME_CYCLE = ["sunset", "night"] as const;
 type ThemeMode = typeof THEME_CYCLE[number];
 
 const handleClick = () => {
@@ -42,7 +40,7 @@ const handleClick = () => {
   
   // 直接更新 state 和 DOM
   uiSettings.$patch({ theme: nextTheme });
-  document.body.classList.remove("theme-morning", "theme-sunset", "theme-night");
+  document.body.classList.remove("theme-sunset", "theme-night");
   document.body.classList.add(`theme-${nextTheme}`);
 };
 </script>
@@ -127,16 +125,6 @@ const handleClick = () => {
 }
 
 /* 主题特定样式 */
-.theme-cycle-btn.theme-morning {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(14, 165, 233, 0.3);
-  box-shadow: 0 4px 20px rgba(14, 165, 233, 0.2);
-}
-
-.theme-cycle-btn.theme-morning:hover {
-  box-shadow: 0 0 30px rgba(14, 165, 233, 0.4);
-}
-
 .theme-cycle-btn.theme-sunset {
   background: rgba(30, 10, 60, 0.8);
   border-color: rgba(251, 191, 36, 0.4);

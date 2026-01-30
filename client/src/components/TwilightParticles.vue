@@ -2,15 +2,14 @@
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 
 /**
- * ✨ ThemeParticles v4.0 - 时间轮盘粒子系统
+ * ✨ ThemeParticles v2.1 - 双主题粒子系统
  * 
- * 三主题适配：
- * - Morning: 缓慢上升的微尘/羽毛 (白色半透明)
+ * 双主题适配：
  * - Sunset: 漂浮的光点/火星 (金色，丁达尔效应)
  * - Night: 偶尔闪烁的流星/数据流 (青色)
  */
 
-type ThemeType = "morning" | "sunset" | "night";
+type ThemeType = "sunset" | "night";
 
 interface ThemeParticlesProps {
   /** 粒子数量 (默认 50) */
@@ -56,26 +55,6 @@ interface Particle {
 // 主题配置
 const themeConfig = computed(() => {
   switch (props.theme) {
-    case "morning":
-      return {
-        hueRange: [330, 350],     // 粉色系 (马卡龙)
-        baseOpacity: 0.5,         // 柔和透明度
-        speedMult: 0.25,          // 非常缓慢，悠闲感
-        sizeMult: 1.5,            // 适中粒子
-        direction: -1,            // 向上飘
-        particleType: "petal" as const,  // 花瓣/星光混合
-        glowColor: "rgba(244, 114, 182, 0.3)",
-        // 清晨特有：花瓣 + 细碎星光
-        colorMode: "macaron" as const,
-        // 混合多种马卡龙色
-        colorPalette: [
-          [253, 242, 248],  // Rose-50
-          [252, 231, 243],  // Pink-100
-          [236, 254, 255],  // Cyan-50
-          [240, 253, 244],  // Green-50
-          [254, 249, 195],  // Yellow-100
-        ],
-      };
     case "sunset":
       return {
         hueRange: [35, 55],       // 金色
@@ -88,6 +67,7 @@ const themeConfig = computed(() => {
         colorMode: "warm" as const,
       };
     case "night":
+    default:
       return {
         hueRange: [180, 200],     // 青色
         baseOpacity: 0.6,

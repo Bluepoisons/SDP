@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Sun, Moon, Sunset } from "lucide-vue-next";
+import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Moon, Sunset } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
 import Card from "@/components/ui/card/Card.vue";
 import CardHeader from "@/components/ui/card/CardHeader.vue";
@@ -40,10 +40,10 @@ const memoryLimit = computed({
   set: (val: number) => uiSettings.setMemoryLimit(val),
 });
 
-// v4.0: 时间轮盘主题设置
+// v2.1: 双主题设置
 const currentTheme = computed({
   get: () => uiSettings.theme,
-  set: (val: "morning" | "sunset" | "night") => uiSettings.setTheme(val),
+  set: (val: "sunset" | "night") => uiSettings.setTheme(val),
 });
 
 const particlesEnabled = computed({
@@ -51,16 +51,8 @@ const particlesEnabled = computed({
   set: (val: boolean) => uiSettings.setParticlesEnabled(val),
 });
 
-// v4.0: 时间轮盘主题选项 (删除Heartbeat，新增Morning)
+// v2.1: 双主题选项（移除 Morning）
 const themeOptions = [
-  { 
-    value: "morning", 
-    label: "清晨 Morning", 
-    icon: Sun, 
-    color: "from-sky-400 to-blue-500", 
-    desc: "蔚蓝档案 · 干净通透",
-    particles: "微尘羽毛"
-  },
   { 
     value: "sunset", 
     label: "黄昏 Sunset", 

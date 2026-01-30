@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch, computed } from 'vue';
 
-// 🎨 检测当前主题 (v4.0 三主题系统)
-type Theme = 'morning' | 'sunset' | 'night';
-const currentTheme = ref<Theme>('night');
+// 🎨 检测当前主题 (v2.1 双主题系统)
+type Theme = 'sunset' | 'night';
+const currentTheme = ref<Theme>('sunset');
 
 // 🌌 Canvas 引用
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -12,9 +12,7 @@ let stars: Array<{ x: number; y: number; radius: number; opacity: number; speed:
 
 // 🎯 从 body class 检测主题
 const checkTheme = () => {
-  if (document.body.classList.contains('theme-morning')) {
-    currentTheme.value = 'morning';
-  } else if (document.body.classList.contains('theme-sunset')) {
+  if (document.body.classList.contains('theme-sunset')) {
     currentTheme.value = 'sunset';
   } else {
     currentTheme.value = 'night';
