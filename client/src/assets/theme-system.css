@@ -358,6 +358,47 @@ body.theme-morning ::selection {
   color: #334155 !important;
 }
 
+/* ☀️ 清晨：输入栏底部 - 半透明玻璃态 */
+body.theme-morning .input-bottom-bar {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(203, 213, 225, 0.4) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(120%) !important;
+  backdrop-filter: blur(20px) saturate(120%) !important;
+}
+
+/* ☀️ 清晨：侧边栏会话按钮 */
+body.theme-morning .session-btn {
+  color: #64748b !important;
+  background: transparent !important;
+}
+
+body.theme-morning .session-btn:hover {
+  background: rgba(244, 114, 182, 0.08) !important;
+  color: #475569 !important;
+}
+
+body.theme-morning .session-btn-active {
+  background: rgba(244, 114, 182, 0.12) !important;
+  color: #334155 !important;
+  border-color: rgba(244, 114, 182, 0.3) !important;
+}
+
+/* ☀️ 清晨：标题和状态文字 */
+body.theme-morning h2,
+body.theme-morning .text-zinc-100 {
+  color: #334155 !important;
+}
+
+body.theme-morning .text-zinc-300 {
+  color: #64748b !important;
+}
+
+/* ☀️ 清晨：所有主要容器背景 */
+body.theme-morning .h-screen,
+body.theme-morning [class*="min-h-screen"] {
+  background: transparent !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════
    🌆 SUNSET v8.1 - 深紫黄昏 (Deep Violet Twilight)
    「深渊紫夜，金粉色光晕勾勒轮廓」
@@ -644,6 +685,35 @@ body.theme-night h1, body.theme-night h2 {
 /* ═══════════════════════════════════════════════════════════════════
    🎭 时间轮盘切换按钮
    ═══════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   📦 通用组件默认样式（深色主题）
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* 输入栏底部 - 深色默认 */
+.input-bottom-bar {
+  background: rgba(0, 0, 0, 0.6);
+  border-color: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+}
+
+/* 侧边栏会话按钮 - 深色默认 */
+.session-btn {
+  color: #cbd5e1;
+  background: transparent;
+}
+
+.session-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #f1f5f9;
+}
+
+.session-btn-active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(99, 102, 241, 0.6);
+}
 .theme-cycle-btn {
   position: fixed;
   top: 1rem;

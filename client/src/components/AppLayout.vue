@@ -544,8 +544,8 @@ const orbClass = computed(() => {
                   v-for="session in items"
                   :key="session.id"
                   variant="ghost"
-                  class="w-full justify-start truncate border border-transparent bg-white/0 px-3 py-2 text-zinc-300 transition-all hover:bg-white/5 hover:translate-x-1"
-                  :class="session.id === gameStore.currentSession.id ? 'bg-white/10 text-white border-indigo-500/60' : ''"
+                  class="session-btn w-full justify-start truncate border border-transparent px-3 py-2 transition-all hover:translate-x-1"
+                  :class="session.id === gameStore.currentSession.id ? 'session-btn-active' : ''"
                   @click="gameStore.loadSession(session.id)"
                 >
                   <span class="truncate">{{ isSidebarCollapsed ? '💬' : (session.title || '未命名对话') }}</span>
@@ -606,7 +606,7 @@ const orbClass = computed(() => {
           </div>
         </div>
 
-        <div class="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-black/60 gpu-accelerated effects-blur">
+        <div class="input-bottom-bar absolute bottom-0 left-0 right-0 border-t gpu-accelerated effects-blur">
           <div class="mx-auto max-w-3xl px-6 py-4">
             <DestinyInput
               v-model="inputText"
