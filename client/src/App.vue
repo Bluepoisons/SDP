@@ -6,7 +6,7 @@ import { useUiSettings } from "@/stores/useUiSettings";
 const uiSettings = useUiSettings();
 
 onMounted(() => {
-  // v4.0: 初始化主题
+  // v2.0: 初始化主题
   uiSettings.initTheme();
   
   // 视效开关
@@ -33,8 +33,8 @@ watch(
 </script>
 
 <template>
-  <!-- 🔧 移除内联背景样式，完全依赖 body.theme-xxx 的背景 -->
-  <div class="min-h-screen text-[var(--bubble-text)] transition-colors duration-500">
+  <!-- 🆕 v2.0: 不设置任何背景，完全依赖 body 的 CSS 变量 -->
+  <div class="min-h-screen" style="color: var(--theme-text);">
     <AppLayout />
   </div>
 </template>

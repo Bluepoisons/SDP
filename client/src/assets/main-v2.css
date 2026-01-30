@@ -1,0 +1,100 @@
+/* 
+ * 🎨 SDP 主样式入口 v2.0
+ * 简化版：移除所有冲突的样式，使用纯 CSS 变量
+ */
+
+@import "tailwindcss";
+@import "./theme-v2.css";
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap");
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌐 基础样式
+   ═══════════════════════════════════════════════════════════════════ */
+body {
+  font-family: "Inter", "Noto Serif SC", system-ui, sans-serif;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎨 通用工具类
+   ═══════════════════════════════════════════════════════════════════ */
+::selection {
+  background: rgb(244 63 94 / 0.9);
+  color: white;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ✨ 视效开关
+   ═══════════════════════════════════════════════════════════════════ */
+.fx-anim-off * {
+  animation: none !important;
+  transition: none !important;
+}
+
+.fx-shadow-off * {
+  box-shadow: none !important;
+}
+
+.fx-blur-on .effects-blur {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.fx-blur-off .effects-blur {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎭 动画
+   ═══════════════════════════════════════════════════════════════════ */
+@keyframes pulse-slow {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.05); opacity: 0.9; }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 6s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+}
+
+.fx-anim-on .shimmer::after {
+  animation: shimmer 1.6s infinite;
+}

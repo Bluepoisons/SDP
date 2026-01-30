@@ -504,10 +504,11 @@ const orbClass = computed(() => {
     :intensity="particleIntensity"
   />
   
-  <div class="h-screen w-screen overflow-hidden text-[var(--bubble-text)]">
+  <div class="h-screen w-screen overflow-hidden" style="color: var(--theme-text);">
     <div class="relative flex h-full w-full">
       <aside
-        class="flex h-full w-[280px] flex-col border-r border-[var(--input-panel-border)] bg-[var(--bg-secondary)]/50 px-4 py-6 transition backdrop-blur-lg"
+        class="flex h-full w-[280px] flex-col border-r px-4 py-6 transition backdrop-blur-lg"
+        style="border-color: var(--theme-input-border); background-color: var(--theme-bg-secondary);"
         :class="isSidebarCollapsed ? 'w-[92px]' : ''"
       >
         <!-- 🏷️ v7.0: Gal-chat 品牌 Logo -->

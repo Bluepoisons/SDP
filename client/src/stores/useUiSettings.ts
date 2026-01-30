@@ -24,7 +24,7 @@ export const useUiSettings = defineStore("uiSettings", {
     blurEnabled: false,
     shadowEnabled: false,
     memoryLimit: 10,
-    theme: "morning",     // 🧪 测试：默认清晨主题
+    theme: "night",       // 🆕 v2.0: 默认深夜主题
     particlesEnabled: true,
   }),
   getters: {

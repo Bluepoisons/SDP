@@ -1,0 +1,166 @@
+/* 
+ * 🎨 SDP 主题系统 v2.0 - 完全重构版
+ * 设计原则：单一数据源、CSS 变量驱动、零 !important
+ * 
+ * 三主题：Morning (清晨) / Sunset (黄昏) / Night (深夜)
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌐 全局默认值 (Night 主题作为基准)
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  /* 🎨 背景色 */
+  --theme-bg: #0a0a0b;
+  --theme-bg-secondary: rgba(15, 23, 42, 0.8);
+  --theme-bg-tertiary: rgba(0, 0, 0, 0.6);
+  
+  /* 📝 文字色 */
+  --theme-text: #e2e8f0;
+  --theme-text-secondary: #94a3b8;
+  --theme-text-muted: #64748b;
+  
+  /* 💬 气泡 */
+  --theme-bubble-user-bg: rgba(34, 211, 238, 0.1);
+  --theme-bubble-ai-bg: rgba(0, 0, 0, 0.6);
+  --theme-bubble-border: rgba(34, 211, 238, 0.3);
+  
+  /* 🎮 输入面板 */
+  --theme-input-bg: rgba(15, 23, 42, 0.9);
+  --theme-input-border: rgba(34, 211, 238, 0.25);
+  --theme-input-text: #f1f5f9;
+  
+  /* 🔘 按钮 */
+  --theme-btn-from: #22d3ee;
+  --theme-btn-to: #818cf8;
+  --theme-btn-shadow: rgba(34, 211, 238, 0.5);
+  
+  /* ✨ 强调色 */
+  --theme-accent: #22d3ee;
+  --theme-accent-secondary: #818cf8;
+  
+  /* 🌟 光效 */
+  --theme-glow: rgba(34, 211, 238, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ☀️ MORNING - 清晨主题
+   「清新治愈日常 - 马卡龙色、玻璃态」
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-morning {
+  /* 🎨 背景色 - 浅白系 */
+  --theme-bg: #fafbfc;
+  --theme-bg-secondary: rgba(255, 255, 255, 0.7);
+  --theme-bg-tertiary: rgba(241, 245, 249, 0.8);
+  
+  /* 📝 文字色 - 深灰系 */
+  --theme-text: #334155;
+  --theme-text-secondary: #64748b;
+  --theme-text-muted: #94a3b8;
+  
+  /* 💬 气泡 - 马卡龙色 */
+  --theme-bubble-user-bg: rgba(253, 242, 248, 0.9);
+  --theme-bubble-ai-bg: rgba(236, 254, 255, 0.9);
+  --theme-bubble-border: rgba(203, 213, 225, 0.5);
+  
+  /* 🎮 输入面板 - 白色玻璃 */
+  --theme-input-bg: rgba(255, 255, 255, 0.8);
+  --theme-input-border: rgba(203, 213, 225, 0.6);
+  --theme-input-text: #334155;
+  
+  /* 🔘 按钮 - 粉紫渐变 */
+  --theme-btn-from: #f9a8d4;
+  --theme-btn-to: #c4b5fd;
+  --theme-btn-shadow: rgba(244, 114, 182, 0.3);
+  
+  /* ✨ 强调色 - 粉色系 */
+  --theme-accent: #f472b6;
+  --theme-accent-secondary: #a78bfa;
+  
+  /* 🌟 光效 - 柔和 */
+  --theme-glow: rgba(244, 114, 182, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌆 SUNSET - 黄昏主题
+   「深紫黄昏 - 神秘魔幻」
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-sunset {
+  /* 🎨 背景色 - 深紫系 */
+  --theme-bg: #2e1065;
+  --theme-bg-secondary: rgba(46, 16, 101, 0.8);
+  --theme-bg-tertiary: rgba(30, 10, 60, 0.6);
+  
+  /* 📝 文字色 - 浅色系 */
+  --theme-text: #fdf4ff;
+  --theme-text-secondary: #e9d5ff;
+  --theme-text-muted: #c4b5fd;
+  
+  /* 💬 气泡 - 紫粉玻璃 */
+  --theme-bubble-user-bg: rgba(244, 114, 182, 0.15);
+  --theme-bubble-ai-bg: rgba(30, 10, 60, 0.75);
+  --theme-bubble-border: rgba(244, 114, 182, 0.4);
+  
+  /* 🎮 输入面板 - 深紫玻璃 */
+  --theme-input-bg: rgba(46, 16, 101, 0.9);
+  --theme-input-border: rgba(244, 114, 182, 0.3);
+  --theme-input-text: #fdf4ff;
+  
+  /* 🔘 按钮 - 金粉渐变 */
+  --theme-btn-from: #f472b6;
+  --theme-btn-to: #fbbf24;
+  --theme-btn-shadow: rgba(244, 114, 182, 0.5);
+  
+  /* ✨ 强调色 - 金粉 */
+  --theme-accent: #f472b6;
+  --theme-accent-secondary: #fbbf24;
+  
+  /* 🌟 光效 - 魔幻 */
+  --theme-glow: rgba(244, 114, 182, 0.4);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌙 NIGHT - 深夜主题 (显式定义，与 :root 相同)
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-night {
+  --theme-bg: #0a0a0b;
+  --theme-bg-secondary: rgba(15, 23, 42, 0.8);
+  --theme-bg-tertiary: rgba(0, 0, 0, 0.6);
+  --theme-text: #e2e8f0;
+  --theme-text-secondary: #94a3b8;
+  --theme-text-muted: #64748b;
+  --theme-bubble-user-bg: rgba(34, 211, 238, 0.1);
+  --theme-bubble-ai-bg: rgba(0, 0, 0, 0.6);
+  --theme-bubble-border: rgba(34, 211, 238, 0.3);
+  --theme-input-bg: rgba(15, 23, 42, 0.9);
+  --theme-input-border: rgba(34, 211, 238, 0.25);
+  --theme-input-text: #f1f5f9;
+  --theme-btn-from: #22d3ee;
+  --theme-btn-to: #818cf8;
+  --theme-btn-shadow: rgba(34, 211, 238, 0.5);
+  --theme-accent: #22d3ee;
+  --theme-accent-secondary: #818cf8;
+  --theme-glow: rgba(34, 211, 238, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   📦 基础样式应用
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Body 背景 */
+body {
+  background-color: var(--theme-bg);
+  color: var(--theme-text);
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+/* 兼容旧变量名 */
+body {
+  --bubble-text: var(--theme-text);
+  --bg-secondary: var(--theme-bg-secondary);
+  --input-panel-bg: var(--theme-input-bg);
+  --input-panel-border: var(--theme-input-border);
+  --btn-primary-from: var(--theme-btn-from);
+  --btn-primary-to: var(--theme-btn-to);
+  --btn-primary-shadow: var(--theme-btn-shadow);
+  --accent-color: var(--theme-accent);
+}
