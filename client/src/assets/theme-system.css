@@ -3,125 +3,222 @@
  * The Time Cycle: Morning ↔ Sunset ↔ Night
  * 
  * 设计理念：
- * - Morning: 蔚蓝档案风格，干净通透
+ * - Morning: 蔚蓝档案风格，干净通透，明亮白底
  * - Sunset: 新海诚魔幻时刻，紫金渐变
  * - Night: 赛博深潜，冷峻科技
  */
 
 /* ═══════════════════════════════════════════════════════════════════
    ☀️ MORNING - 清晨 (Blue Archive Style)
-   「清新的蓝白调，阳光穿过窗户的温暖感」
+   「蔚蓝档案的明亮清新感 - 白底蓝调」
+   关键词：干净、通透、高亮、轻快、二次元手游感
    ═══════════════════════════════════════════════════════════════════ */
 body.theme-morning {
-  /* 🎨 核心色板 */
-  --hue-primary: 200;
+  /* 🎨 核心色板 - 蔚蓝档案配色 */
+  --hue-primary: 199;
   --hue-accent: 199;
   
-  /* 🌤️ 天空渐变 - 极简蓝白灰 */
-  --bg-gradient-start: #f8fafc;       /* Slate-50 */
-  --bg-gradient-end: #e0f2fe;         /* Sky-100 */
+  /* 🌤️ 背景 - 纯净白+淡蓝渐变 */
+  --bg-gradient-start: #ffffff;       /* 纯白顶部 */
+  --bg-gradient-end: #dbeafe;         /* Blue-100 淡蓝底部 */
   
-  --bg-primary: #f1f5f9;              /* Slate-100 */
+  --bg-primary: #f0f9ff;              /* Sky-50 */
   --bg-secondary: #ffffff;
-  --bg-tertiary: #f8fafc;
+  --bg-tertiary: #f0f9ff;
   
-  /* 💬 对话气泡 - 高亮毛玻璃 */
-  --bubble-bg-user: rgba(14, 165, 233, 0.12);   /* 天蓝玻璃 */
-  --bubble-bg-ai: rgba(255, 255, 255, 0.85);    /* 纯白玻璃 */
-  --bubble-border: rgba(14, 165, 233, 0.25);
-  --bubble-text: #0f172a;                        /* Slate-900 深灰蓝 */
-  --bubble-glow: 0 4px 20px rgba(14, 165, 233, 0.15);
+  /* 💬 对话气泡 - 清新蓝白 */
+  --bubble-bg-user: rgba(59, 130, 246, 0.15);   /* 蓝色玻璃 */
+  --bubble-bg-ai: rgba(255, 255, 255, 0.95);    /* 高亮白 */
+  --bubble-border: rgba(59, 130, 246, 0.3);
+  --bubble-text: #1e3a5f;                        /* 深蓝灰文字 */
+  --bubble-glow: 0 4px 20px rgba(59, 130, 246, 0.12);
   
-  /* ✨ 天空蓝强调色 */
-  --accent-color: #0ea5e9;            /* Sky-500 */
-  --accent-secondary: #38bdf8;        /* Sky-400 */
+  /* ✨ 蔚蓝强调色 */
+  --accent-color: #3b82f6;            /* Blue-500 */
+  --accent-secondary: #60a5fa;        /* Blue-400 */
   --accent-danger: #ef4444;
   
   /* 🎮 控制台 - 白色毛玻璃 */
-  --input-panel-bg: rgba(255, 255, 255, 0.8);
-  --input-panel-border: rgba(14, 165, 233, 0.2);
-  --input-text: #1e293b;              /* Slate-800 */
+  --input-panel-bg: rgba(255, 255, 255, 0.92);
+  --input-panel-border: rgba(59, 130, 246, 0.25);
+  --input-text: #1e3a5f;
   
-  /* 🔘 按钮 - 天空蓝渐变 */
-  --btn-primary-from: #0ea5e9;
-  --btn-primary-to: #38bdf8;
-  --btn-primary-shadow: rgba(14, 165, 233, 0.4);
-  --btn-primary-hover: rgba(14, 165, 233, 0.15);
+  /* 🔘 按钮 - 蔚蓝渐变 */
+  --btn-primary-from: #3b82f6;
+  --btn-primary-to: #60a5fa;
+  --btn-primary-shadow: rgba(59, 130, 246, 0.35);
+  --btn-primary-hover: rgba(59, 130, 246, 0.12);
   
-  /* ✨ 光晕 - 柔和蓝光 */
-  --glow-color: rgba(14, 165, 233, 0.3);
-  --glow-strong: rgba(14, 165, 233, 0.6);
-  --star-color: rgba(255, 255, 255, 0.9);
+  /* ✨ 光晕 */
+  --glow-color: rgba(59, 130, 246, 0.25);
+  --glow-strong: rgba(59, 130, 246, 0.5);
+  --star-color: rgba(255, 255, 255, 0.95);
   
-  /* 📐 圆润 UI (无斜切) */
+  /* 📐 圆润 UI */
   --skew-angle: 0deg;
   --skew-angle-subtle: 0deg;
   
-  /* 📝 文字适配 - 强制深色 */
-  --text-main: #0f172a;
-  --text-secondary: #475569;
+  /* 📝 文字 - 深色确保可读 */
+  --text-main: #1e3a5f;
+  --text-secondary: #3b5998;
   --text-muted: #64748b;
   
-  /* 🖼️ 卡片样式 */
-  --card-bg: rgba(255, 255, 255, 0.75);
-  --card-border: rgba(14, 165, 233, 0.15);
-  --card-shadow: 0 4px 24px rgba(14, 165, 233, 0.1);
+  /* 🖼️ 卡片 */
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-border: rgba(59, 130, 246, 0.2);
+  --card-shadow: 0 4px 24px rgba(59, 130, 246, 0.1);
   
-  /* 🎨 主背景 */
+  /* ⚡ 强制覆盖背景 - 最高优先级 */
   background: 
-    /* 柔和光点纹理 */
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E"),
-    linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
-  background-attachment: fixed;
-  color: var(--text-main);
+    linear-gradient(180deg, #ffffff 0%, #e0f2fe 50%, #bae6fd 100%) !important;
+  background-attachment: fixed !important;
+  color: var(--text-main) !important;
 }
 
-/* ☀️ 清晨模式：阳光毛玻璃效果 */
+/* ☀️ 清晨：右上角阳光光晕 */
 body.theme-morning::before {
   content: '';
   position: fixed;
-  top: -50%;
-  right: -20%;
-  width: 80%;
-  height: 80%;
+  top: -30%;
+  right: -15%;
+  width: 60%;
+  height: 60%;
   background: radial-gradient(
     ellipse at center,
-    rgba(255, 255, 255, 0.4) 0%,
-    rgba(224, 242, 254, 0.2) 40%,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(186, 230, 253, 0.4) 30%,
+    rgba(224, 242, 254, 0.2) 50%,
     transparent 70%
   );
   pointer-events: none;
   z-index: 0;
+  animation: morning-glow 8s ease-in-out infinite;
+}
+
+@keyframes morning-glow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+
+/* ☀️ 清晨：侧边栏 */
+body.theme-morning aside {
+  background: rgba(255, 255, 255, 0.7) !important;
+  border-color: rgba(59, 130, 246, 0.15) !important;
 }
 
 /* ☀️ 清晨气泡样式 */
 body.theme-morning .bubble-user {
-  background: var(--bubble-bg-user);
-  border: 1px solid var(--bubble-border);
-  box-shadow: var(--bubble-glow), 0 2px 8px rgba(0, 0, 0, 0.05);
-  color: var(--text-main);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.18), rgba(96, 165, 250, 0.12)) !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1) !important;
+  color: #1e3a5f !important;
 }
 
 body.theme-morning .bubble-ai {
-  background: var(--bubble-bg-ai);
-  border: 1px solid rgba(226, 232, 240, 0.8);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
-  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06) !important;
+  color: #1e3a5f !important;
 }
 
-/* ☀️ 清晨输入面板 */
+/* ☀️ 清晨输入面板 - 白色高亮 */
 body.theme-morning .input-cockpit {
-  background: var(--input-panel-bg);
-  border: 1px solid var(--input-panel-border);
+  background: rgba(255, 255, 255, 0.95) !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
   box-shadow: 
-    0 -4px 30px rgba(14, 165, 233, 0.1),
-    0 8px 32px rgba(0, 0, 0, 0.08);
-  transform: translateX(-50%); /* 无斜切 */
+    0 -8px 40px rgba(59, 130, 246, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+  transform: translateX(-50%);
   border-radius: 20px;
 }
 
 body.theme-morning .input-cockpit > * {
   transform: none;
+}
+
+/* ☀️ 清晨：所有文字强制深色 */
+body.theme-morning,
+body.theme-morning p,
+body.theme-morning span,
+body.theme-morning div,
+body.theme-morning h1,
+body.theme-morning h2,
+body.theme-morning h3,
+body.theme-morning label {
+  color: #1e3a5f;
+}
+
+body.theme-morning .text-zinc-400,
+body.theme-morning .text-zinc-500 {
+  color: #64748b !important;
+}
+
+/* ☀️ 清晨：按钮样式 */
+body.theme-morning .btn-action {
+  background: linear-gradient(135deg, #3b82f6, #60a5fa) !important;
+  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3) !important;
+  transform: none !important;
+}
+
+body.theme-morning .btn-action span {
+  transform: none !important;
+}
+
+/* ☀️ 清晨：卡片样式 */
+body.theme-morning [class*="Card"],
+body.theme-morning [class*="card"] {
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(59, 130, 246, 0.15) !important;
+}
+
+/* ☀️ 清晨：主容器 - 确保白色基底 */
+body.theme-morning > div,
+body.theme-morning .h-screen,
+body.theme-morning .w-screen {
+  background: transparent !important;
+  color: #1e3a5f !important;
+}
+
+/* ☀️ 清晨：header/footer 区域 */
+body.theme-morning header {
+  border-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+body.theme-morning footer,
+body.theme-morning .effects-blur {
+  background: rgba(255, 255, 255, 0.8) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+  border-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* ☀️ 清晨：覆盖 Tailwind 深色类 (使用属性选择器) */
+body.theme-morning [class*="bg-black"] {
+  background: rgba(255, 255, 255, 0.85) !important;
+}
+
+body.theme-morning .text-zinc-100,
+body.theme-morning .text-zinc-200,
+body.theme-morning .text-zinc-300 {
+  color: #1e3a5f !important;
+}
+
+body.theme-morning .text-white {
+  color: #ffffff !important;
+}
+
+body.theme-morning [class*="border-white"] {
+  border-color: rgba(59, 130, 246, 0.1) !important;
+}
+
+/* ☀️ 清晨：滚动条 */
+body.theme-morning ::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.4) !important;
+}
+
+body.theme-morning ::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.6) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -418,6 +515,7 @@ body.theme-night h1, body.theme-night h2 {
   border-radius: 50%;
   background: var(--card-bg);
   border: 1px solid var(--card-border);
+  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   cursor: pointer;
   display: flex;

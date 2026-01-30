@@ -54,13 +54,15 @@ const themeConfig = computed(() => {
   switch (props.theme) {
     case "morning":
       return {
-        hueRange: [200, 220],     // 天蓝色
-        baseOpacity: 0.3,
-        speedMult: 0.5,           // 缓慢
-        sizeMult: 1.2,
+        hueRange: [200, 230],     // 蓝色系
+        baseOpacity: 0.6,         // 提高透明度，更明显
+        speedMult: 0.4,           // 更缓慢，悠闲感
+        sizeMult: 1.8,            // 更大的粒子
         direction: -1,            // 向上飘
         particleType: "dust" as const,
-        glowColor: "rgba(14, 165, 233, 0.3)",
+        glowColor: "rgba(59, 130, 246, 0.4)",
+        // 清晨特有：羽毛/花瓣/光尘混合
+        colorMode: "light" as const,
       };
     case "sunset":
       return {
@@ -71,6 +73,7 @@ const themeConfig = computed(() => {
         direction: -1,
         particleType: "spark" as const,
         glowColor: "rgba(251, 191, 36, 0.4)",
+        colorMode: "warm" as const,
       };
     case "night":
       return {
@@ -141,17 +144,25 @@ function initParticles(canvas: HTMLCanvasElement) {
 }
 
 function drawMorningParticle(ctx: CanvasRenderingContext2D, p: Particle) {
-  // 微尘/羽毛 - 柔和的光晕
-  const twinkleOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.twinkle));
+  // 蔚蓝档案风格：柔和的白蓝色光点/羽毛
+  const twinkleOpacity = p.opacity * (0.7 + 0.3 * Math.sin(p.twinkle));
   
-  const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
-  gradient.addColorStop(0, `hsla(${p.hue}, 60%, 95%, ${twinkleOpacity})`);
-  gradient.addColorStop(0.5, `hsla(${p.hue}, 50%, 90%, ${twinkleOpacity * 0.4})`);
-  gradient.addColorStop(1, `hsla(${p.hue}, 40%, 85%, 0)`);
+  // 外层蓝色光晕
+  const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 4);
+  gradient.addColorStop(0, `rgba(255, 255, 255, ${twinkleOpacity * 0.9})`);
+  gradient.addColorStop(0.3, `rgba(147, 197, 253, ${twinkleOpacity * 0.5})`); // Blue-300
+  gradient.addColorStop(0.6, `rgba(96, 165, 250, ${twinkleOpacity * 0.2})`);  // Blue-400
+  gradient.addColorStop(1, `rgba(59, 130, 246, 0)`);
   
   ctx.beginPath();
-  ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+  ctx.arc(p.x, p.y, p.size * 4, 0, Math.PI * 2);
   ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // 内核高亮白点
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.size * 0.8, 0, Math.PI * 2);
+  ctx.fillStyle = `rgba(255, 255, 255, ${twinkleOpacity})`;
   ctx.fill();
 }
 
