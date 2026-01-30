@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { KeyRound, ServerCog, ShieldCheck } from "lucide-vue-next";
+import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Sun, Moon } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
 import Card from "@/components/ui/card/Card.vue";
 import CardHeader from "@/components/ui/card/CardHeader.vue";
@@ -39,6 +39,24 @@ const memoryLimit = computed({
   get: () => uiSettings.memoryLimit,
   set: (val: number) => uiSettings.setMemoryLimit(val),
 });
+
+// v8.0: 主题设置
+const currentTheme = computed({
+  get: () => uiSettings.theme,
+  set: (val: "deep" | "heartbeat" | "twilight") => uiSettings.setTheme(val),
+});
+
+const particlesEnabled = computed({
+  get: () => uiSettings.particlesEnabled,
+  set: (val: boolean) => uiSettings.setParticlesEnabled(val),
+});
+
+// 主题选项
+const themeOptions = [
+  { value: "deep", label: "深潜 Deep Dive", icon: Moon, color: "from-indigo-500 to-purple-600", desc: "赛博星空 · 冷峻科技" },
+  { value: "heartbeat", label: "心跳 Heartbeat", icon: Sparkles, color: "from-pink-400 to-rose-500", desc: "恋爱中毒 · 粉色甜蜜" },
+  { value: "twilight", label: "黄昏 Twilight", icon: Sun, color: "from-amber-400 to-orange-600", desc: "暮光余晖 · 温暖希望" },
+] as const;
 
 const triggerTraining = () => {
   isTraining.value = true;
@@ -180,6 +198,63 @@ const shakeLocalModel = () => {
       <h2 class="mt-2 text-xl font-semibold">视觉特效</h2>
       <p class="mt-2 text-sm text-zinc-400">可按需开启模糊与动效，默认关闭以保证帧率。</p>
     </header>
+
+    <!-- 🌅 v8.0: 主题切换 -->
+    <Card class="border-[var(--accent-color)]/30 bg-zinc-900/40">
+      <CardHeader>
+        <CardTitle class="flex items-center gap-2">
+          <Palette class="h-4 w-4 text-[var(--accent-color)]" />
+          世界线主题
+        </CardTitle>
+        <CardDescription>切换视觉氛围，体验不同的恋爱战场。</CardDescription>
+      </CardHeader>
+      <CardContent class="space-y-4">
+        <div class="grid grid-cols-1 gap-3">
+          <label 
+            v-for="theme in themeOptions"
+            :key="theme.value"
+            class="theme-option relative flex items-center gap-4 rounded-xl border p-4 cursor-pointer transition-all"
+            :class="currentTheme === theme.value 
+              ? 'border-[var(--accent-color)] bg-[var(--accent-color)]/10 shadow-lg shadow-[var(--accent-color)]/20' 
+              : 'border-zinc-700 bg-zinc-900/60 hover:border-zinc-600'"
+          >
+            <input
+              type="radio"
+              name="theme"
+              :value="theme.value"
+              v-model="currentTheme"
+              class="sr-only"
+            />
+            <div 
+              class="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br"
+              :class="theme.color"
+            >
+              <component :is="theme.icon" class="h-5 w-5 text-white" />
+            </div>
+            <div class="flex-1">
+              <p class="text-sm font-medium">{{ theme.label }}</p>
+              <p class="text-xs text-zinc-400">{{ theme.desc }}</p>
+            </div>
+            <div 
+              v-if="currentTheme === theme.value"
+              class="absolute right-4 h-2 w-2 rounded-full bg-[var(--accent-color)] animate-pulse"
+            ></div>
+          </label>
+        </div>
+
+        <!-- 粒子特效开关 -->
+        <label class="flex items-center justify-between rounded-lg border border-zinc-700 bg-zinc-900/60 p-4 mt-4">
+          <div>
+            <p class="text-sm font-medium flex items-center gap-2">
+              <Sparkles class="h-4 w-4 text-amber-400" />
+              光尘粒子
+            </p>
+            <p class="text-xs text-zinc-400">黄昏主题专属浮光效果</p>
+          </div>
+          <input type="checkbox" v-model="particlesEnabled" class="h-4 w-4 accent-amber-500" />
+        </label>
+      </CardContent>
+    </Card>
 
     <Card>
       <CardHeader>

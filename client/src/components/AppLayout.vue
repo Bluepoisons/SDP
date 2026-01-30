@@ -35,6 +35,9 @@ import EmotionFlash from "@/components/EmotionFlash.vue";
 import TacticsBoard from "@/components/TacticsBoard.vue";
 import ECGMonitor from "@/components/ECGMonitor.vue";
 
+// 🌅 v8.0: 黄昏之时主题
+import TwilightParticles from "@/components/TwilightParticles.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
 const uiSettings = useUiSettings();
@@ -43,6 +46,7 @@ const inputText = ref("");
 const isSidebarCollapsed = ref(false);
 const isSettingsOpen = ref(false);
 const scorePopupRef = ref<InstanceType<typeof ScorePopup> | null>(null);
+const twilightParticlesRef = ref<InstanceType<typeof TwilightParticles> | null>(null);
 const emotionFlashRef = ref<InstanceType<typeof EmotionFlash> | null>(null);
 
 // v8.0: 使用完整的指挥官系统
@@ -419,7 +423,27 @@ const handleCancel = () => {
 
 onMounted(() => {
   connectionStore.startAutoCheck();
+  // v8.0: 初始化主题 - 应用持久化的主题设置
+  const theme = uiSettings.theme;
+  document.body.classList.remove("theme-heartbeat", "theme-twilight");
+  if (theme === "heartbeat") {
+    document.body.classList.add("theme-heartbeat");
+  } else if (theme === "twilight") {
+    document.body.classList.add("theme-twilight");
+  }
 });
+
+// v8.0: 计算粒子强度
+const particleIntensity = computed(() => {
+  if (commanderPhase.value === 'executing') return 'burst';
+  if (commanderPhase.value === 'analyzing') return 'active';
+  return 'idle';
+});
+
+// v8.0: 触发粒子爆发（执行战术时）
+const triggerParticleBurst = (x?: number, y?: number) => {
+  twilightParticlesRef.value?.burst(x, y);
+};
 
 const orbClass = computed(() => {
   const options = [...gameStore.currentSession.messages]
@@ -438,6 +462,13 @@ const orbClass = computed(() => {
   <!-- 🌌 v6.0: 动态背景 + 鼠标光源 -->
   <DynamicBackground />
   <MouseLight />
+  
+  <!-- 🌅 v8.0: 黄昏光尘粒子特效 -->
+  <TwilightParticles 
+    ref="twilightParticlesRef"
+    :active="uiSettings.particlesEnabled && uiSettings.theme === 'twilight'"
+    :intensity="particleIntensity"
+  />
   
   <div class="h-screen w-screen overflow-hidden text-[var(--bubble-text)]">
     <div class="relative flex h-full w-full">

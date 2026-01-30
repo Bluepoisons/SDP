@@ -125,6 +125,124 @@ body {
   scrollbar-color: var(--accent-color) transparent;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   🌅 Mode C: 黄昏之时 (Twilight) - v8.0 暮光军师
+   「夕阳余晖，温暖而略带惆怅的希望之光」
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-twilight {
+  --hue-primary: 25;                  /* 暖橙基调 */
+  --hue-accent: 45;                   /* 流金强调 */
+  
+  /* 🌆 天空渐变：深暮紫 → 燃烧夕阳橙 */
+  --bg-gradient-start: hsl(260, 40%, 20%);        /* 深暮紫 (天顶) */
+  --bg-gradient-mid: hsl(290, 35%, 25%);          /* 过渡紫红 */
+  --bg-gradient-end: hsl(25, 85%, 55%);           /* 燃烧的夕阳橙 (地平线) */
+  
+  --bg-primary: hsl(260, 40%, 18%);
+  --bg-secondary: hsl(280, 35%, 22%);
+  --bg-tertiary: hsl(25, 50%, 15%);
+  
+  /* 💬 对话气泡 - 玻璃质感 + 金边 */
+  --bubble-bg-user: hsla(25, 60%, 25%, 0.75);     /* 暖橙玻璃态 (我方/右) */
+  --bubble-bg-ai: hsla(280, 45%, 22%, 0.8);       /* 深紫红玻璃态 (对方/左) */
+  --bubble-border: hsla(45, 100%, 65%, 0.5);      /* 淡金色边框 */
+  --bubble-text: hsl(45, 40%, 95%);               /* 乳白色文字 #FFF8E7 */
+  --bubble-glow: 0 0 25px hsla(45, 100%, 60%, 0.25);
+  
+  /* ✨ 流金强调色 */
+  --accent-color: hsl(45, 100%, 65%);             /* Liquid Gold 主金 */
+  --accent-secondary: hsl(35, 95%, 60%);          /* 暖金辅助 */
+  --accent-danger: hsl(0, 70%, 55%);              /* 深红警告 */
+  
+  /* 🎮 控制台 */
+  --input-panel-bg: hsla(280, 35%, 18%, 0.85);
+  --input-panel-border: hsla(45, 100%, 65%, 0.35);
+  --input-text: hsl(45, 30%, 92%);                /* 米黄文字 */
+  
+  /* 🔘 按钮 - 金色渐变 */
+  --btn-primary-from: hsl(40, 95%, 55%);
+  --btn-primary-to: hsl(25, 90%, 50%);
+  --btn-primary-shadow: hsla(45, 100%, 60%, 0.5);
+  --btn-primary-hover: hsla(45, 100%, 65%, 0.25);
+  
+  /* ✨ 霓虹光晕 - 金色系 */
+  --glow-color: hsla(45, 100%, 60%, 0.6);
+  --glow-strong: hsla(45, 100%, 65%, 0.9);
+  --star-color: hsla(45, 100%, 80%, 0.9);         /* 金色光尘 */
+  
+  /* 🌅 暖色暗角 (Vignette) */
+  --vignette-color: hsla(260, 50%, 8%, 0.7);
+  
+  /* 黄昏模式：保持微斜切 */
+  --skew-angle: -8deg;
+  --skew-angle-subtle: -4deg;
+  
+  /* 🎨 主背景 */
+  background: 
+    /* 暖色噪点纹理 */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+    /* 三段式天空渐变 */
+    linear-gradient(
+      180deg,
+      var(--bg-gradient-start) 0%,
+      var(--bg-gradient-mid) 40%,
+      var(--bg-gradient-end) 100%
+    );
+  background-attachment: fixed;
+  color: var(--bubble-text);
+}
+
+/* 🌅 黄昏暗角效果 */
+body.theme-twilight::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    transparent 30%,
+    var(--vignette-color) 100%
+  );
+}
+
+/* 🌅 黄昏模式：气泡特殊样式 */
+body.theme-twilight .bubble-user {
+  background: var(--bubble-bg-user);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 hsla(45, 100%, 80%, 0.1);
+}
+
+body.theme-twilight .bubble-ai {
+  background: var(--bubble-bg-ai);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 hsla(280, 80%, 70%, 0.1);
+}
+
+/* 🌅 黄昏模式：输入面板 */
+body.theme-twilight .input-cockpit {
+  background: var(--input-panel-bg);
+  border: 1px solid var(--input-panel-border);
+  box-shadow: 
+    0 -8px 40px hsla(25, 85%, 55%, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 hsla(45, 100%, 80%, 0.1);
+}
+
+/* 🌅 黄昏按钮动效 */
+body.theme-twilight .btn-action {
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+  box-shadow: 
+    0 4px 20px var(--btn-primary-shadow),
+    0 0 30px hsla(45, 100%, 60%, 0.3);
+}
+
+body.theme-twilight .btn-action:hover {
+  box-shadow: 
+    0 6px 30px var(--btn-primary-shadow),
+    0 0 50px hsla(45, 100%, 60%, 0.5);
+}
+
 /* 💗 Mode B: 心跳 (Heartbeat) - 恋爱中毒 */
 body.theme-heartbeat {
   --hue-primary: 330;                 /* 粉色基调 */
