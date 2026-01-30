@@ -3,7 +3,7 @@ import { createPinia } from "pinia";
 import piniaPluginPersistedstate from "pinia-plugin-persistedstate";
 import App from "./App.vue";
 import "./assets/main.css";
-import "./assets/galgame-theme.css"; // 🎨 v4.0: GALGAME 主题系统
+// ❌ 已移除 galgame-theme.css 重复引用，main.css 内部已 @import
 
 const app = createApp(App);
 const pinia = createPinia();

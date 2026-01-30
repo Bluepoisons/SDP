@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watch } from "vue";
+import { onMounted, watch, computed } from "vue";
 import AppLayout from "@/components/AppLayout.vue";
 import { useUiSettings } from "@/stores/useUiSettings";
 
@@ -30,10 +30,23 @@ watch(
   },
   { immediate: true }
 );
+
+// 🟢 根据主题计算根容器背景类（强制覆盖，不依赖 CSS 层叠）
+const themeBackgroundClass = computed(() => {
+  switch (uiSettings.theme) {
+    case 'morning': return 'bg-[#fafbfc]'; // 强制亮色背景
+    case 'sunset': return 'bg-[#2e1065]';  // 强制深紫背景
+    case 'night': return 'bg-[#0a0a0b]';   // 强制深黑背景
+    default: return 'bg-[#0a0a0b]';
+  }
+});
 </script>
 
 <template>
-  <div class="min-h-screen text-[var(--bubble-text)]">
+  <div 
+    class="min-h-screen text-[var(--bubble-text)] transition-colors duration-500"
+    :class="themeBackgroundClass"
+  >
     <AppLayout />
   </div>
 </template>

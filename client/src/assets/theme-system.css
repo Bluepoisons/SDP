@@ -33,7 +33,7 @@ body.theme-morning {
   --bubble-border-user: rgba(244, 114, 182, 0.25);    /* Pink-400 */
   --bubble-border-ai: rgba(134, 239, 172, 0.3);       /* Green-300 */
   --bubble-border: rgba(203, 213, 225, 0.4);          /* 浅灰边框 */
-  --bubble-text: #475569;                              /* Slate-600 文字 */
+  --bubble-text: #334155 !important;                   /* 🟢 强制深灰文字 */
   --bubble-glow: 0 4px 16px rgba(0, 0, 0, 0.04);      /* 轻微阴影 */
   
   /* ✨ 马卡龙强调色 */
@@ -48,10 +48,13 @@ body.theme-morning {
   --healing-calm: #a5f3fc;            /* Cyan-200 浅青 - 平静 */
   --healing-shy: #fcd34d;             /* Amber-300 浅黄 - 害羞 */
   
-  /* 🎮 控制台 - 半透明玻璃态 */
-  --input-panel-bg: rgba(255, 255, 255, 0.7);
-  --input-panel-border: rgba(203, 213, 225, 0.5);     /* 低饱和浅灰边框 */
+  /* 🎮 控制台 - 半透明玻璃态（强制覆盖） */
+  --input-panel-bg: rgba(255, 255, 255, 0.75) !important;
+  --input-panel-border: rgba(203, 213, 225, 0.6) !important;
   --input-text: #334155;
+  
+  /* 🟢 强制覆盖背景色，双重保险 */
+  background-color: #fafbfc !important;
   
   /* 🔘 按钮 - 柔和渐变 */
   --btn-primary-from: #f9a8d4;        /* Pink-300 */
