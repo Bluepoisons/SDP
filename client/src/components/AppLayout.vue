@@ -31,9 +31,9 @@ import SystemStatus from "@/components/SystemStatus.vue";
 // 💔 v7.1: 情感色彩反馈
 import EmotionFlash from "@/components/EmotionFlash.vue";
 
-// 🎯 v8.0: 指挥官系统
-import TacticsBoard from "@/components/TacticsBoard.vue";
+// 🎯 v8.0 → v8.1: 指挥官系统 → 直出+热修
 import ECGMonitor from "@/components/ECGMonitor.vue";
+import { type TacticalIntentType } from "@/components/TacticalIntent.vue";
 
 // 🌅 v4.0: 时间轮盘粒子系统
 import TwilightParticles from "@/components/TwilightParticles.vue";
@@ -49,24 +49,19 @@ const scorePopupRef = ref<InstanceType<typeof ScorePopup> | null>(null);
 const twilightParticlesRef = ref<InstanceType<typeof TwilightParticles> | null>(null);
 const emotionFlashRef = ref<InstanceType<typeof EmotionFlash> | null>(null);
 
-// v8.0: 使用完整的指挥官系统
+// v8.1: 「直出+热修」状态
+const tacticalIntent = ref<TacticalIntentType>(null);
+const showOverrideButton = ref(false);
+const lastGeneratedOptions = ref<any[]>([]);
+
+// v8.1: 简化的 AI 流程 - 直出模式
 const { 
   isThinking, 
   startThinking, 
   stopThinking, 
   thinkingStage, 
   thinkingDuration,
-  // v8.0 新增
-  commanderPhase,
-  currentAnalysis,
-  rawInput,
-  startAnalyze,
-  startExecute,
-  cancelTactics,
 } = useAIProcess();
-
-// v8.0: 本地编辑的分析结果
-const editedAnalysis = ref<SituationAnalysis | null>(null);
 
 // 🎯 处理属性弹窗 + 情感闪烁
 const handleScorePopup = (score: number, x: number, y: number) => {
@@ -109,51 +104,99 @@ const handleGenerate = async () => {
   const text = inputText.value.trim();
   if (!text || isThinking.value) return;
 
-  // v8.0: 使用指挥官系统的双阶段流程
+  // v8.1: 「直出」模式 - 输入即生成，无需确认
   gameStore.addMessage({ role: "user", content: text, type: "text" });
+  const thinkingId = gameStore.addThinkingMessage();
   gameStore.setLoading(true);
 
   try {
-    // 🆕 Task 2 & 3: 根据记忆上限截取历史记录
+    // 根据记忆上限截取历史记录
     const allMessages = gameStore.currentSession.messages;
     const limit = uiSettings.memoryLimit;
     const recentMessages = limit > 0 ? allMessages.slice(-limit) : [];
     const history = buildHistoryPayload(recentMessages);
 
-    // v8.0 Phase 1: 态势感知
-    const analyzeRes = await startAnalyze(text, history);
-    
-    if (!analyzeRes || !analyzeRes.success || !analyzeRes.analysis) {
-      gameStore.addMessage({
+    // v8.1: 直接调用生成接口，传入战术意图
+    const res = await startThinking({
+      text,
+      style: "neutral",
+      history,
+      userId: "demo-user",
+      sessionId: gameStore.currentSession.id,
+      clientMessages: buildClientMessages(gameStore.currentSession.messages),
+      tacticalIntent: tacticalIntent.value, // 🆕 传入战术意图
+    });
+
+    if (!res || !res.success || !res.data) {
+      gameStore.updateMessage(thinkingId, {
         role: "system",
-        content: analyzeRes?.message || "态势分析失败，请稍后重试。",
+        content: res?.message || "生成失败，请稍后重试。",
         type: "text",
       });
-      gameStore.setLoading(false);
       return;
     }
 
-    // 保存分析结果，进入战术确认阶段
-    editedAnalysis.value = { ...analyzeRes.analysis };
-    inputText.value = ""; // 清空输入框
-    
-    // 注意：此时 gameStore.setLoading 保持 false（战术面板是可编辑的）
-    gameStore.setLoading(false);
+    // 更新 thinking 消息为分析结果
+    gameStore.updateMessage(thinkingId, {
+      role: "assistant",
+      content: res.data.sceneSummary || "",
+      type: "text",
+    });
+
+    // 添加选项消息
+    gameStore.addMessage({
+      role: "assistant",
+      content: "",
+      type: "options",
+      options: res.data.options || [],
+      selectedOptionId: null,
+      selectedText: null,
+    });
+
+    // v8.1: 生成成功后显示「介入指挥」按钮
+    lastGeneratedOptions.value = res.data.options || [];
+    showOverrideButton.value = true;
+
+    inputText.value = "";
+    tacticalIntent.value = null; // 重置战术意图
     
   } catch (error: any) {
-    gameStore.addMessage({
+    gameStore.updateMessage(thinkingId, {
       role: "system",
       content: error?.message || "生成失败，请稍后重试。",
       type: "text",
     });
+  } finally {
     gameStore.setLoading(false);
   }
 };
 
-// v8.0: 执行战术（用户确认分析后调用）
-const handleExecuteTactics = async (analysis: SituationAnalysis) => {
-  if (isThinking.value || !rawInput.value) return;
+// v8.1: 「热修」- 介入指挥（重新生成，使用用户指定的战术意图）
+const handleOverride = async () => {
+  // 找到最后一条用户消息
+  const messages = gameStore.currentSession.messages;
+  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
+  if (!lastUserMsg) return;
 
+  // 移除最后的选项消息和分析消息（使用兼容的 reverse + findIndex）
+  const reversed = [...messages].reverse();
+  const reverseOptionsIdx = reversed.findIndex(m => m.type === 'options');
+  const lastOptionsIdx = reverseOptionsIdx > -1 ? messages.length - 1 - reverseOptionsIdx : -1;
+  
+  if (lastOptionsIdx > -1) {
+    // 向前找到对应的分析消息（assistant text）
+    const sliced = messages.slice(0, lastOptionsIdx);
+    const reversedSlice = [...sliced].reverse();
+    const reverseAnalysisIdx = reversedSlice.findIndex(m => m.role === 'assistant' && m.type === 'text');
+    const analysisIdx = reverseAnalysisIdx > -1 ? sliced.length - 1 - reverseAnalysisIdx : -1;
+    const removeFrom = analysisIdx > -1 ? analysisIdx : lastOptionsIdx;
+    gameStore.removeMessagesFromIndex(removeFrom);
+  }
+
+  // 隐藏介入按钮
+  showOverrideButton.value = false;
+
+  // 以用户选择的战术意图重新生成
   const thinkingId = gameStore.addThinkingMessage();
   gameStore.setLoading(true);
 
@@ -163,58 +206,53 @@ const handleExecuteTactics = async (analysis: SituationAnalysis) => {
     const recentMessages = limit > 0 ? allMessages.slice(-limit) : [];
     const history = buildHistoryPayload(recentMessages);
 
-    // v8.0 Phase 2: 战术执行
-    const executeRes = await startExecute(analysis, history);
+    const res = await startThinking({
+      text: lastUserMsg.content,
+      style: "neutral",
+      history,
+      userId: "demo-user",
+      sessionId: gameStore.currentSession.id,
+      clientMessages: buildClientMessages(gameStore.currentSession.messages),
+      tacticalIntent: tacticalIntent.value, // 使用用户选择的战术意图
+    });
 
-    if (!executeRes || !executeRes.success || !executeRes.data) {
+    if (!res || !res.success || !res.data) {
       gameStore.updateMessage(thinkingId, {
         role: "system",
-        content: executeRes?.message || "战术执行失败，请稍后重试。",
+        content: res?.message || "重新生成失败，请稍后重试。",
         type: "text",
       });
       return;
     }
 
-    // 更新 thinking 消息为分析结果
     gameStore.updateMessage(thinkingId, {
       role: "assistant",
-      content: executeRes.data.sceneSummary || "",
+      content: res.data.sceneSummary || "",
       type: "text",
     });
 
-    // 添加选项消息
     gameStore.addMessage({
       role: "assistant",
       content: "",
       type: "options",
-      options: executeRes.data.options || [],
+      options: res.data.options || [],
       selectedOptionId: null,
       selectedText: null,
     });
 
-    // 清理战术状态
-    editedAnalysis.value = null;
-    
+    lastGeneratedOptions.value = res.data.options || [];
+    showOverrideButton.value = true;
+    tacticalIntent.value = null;
+
   } catch (error: any) {
     gameStore.updateMessage(thinkingId, {
       role: "system",
-      content: error?.message || "战术执行失败，请稍后重试。",
+      content: error?.message || "重新生成失败，请稍后重试。",
       type: "text",
     });
   } finally {
     gameStore.setLoading(false);
   }
-};
-
-// v8.0: 取消战术面板
-const handleCancelTactics = () => {
-  cancelTactics();
-  editedAnalysis.value = null;
-};
-
-// v8.0: 更新本地分析（用户编辑时）
-const handleUpdateAnalysis = (analysis: SituationAnalysis) => {
-  editedAnalysis.value = analysis;
 };
 
 // 旧版生成方法（保留兼容）
@@ -429,10 +467,9 @@ onMounted(() => {
   document.body.classList.add(`theme-${theme}`);
 });
 
-// v8.0: 计算粒子强度
+// v8.1: 计算粒子强度
 const particleIntensity = computed(() => {
-  if (commanderPhase.value === 'executing') return 'burst';
-  if (commanderPhase.value === 'analyzing') return 'active';
+  if (isThinking.value) return 'active';
   return 'idle';
 });
 
@@ -538,10 +575,10 @@ const orbClass = computed(() => {
             </h2>
           </div>
           
-          <!-- � v8.0: 心电图监视器 -->
+          <!-- 🩺 v8.0: 心电图监视器 -->
           <ECGMonitor
-            :state="commanderPhase === 'analyzing' ? 'analyzing' : (commanderPhase === 'executing' ? 'analyzing' : 'idle')"
-            :emotion-score="editedAnalysis?.emotion_score ?? 0"
+            :state="isThinking ? 'analyzing' : 'idle'"
+            :emotion-score="0"
             label="EMOTION"
           />
           
@@ -571,25 +608,17 @@ const orbClass = computed(() => {
 
         <div class="absolute bottom-0 left-0 right-0 border-t border-white/5 bg-black/60 gpu-accelerated effects-blur">
           <div class="mx-auto max-w-3xl px-6 py-4">
-            <!-- 🎯 v8.0: 战术面板 (位于输入框上方) -->
-            <TacticsBoard
-              v-if="commanderPhase === 'tactics' || commanderPhase === 'analyzing' || commanderPhase === 'executing'"
-              :analysis="editedAnalysis"
-              :raw-input="rawInput"
-              :is-analyzing="commanderPhase === 'analyzing'"
-              :is-executing="commanderPhase === 'executing'"
-              @execute="handleExecuteTactics"
-              @cancel="handleCancelTactics"
-              @update:analysis="handleUpdateAnalysis"
-            />
-            
             <DestinyInput
               v-model="inputText"
               :loading="isThinking"
               :status-text="statusText"
+              :tactical-intent="tacticalIntent"
+              :show-override-button="showOverrideButton && !isThinking"
               placeholder="输入对话内容..."
               @generate="handleGenerate"
               @cancel="handleCancel"
+              @override="handleOverride"
+              @update:tactical-intent="(v) => tacticalIntent = v"
             />
           </div>
         </div>

@@ -264,6 +264,95 @@ class AIService:
 
     # ==================== 原有接口（保持兼容） ====================
 
+    # v8.1: 战术意图到策略的映射
+    INTENT_TO_STRATEGY = {
+        "PRESSURE": "OFFENSIVE_FLIRT",   # 高压威慑 → 进攻调情
+        "LURE": "DEFENSIVE_FLIRT",       # 示弱诱敌 → 防守调情
+        "PROBE": "PUSH_PULL",            # 模糊试探 → 推拉战术
+        "COMFORT": "COMFORT",            # 情绪安抚 → 安抚
+    }
+
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_fixed(2),
+        retry=retry_if_exception_type((json.JSONDecodeError, ValidationError, Exception)),
+        reraise=True,
+    )
+    async def generate_response_with_intent(
+        self, 
+        user_input: str, 
+        history: list = [], 
+        tactical_intent: str = None
+    ) -> Dict[str, Any]:
+        """
+        v8.1「直出+热修」模式的生成接口
+        
+        Args:
+            user_input: 对方发来的文本
+            history: 历史对话记录
+            tactical_intent: 用户指定的战术意图 (PRESSURE/LURE/PROBE/COMFORT)
+            
+        Returns:
+            AdvisorResponse 的字典形式 (analysis, options)
+        """
+        self._refresh_config()
+        
+        # 1. 随机抽取 3 种风格
+        selected_styles = get_random_styles(3)
+        style_names = [s['name'] for s in selected_styles]
+        
+        intent_str = f" | Intent: {tactical_intent}" if tactical_intent else " | Auto"
+        logger.info(f"🎲 [Generate] Styles: {style_names} | History: {len(history)}{intent_str}")
+        
+        # 2. 构建带记忆的 Prompt
+        system_prompt = self._build_context_prompt(user_input, history, selected_styles)
+        
+        # 3. 如果有战术意图，添加战术指令
+        if tactical_intent and tactical_intent in self.INTENT_TO_STRATEGY:
+            strategy = self.INTENT_TO_STRATEGY[tactical_intent]
+            intent_instructions = f"""
+
+# 🎯 用户指定战术意图: {tactical_intent}
+用户明确要求使用「{tactical_intent}」策略，请严格按照以下风格方向生成回复：
+
+- PRESSURE (高压威慑): 回复要强势、主导、带有轻微压迫感，让对方感受到你的气场
+- LURE (示弱诱敌): 回复要撒娇、示弱、卖萌，引发对方的保护欲和心软
+- PROBE (模糊试探): 回复要含糊、话里有话、不正面回应，让对方猜测你的真实意图
+- COMFORT (情绪安抚): 回复要共情、理解、温柔陪伴，让对方感受到被接纳和支持
+
+当前策略: {tactical_intent}
+所有3个选项都应该符合这个战术方向，但保持风格差异。
+"""
+            system_prompt += intent_instructions
+        
+        logger.info(f"⚡ [Request] Input: {user_input[:30]}...")
+
+        try:
+            # 4. 调用 LLM
+            response = await self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": f"对方最新消息：{user_input}"},
+                ],
+                temperature=self.temperature,
+                max_tokens=self.max_tokens,
+                response_format={"type": "json_object"},
+            )
+
+            raw_content = response.choices[0].message.content
+            
+            # 5. 解析结果
+            result = self._parse_response(raw_content)
+            
+            logger.success(f"✅ [LLM] Generation successful | Options: {len(result.get('options', []))}")
+            
+            return result
+            
+        except Exception as exc:
+            logger.error(f"❌ [LLM] Failed: {exc}")
+            raise exc
+
     @retry(
         stop=stop_after_attempt(3),
         wait=wait_fixed(2),

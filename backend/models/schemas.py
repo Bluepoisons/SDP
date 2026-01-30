@@ -137,6 +137,16 @@ class DialogRequest(BaseModel):
     clientMessages: Optional[List[dict]] = []
 
 
+# ==================== v8.1：战术意图类型 ====================
+
+class TacticalIntentType(str, Enum):
+    """v8.1 用户指定的战术意图 - 「直出+热修」模式"""
+    PRESSURE = "PRESSURE"      # 高压威慑 - 施压、强势、主导
+    LURE = "LURE"              # 示弱诱敌 - 撒娇、卖惨、让对方心软
+    PROBE = "PROBE"            # 模糊试探 - 不正面回应、话里有话
+    COMFORT = "COMFORT"        # 情绪安抚 - 共情、理解、陪伴
+
+
 class LegacyGenerateRequest(BaseModel):
     """兼容前端旧版 /api/generate 接口"""
     text: str
@@ -145,6 +155,7 @@ class LegacyGenerateRequest(BaseModel):
     history: Optional[List[dict]] = None
     sessionId: Optional[str] = None
     clientMessages: Optional[List[dict]] = None
+    tacticalIntent: Optional[str] = None  # 🆕 v8.1: 战术意图
 
 # ==================== 响应模型 ====================
 

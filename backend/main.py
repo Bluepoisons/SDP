@@ -271,6 +271,7 @@ async def chat_endpoint(request: ChatRequest):
 async def generate_dialog(request: LegacyGenerateRequest):
     """
     兼容旧版前端的接口 - 将新格式转换为旧格式（支持历史记录）
+    🆕 v8.1: 支持 tacticalIntent 战术意图参数
     
     前端期望格式:
     {
@@ -283,7 +284,10 @@ async def generate_dialog(request: LegacyGenerateRequest):
     }
     """
     start_time = time.perf_counter()
-    logger.info(f"📨 [/api/generate] Legacy request (with history: {len(request.history or [])} msgs)")
+    
+    # v8.1: 记录战术意图
+    intent_str = f" | Intent: {request.tacticalIntent}" if request.tacticalIntent else ""
+    logger.info(f"📨 [/api/generate] Legacy request (with history: {len(request.history or [])} msgs){intent_str}")
     
     try:
         # 调用新接口获取恋爱军师响应（支持历史）
@@ -291,7 +295,13 @@ async def generate_dialog(request: LegacyGenerateRequest):
             user_input=request.text,
             history=request.history or []  # Task 2: 传递历史记录
         )
-        advisor_response = await chat_endpoint(chat_request)
+        
+        # v8.1: 如果有战术意图，传递给 AI 服务
+        advisor_response = await ai_service.generate_response_with_intent(
+            request.text, 
+            request.history or [],
+            request.tacticalIntent  # 🆕 战术意图
+        )
         
         # 转换为旧格式
         formatted_options = []
@@ -335,7 +345,8 @@ async def generate_dialog(request: LegacyGenerateRequest):
                 "sceneSummary": advisor_response.get("analysis", ""),
                 "options": formatted_options,
                 "style": request.style or "random",
-                "generationTimeMs": generation_time_ms
+                "generationTimeMs": generation_time_ms,
+                "tacticalIntent": request.tacticalIntent  # 🆕 返回使用的战术意图
             }
         }
         

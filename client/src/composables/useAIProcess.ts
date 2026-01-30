@@ -6,7 +6,8 @@ import {
   type GenerateResponse,
   type AnalyzeResponse,
   type ExecuteResponse,
-  type SituationAnalysis
+  type SituationAnalysis,
+  type TacticalIntentType,
 } from "@/services/api";
 
 type GeneratePayload = {
@@ -17,6 +18,7 @@ type GeneratePayload = {
   regenerateId?: string;
   sessionId?: string;
   clientMessages?: Array<Record<string, unknown>>;
+  tacticalIntent?: TacticalIntentType; // v8.1: 战术意图
 };
 
 // v8.0 指挥官系统状态

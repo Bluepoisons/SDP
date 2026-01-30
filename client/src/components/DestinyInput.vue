@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, watch, ref } from "vue";
-import { Camera, ImagePlus, Zap, Plus, Minus } from "lucide-vue-next";
+import { Camera, ImagePlus, Zap, Plus, Command } from "lucide-vue-next";
 import Textarea from "@/components/ui/textarea/Textarea.vue";
 import Tooltip from "@/components/ui/tooltip/Tooltip.vue";
+import TacticalIntent, { type TacticalIntentType } from "@/components/TacticalIntent.vue";
 
 /**
- * 🎮 驾驶舱输入框 v8.0
- * HUD 元素 + 波形图 + 扳机按钮 + 连发模式
+ * 🎮 驾驶舱输入框 v8.1
+ * 「直出+热修」模式：输入即生成，战术意图可选
  */
 
 interface DestinyInputProps {
@@ -14,6 +15,8 @@ interface DestinyInputProps {
   loading?: boolean;
   placeholder?: string;
   statusText?: string;
+  tacticalIntent?: TacticalIntentType;
+  showOverrideButton?: boolean;
 }
 
 const props = withDefaults(defineProps<DestinyInputProps>(), {
@@ -21,14 +24,18 @@ const props = withDefaults(defineProps<DestinyInputProps>(), {
   loading: false,
   placeholder: "输入对话内容，编织命运轨迹...",
   statusText: "SYSTEM READY",
+  tacticalIntent: null,
+  showOverrideButton: false,
 });
 
 const emit = defineEmits<{
   (e: "update:modelValue", value: string): void;
+  (e: "update:tacticalIntent", value: TacticalIntentType): void;
   (e: "generate"): void;
   (e: "cancel"): void;
   (e: "capture"): void;
   (e: "upload"): void;
+  (e: "override"): void;
 }>();
 
 const input = ref(props.modelValue);
@@ -94,6 +101,11 @@ const toggleBurstMode = () => {
   if (!isBurstMode.value && input.value.includes('\n')) {
     input.value = input.value.replace(/\n+/g, ' ').trim();
   }
+};
+
+// v8.1: 战术意图更新
+const handleIntentUpdate = (intent: TacticalIntentType) => {
+  emit('update:tacticalIntent', intent);
 };
 </script>
 
@@ -224,13 +236,30 @@ const toggleBurstMode = () => {
         </Tooltip>
       </div>
 
-      <!-- 📊 底部状态栏 -->
-      <div class="mt-3 flex items-center justify-between text-xs px-1">
-        <div class="flex items-center gap-3">
-          <span class="deco-text">⌘ + ENTER</span>
-          <span class="deco-text text-[var(--accent-color)]">EXECUTE</span>
-        </div>
-        <div class="flex items-center gap-2">
+      <!-- 🎯 v8.1: 战术意图选择栏 + 介入指挥按钮 -->
+      <div class="mt-3 flex items-center justify-between">
+        <!-- 左侧：战术意图 -->
+        <TacticalIntent
+          :model-value="props.tacticalIntent"
+          :disabled="props.loading"
+          @update:model-value="handleIntentUpdate"
+        />
+        
+        <!-- 右侧：介入指挥按钮（生成后显示） -->
+        <Tooltip v-if="showOverrideButton" content="介入指挥 - 覆盖当前结果">
+          <button
+            class="override-btn flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full
+              border border-amber-500/30 bg-amber-500/10 text-amber-400
+              hover:bg-amber-500/20 hover:border-amber-500/50 transition-all"
+            @click="emit('override')"
+          >
+            <Command class="w-3.5 h-3.5" />
+            <span>介入指挥</span>
+          </button>
+        </Tooltip>
+        
+        <!-- 状态指示器 -->
+        <div v-else class="flex items-center gap-2 text-xs">
           <span 
             class="inline-block h-2 w-2 rounded-full"
             :class="isReady ? 'bg-green-500 animate-pulse' : 'bg-zinc-500'"

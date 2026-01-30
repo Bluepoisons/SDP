@@ -103,6 +103,9 @@ export const executeTactics = async (
 
 // ==================== 原有 API（保持兼容） ====================
 
+// v8.1: 战术意图类型
+export type TacticalIntentType = 'PRESSURE' | 'LURE' | 'PROBE' | 'COMFORT' | null;
+
 export const generateDialog = async (
   payload: {
     text: string;
@@ -112,6 +115,7 @@ export const generateDialog = async (
     regenerateId?: string;
     sessionId?: string;
     clientMessages?: Array<Record<string, unknown>>;
+    tacticalIntent?: TacticalIntentType; // 🆕 v8.1: 战术意图
   },
   signal?: AbortSignal
 ) => {
