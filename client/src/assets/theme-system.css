@@ -396,11 +396,8 @@ body.theme-morning .text-zinc-300 {
   color: #64748b !important;
 }
 
-/* ☀️ 清晨：所有主要容器背景 */
-body.theme-morning .h-screen,
-body.theme-morning [class*="min-h-screen"] {
-  background: transparent !important;
-}
+/* ☀️ 清晨：主要容器继承 body 背景（不再强制 transparent） */
+/* 已移除 transparent !important 规则，改由 App.vue 动态控制背景 */
 
 /* ═══════════════════════════════════════════════════════════════════
    🌆 SUNSET v8.1 - 深紫黄昏 (Deep Violet Twilight)

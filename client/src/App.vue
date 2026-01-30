@@ -31,13 +31,13 @@ watch(
   { immediate: true }
 );
 
-// 🟢 根据主题计算根容器背景类（强制覆盖，不依赖 CSS 层叠）
-const themeBackgroundClass = computed(() => {
+// 🟢 根据主题计算根容器背景色（内联样式，确保优先级最高）
+const themeBackgroundStyle = computed(() => {
   switch (uiSettings.theme) {
-    case 'morning': return 'bg-[#fafbfc]'; // 强制亮色背景
-    case 'sunset': return 'bg-[#2e1065]';  // 强制深紫背景
-    case 'night': return 'bg-[#0a0a0b]';   // 强制深黑背景
-    default: return 'bg-[#0a0a0b]';
+    case 'morning': return { backgroundColor: '#fafbfc' };
+    case 'sunset': return { backgroundColor: '#2e1065' };
+    case 'night': return { backgroundColor: '#0a0a0b' };
+    default: return { backgroundColor: '#0a0a0b' };
   }
 });
 </script>
@@ -45,7 +45,7 @@ const themeBackgroundClass = computed(() => {
 <template>
   <div 
     class="min-h-screen text-[var(--bubble-text)] transition-colors duration-500"
-    :class="themeBackgroundClass"
+    :style="themeBackgroundStyle"
   >
     <AppLayout />
   </div>
