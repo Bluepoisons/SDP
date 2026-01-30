@@ -6,8 +6,10 @@ import { useUiSettings } from "@/stores/useUiSettings";
 const uiSettings = useUiSettings();
 
 onMounted(() => {
-  document.body.classList.add("theme-dark");
-  document.body.classList.remove("theme-light");
+  // v4.0: 初始化主题
+  uiSettings.initTheme();
+  
+  // 视效开关
   document.body.classList.toggle("fx-anim-on", uiSettings.animationsEnabled);
   document.body.classList.toggle("fx-anim-off", !uiSettings.animationsEnabled);
   document.body.classList.toggle("fx-blur-on", uiSettings.blurEnabled);
@@ -31,7 +33,7 @@ watch(
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#0a0a0b] text-zinc-100">
+  <div class="min-h-screen text-[var(--bubble-text)]">
     <AppLayout />
   </div>
 </template>
