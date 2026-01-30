@@ -415,6 +415,41 @@ const toggleBurstMode = () => {
   transform: scale(0.95);
 }
 
+/* ☀️ 清晨模式：圆润扳机 */
+:global(body.theme-morning) .trigger-btn {
+  border-radius: 50%;
+  transform: rotate(0);
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+}
+
+:global(body.theme-morning) .trigger-btn > * {
+  transform: rotate(0);
+}
+
+:global(body.theme-morning) .trigger-btn:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+:global(body.theme-morning) .trigger-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+/* ☀️ 清晨模式：移除科技角落 */
+:global(body.theme-morning) .tech-corner::before,
+:global(body.theme-morning) .tech-corner::after {
+  display: none;
+}
+
+/* ☀️ 清晨模式：按钮圆润化 */
+:global(body.theme-morning) .btn-skew {
+  transform: skewX(0);
+  border-radius: 12px;
+}
+
+:global(body.theme-morning) .btn-skew:active {
+  transform: scale(0.95) translateY(1px);
+}
+
 /* 科技感角落 */
 .tech-corner {
   position: relative;
