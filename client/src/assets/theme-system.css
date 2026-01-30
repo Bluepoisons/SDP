@@ -1,0 +1,450 @@
+/* 
+ * 🌅 SDP v4.0 - 时间轮盘主题系统
+ * The Time Cycle: Morning ↔ Sunset ↔ Night
+ * 
+ * 设计理念：
+ * - Morning: 蔚蓝档案风格，干净通透
+ * - Sunset: 新海诚魔幻时刻，紫金渐变
+ * - Night: 赛博深潜，冷峻科技
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   ☀️ MORNING - 清晨 (Blue Archive Style)
+   「清新的蓝白调，阳光穿过窗户的温暖感」
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-morning {
+  /* 🎨 核心色板 */
+  --hue-primary: 200;
+  --hue-accent: 199;
+  
+  /* 🌤️ 天空渐变 - 极简蓝白灰 */
+  --bg-gradient-start: #f8fafc;       /* Slate-50 */
+  --bg-gradient-end: #e0f2fe;         /* Sky-100 */
+  
+  --bg-primary: #f1f5f9;              /* Slate-100 */
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f8fafc;
+  
+  /* 💬 对话气泡 - 高亮毛玻璃 */
+  --bubble-bg-user: rgba(14, 165, 233, 0.12);   /* 天蓝玻璃 */
+  --bubble-bg-ai: rgba(255, 255, 255, 0.85);    /* 纯白玻璃 */
+  --bubble-border: rgba(14, 165, 233, 0.25);
+  --bubble-text: #0f172a;                        /* Slate-900 深灰蓝 */
+  --bubble-glow: 0 4px 20px rgba(14, 165, 233, 0.15);
+  
+  /* ✨ 天空蓝强调色 */
+  --accent-color: #0ea5e9;            /* Sky-500 */
+  --accent-secondary: #38bdf8;        /* Sky-400 */
+  --accent-danger: #ef4444;
+  
+  /* 🎮 控制台 - 白色毛玻璃 */
+  --input-panel-bg: rgba(255, 255, 255, 0.8);
+  --input-panel-border: rgba(14, 165, 233, 0.2);
+  --input-text: #1e293b;              /* Slate-800 */
+  
+  /* 🔘 按钮 - 天空蓝渐变 */
+  --btn-primary-from: #0ea5e9;
+  --btn-primary-to: #38bdf8;
+  --btn-primary-shadow: rgba(14, 165, 233, 0.4);
+  --btn-primary-hover: rgba(14, 165, 233, 0.15);
+  
+  /* ✨ 光晕 - 柔和蓝光 */
+  --glow-color: rgba(14, 165, 233, 0.3);
+  --glow-strong: rgba(14, 165, 233, 0.6);
+  --star-color: rgba(255, 255, 255, 0.9);
+  
+  /* 📐 圆润 UI (无斜切) */
+  --skew-angle: 0deg;
+  --skew-angle-subtle: 0deg;
+  
+  /* 📝 文字适配 - 强制深色 */
+  --text-main: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
+  /* 🖼️ 卡片样式 */
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(14, 165, 233, 0.15);
+  --card-shadow: 0 4px 24px rgba(14, 165, 233, 0.1);
+  
+  /* 🎨 主背景 */
+  background: 
+    /* 柔和光点纹理 */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  background-attachment: fixed;
+  color: var(--text-main);
+}
+
+/* ☀️ 清晨模式：阳光毛玻璃效果 */
+body.theme-morning::before {
+  content: '';
+  position: fixed;
+  top: -50%;
+  right: -20%;
+  width: 80%;
+  height: 80%;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(255, 255, 255, 0.4) 0%,
+    rgba(224, 242, 254, 0.2) 40%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ☀️ 清晨气泡样式 */
+body.theme-morning .bubble-user {
+  background: var(--bubble-bg-user);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), 0 2px 8px rgba(0, 0, 0, 0.05);
+  color: var(--text-main);
+}
+
+body.theme-morning .bubble-ai {
+  background: var(--bubble-bg-ai);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  color: var(--text-main);
+}
+
+/* ☀️ 清晨输入面板 */
+body.theme-morning .input-cockpit {
+  background: var(--input-panel-bg);
+  border: 1px solid var(--input-panel-border);
+  box-shadow: 
+    0 -4px 30px rgba(14, 165, 233, 0.1),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+  transform: translateX(-50%); /* 无斜切 */
+  border-radius: 20px;
+}
+
+body.theme-morning .input-cockpit > * {
+  transform: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌆 SUNSET - 黄昏 (Your Name / Magic Hour Style)
+   「逢魔之时，紫金交织的魔幻天空」
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-sunset {
+  /* 🎨 核心色板 */
+  --hue-primary: 280;
+  --hue-accent: 45;
+  
+  /* 🌇 三段式天空渐变：靛青 → 洋红 → 金琥珀 */
+  --bg-gradient-start: #4c1d95;       /* Violet-900 (顶部深邃夜空) */
+  --bg-gradient-mid: #be185d;         /* Pink-700 (中间晚霞) */
+  --bg-gradient-end: #fbbf24;         /* Amber-400 (底部地平线余晖) */
+  
+  --bg-primary: hsl(280, 50%, 15%);
+  --bg-secondary: hsl(300, 40%, 18%);
+  --bg-tertiary: hsl(35, 60%, 12%);
+  
+  /* 💬 对话气泡 - 深紫玻璃 + 金边 */
+  --bubble-bg-user: rgba(251, 191, 36, 0.15);   /* 金色玻璃 */
+  --bubble-bg-ai: rgba(30, 10, 60, 0.7);        /* 深紫红玻璃 */
+  --bubble-border: rgba(251, 191, 36, 0.5);     /* 金色边框 */
+  --bubble-text: #ffffff;                        /* 纯白文字 */
+  --bubble-glow: 0 0 25px rgba(251, 191, 36, 0.25);
+  
+  /* ✨ 流金强调色 */
+  --accent-color: #fbbf24;            /* Amber-400 Liquid Gold */
+  --accent-secondary: #f59e0b;        /* Amber-500 */
+  --accent-danger: #dc2626;
+  
+  /* 🎮 控制台 - 深色容器压住艳丽背景 */
+  --input-panel-bg: rgba(30, 10, 60, 0.75);
+  --input-panel-border: rgba(251, 191, 36, 0.4);
+  --input-text: #fffbeb;              /* Amber-50 米黄色 */
+  
+  /* 🔘 按钮 - 金色渐变 */
+  --btn-primary-from: #f59e0b;
+  --btn-primary-to: #fbbf24;
+  --btn-primary-shadow: rgba(251, 191, 36, 0.5);
+  --btn-primary-hover: rgba(251, 191, 36, 0.2);
+  
+  /* ✨ 金色光晕 */
+  --glow-color: rgba(251, 191, 36, 0.5);
+  --glow-strong: rgba(251, 191, 36, 0.8);
+  --star-color: rgba(251, 191, 36, 0.9);
+  
+  /* 📐 微斜切 */
+  --skew-angle: -8deg;
+  --skew-angle-subtle: -4deg;
+  
+  /* 📝 文字适配 - 纯白 + 强阴影 */
+  --text-main: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.85);
+  --text-muted: rgba(255, 255, 255, 0.6);
+  --text-shadow: 0 2px 8px rgba(23, 10, 50, 0.6);
+  
+  /* 🖼️ 卡片样式 - 深色压住背景 */
+  --card-bg: rgba(30, 10, 60, 0.6);
+  --card-border: rgba(251, 191, 36, 0.3);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  
+  /* 🌅 暖色暗角 */
+  --vignette-color: rgba(23, 10, 50, 0.7);
+  
+  /* 🎨 主背景 - 三段式渐变 */
+  background: 
+    /* 暖色噪点纹理 */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+    linear-gradient(
+      180deg,
+      var(--bg-gradient-start) 0%,
+      var(--bg-gradient-mid) 50%,
+      var(--bg-gradient-end) 100%
+    );
+  background-attachment: fixed;
+  color: var(--text-main);
+}
+
+/* 🌆 黄昏暗角效果 */
+body.theme-sunset::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    transparent 30%,
+    var(--vignette-color) 100%
+  );
+}
+
+/* 🌆 黄昏气泡 - 金色边框发光 */
+body.theme-sunset .bubble-user {
+  background: var(--bubble-bg-user);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(251, 191, 36, 0.2);
+  color: var(--text-main);
+  text-shadow: var(--text-shadow);
+}
+
+body.theme-sunset .bubble-ai {
+  background: var(--bubble-bg-ai);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(190, 24, 93, 0.2);
+  color: var(--text-main);
+  text-shadow: var(--text-shadow);
+}
+
+/* 🌆 黄昏输入面板 */
+body.theme-sunset .input-cockpit {
+  background: var(--input-panel-bg);
+  border: 1px solid var(--input-panel-border);
+  box-shadow: 
+    0 -8px 40px rgba(251, 191, 36, 0.15),
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(251, 191, 36, 0.2);
+}
+
+/* 🌆 黄昏按钮 - 金色脉冲 */
+body.theme-sunset .btn-action {
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+  box-shadow: 
+    0 4px 20px var(--btn-primary-shadow),
+    0 0 30px rgba(251, 191, 36, 0.3);
+}
+
+body.theme-sunset .btn-action:hover {
+  box-shadow: 
+    0 6px 30px var(--btn-primary-shadow),
+    0 0 50px rgba(251, 191, 36, 0.5);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🌙 NIGHT - 深夜 (Cyber Deep Dive)
+   「赛博星空，冷峻的霓虹科技感」
+   ═══════════════════════════════════════════════════════════════════ */
+body.theme-night {
+  /* 🎨 核心色板 */
+  --hue-primary: 222;
+  --hue-accent: 187;
+  
+  /* 🌌 深空渐变 */
+  --bg-gradient-start: #020617;       /* Slate-950 */
+  --bg-gradient-end: #0f172a;         /* Slate-900 */
+  
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #020617;
+  
+  /* 💬 对话气泡 - 赛博玻璃 */
+  --bubble-bg-user: rgba(34, 211, 238, 0.1);    /* 青色玻璃 */
+  --bubble-bg-ai: rgba(0, 0, 0, 0.6);           /* 深黑玻璃 */
+  --bubble-border: rgba(34, 211, 238, 0.35);
+  --bubble-text: #e2e8f0;                        /* Slate-200 */
+  --bubble-glow: 0 0 25px rgba(34, 211, 238, 0.25);
+  
+  /* ✨ 赛博青强调色 */
+  --accent-color: #22d3ee;            /* Cyan-400 */
+  --accent-secondary: #06b6d4;        /* Cyan-500 */
+  --accent-danger: #f43f5e;
+  
+  /* 🎮 控制台 - 深色毛玻璃 */
+  --input-panel-bg: rgba(15, 23, 42, 0.9);
+  --input-panel-border: rgba(34, 211, 238, 0.25);
+  --input-text: #f1f5f9;
+  
+  /* 🔘 按钮 - 霓虹渐变 */
+  --btn-primary-from: #22d3ee;
+  --btn-primary-to: #818cf8;          /* Indigo-400 */
+  --btn-primary-shadow: rgba(34, 211, 238, 0.5);
+  --btn-primary-hover: rgba(34, 211, 238, 0.2);
+  
+  /* ✨ 霓虹光晕 */
+  --glow-color: rgba(34, 211, 238, 0.5);
+  --glow-strong: rgba(34, 211, 238, 0.8);
+  --star-color: rgba(255, 255, 255, 0.8);
+  
+  /* 📐 科技斜切 */
+  --skew-angle: -12deg;
+  --skew-angle-subtle: -6deg;
+  
+  /* 📝 文字适配 - 浅灰 + 发光 */
+  --text-main: #e2e8f0;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-glow: 0 0 10px rgba(34, 211, 238, 0.5);
+  
+  /* 🖼️ 卡片样式 */
+  --card-bg: rgba(15, 23, 42, 0.8);
+  --card-border: rgba(34, 211, 238, 0.2);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  
+  /* 🎨 主背景 */
+  background: 
+    /* 噪点纹理 */
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+    linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+  background-attachment: fixed;
+  color: var(--text-main);
+}
+
+/* 🌙 深夜扫描线效果 */
+body.theme-night::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.03) 2px,
+    rgba(0, 0, 0, 0.03) 4px
+  );
+}
+
+/* 🌙 深夜气泡 - 霓虹边框 */
+body.theme-night .bubble-user {
+  background: var(--bubble-bg-user);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(34, 211, 238, 0.1);
+  color: var(--text-main);
+}
+
+body.theme-night .bubble-ai {
+  background: var(--bubble-bg-ai);
+  border: 1px solid var(--bubble-border);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(129, 140, 248, 0.1);
+  color: var(--text-main);
+}
+
+/* 🌙 深夜输入面板 */
+body.theme-night .input-cockpit {
+  background: var(--input-panel-bg);
+  border: 1px solid var(--input-panel-border);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 0 60px var(--glow-color),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* 🌙 深夜按钮 - 霓虹脉冲 */
+body.theme-night .btn-action {
+  background: linear-gradient(135deg, var(--btn-primary-from), var(--btn-primary-to));
+  box-shadow: 
+    0 4px 20px var(--btn-primary-shadow),
+    0 0 40px rgba(34, 211, 238, 0.2);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🔤 动态字体适配系统
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Morning: 深色字体 */
+body.theme-morning {
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+}
+
+body.theme-morning .text-primary {
+  color: var(--text-main) !important;
+}
+
+body.theme-morning .text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+/* Sunset: 白色字体 + 阴影 */
+body.theme-sunset .text-primary,
+body.theme-sunset .text-secondary,
+body.theme-sunset h1, body.theme-sunset h2, body.theme-sunset h3,
+body.theme-sunset p, body.theme-sunset span {
+  text-shadow: var(--text-shadow);
+}
+
+/* Night: 浅色字体 + 发光 */
+body.theme-night h1, body.theme-night h2 {
+  text-shadow: var(--text-glow);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎭 时间轮盘切换按钮
+   ═══════════════════════════════════════════════════════════════════ */
+.theme-cycle-btn {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  backdrop-filter: blur(12px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  z-index: 100;
+  box-shadow: var(--card-shadow);
+}
+
+.theme-cycle-btn:hover {
+  transform: scale(1.1) rotate(15deg);
+  box-shadow: 0 0 30px var(--glow-color);
+}
+
+.theme-cycle-btn:active {
+  transform: scale(0.95);
+}
+
+/* 主题过渡动画 */
+body {
+  transition: 
+    background 0.6s ease-out,
+    color 0.3s ease-out;
+}
+
+body::before {
+  transition: opacity 0.6s ease-out;
+}

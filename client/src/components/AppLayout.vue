@@ -16,7 +16,7 @@ import { Settings } from "lucide-vue-next";
 import SettingsModal from "@/components/SettingsModal.vue";
 
 // 🎨 v4.0: GALGAME 风格组件
-import ThemeToggle from "@/components/ThemeToggle.vue";
+import ThemeCycleButton from "@/components/ThemeCycleButton.vue";
 import ScorePopup from "@/components/ScorePopup.vue";
 import DynamicBackground from "@/components/DynamicBackground.vue";
 
@@ -35,7 +35,7 @@ import EmotionFlash from "@/components/EmotionFlash.vue";
 import TacticsBoard from "@/components/TacticsBoard.vue";
 import ECGMonitor from "@/components/ECGMonitor.vue";
 
-// 🌅 v8.0: 黄昏之时主题
+// 🌅 v4.0: 时间轮盘粒子系统
 import TwilightParticles from "@/components/TwilightParticles.vue";
 
 const gameStore = useGameStore();
@@ -423,14 +423,10 @@ const handleCancel = () => {
 
 onMounted(() => {
   connectionStore.startAutoCheck();
-  // v8.0: 初始化主题 - 应用持久化的主题设置
+  // v4.0: 初始化时间轮盘主题
   const theme = uiSettings.theme;
-  document.body.classList.remove("theme-heartbeat", "theme-twilight");
-  if (theme === "heartbeat") {
-    document.body.classList.add("theme-heartbeat");
-  } else if (theme === "twilight") {
-    document.body.classList.add("theme-twilight");
-  }
+  document.body.classList.remove("theme-morning", "theme-sunset", "theme-night");
+  document.body.classList.add(`theme-${theme}`);
 });
 
 // v8.0: 计算粒子强度
@@ -463,10 +459,11 @@ const orbClass = computed(() => {
   <DynamicBackground />
   <MouseLight />
   
-  <!-- 🌅 v8.0: 黄昏光尘粒子特效 -->
+  <!-- 🌅 v4.0: 时间轮盘粒子系统 -->
   <TwilightParticles 
     ref="twilightParticlesRef"
-    :active="uiSettings.particlesEnabled && uiSettings.theme === 'twilight'"
+    :active="uiSettings.particlesEnabled"
+    :theme="uiSettings.theme"
     :intensity="particleIntensity"
   />
   
@@ -602,8 +599,8 @@ const orbClass = computed(() => {
     <!-- 🆕 Task 2 & 3: 设置面板模态框 -->
     <SettingsModal :open="isSettingsOpen" @close="isSettingsOpen = false" />
     
-    <!-- 🎨 v4.0: 主题切换按钮 -->
-    <ThemeToggle />
+    <!-- 🔄 v4.0: 时间轮盘切换按钮 -->
+    <ThemeCycleButton />
     
     <!-- 💫 v4.0: 属性弹窗容器 -->
     <ScorePopup ref="scorePopupRef" />

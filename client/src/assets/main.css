@@ -1,4 +1,6 @@
 @import "tailwindcss";
+@import "./galgame-theme.css";
+@import "./theme-system.css";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap");
 
 :root {

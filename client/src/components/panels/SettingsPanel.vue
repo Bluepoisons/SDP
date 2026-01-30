@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Sun, Moon } from "lucide-vue-next";
+import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Sun, Moon, Sunset } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
 import Card from "@/components/ui/card/Card.vue";
 import CardHeader from "@/components/ui/card/CardHeader.vue";
@@ -40,10 +40,10 @@ const memoryLimit = computed({
   set: (val: number) => uiSettings.setMemoryLimit(val),
 });
 
-// v8.0: 主题设置
+// v4.0: 时间轮盘主题设置
 const currentTheme = computed({
   get: () => uiSettings.theme,
-  set: (val: "deep" | "heartbeat" | "twilight") => uiSettings.setTheme(val),
+  set: (val: "morning" | "sunset" | "night") => uiSettings.setTheme(val),
 });
 
 const particlesEnabled = computed({
@@ -51,11 +51,32 @@ const particlesEnabled = computed({
   set: (val: boolean) => uiSettings.setParticlesEnabled(val),
 });
 
-// 主题选项
+// v4.0: 时间轮盘主题选项 (删除Heartbeat，新增Morning)
 const themeOptions = [
-  { value: "deep", label: "深潜 Deep Dive", icon: Moon, color: "from-indigo-500 to-purple-600", desc: "赛博星空 · 冷峻科技" },
-  { value: "heartbeat", label: "心跳 Heartbeat", icon: Sparkles, color: "from-pink-400 to-rose-500", desc: "恋爱中毒 · 粉色甜蜜" },
-  { value: "twilight", label: "黄昏 Twilight", icon: Sun, color: "from-amber-400 to-orange-600", desc: "暮光余晖 · 温暖希望" },
+  { 
+    value: "morning", 
+    label: "清晨 Morning", 
+    icon: Sun, 
+    color: "from-sky-400 to-blue-500", 
+    desc: "蔚蓝档案 · 干净通透",
+    particles: "微尘羽毛"
+  },
+  { 
+    value: "sunset", 
+    label: "黄昏 Sunset", 
+    icon: Sunset, 
+    color: "from-violet-600 via-pink-500 to-amber-400", 
+    desc: "逢魔之时 · 紫金魔幻",
+    particles: "金色光尘"
+  },
+  { 
+    value: "night", 
+    label: "深夜 Night", 
+    icon: Moon, 
+    color: "from-slate-800 to-cyan-600", 
+    desc: "赛博深潜 · 霓虹科技",
+    particles: "流星数据流"
+  },
 ] as const;
 
 const triggerTraining = () => {
@@ -199,14 +220,14 @@ const shakeLocalModel = () => {
       <p class="mt-2 text-sm text-zinc-400">可按需开启模糊与动效，默认关闭以保证帧率。</p>
     </header>
 
-    <!-- 🌅 v8.0: 主题切换 -->
+    <!-- 🌅 v4.0: 时间轮盘主题 -->
     <Card class="border-[var(--accent-color)]/30 bg-zinc-900/40">
       <CardHeader>
         <CardTitle class="flex items-center gap-2">
           <Palette class="h-4 w-4 text-[var(--accent-color)]" />
-          世界线主题
+          时间轮盘
         </CardTitle>
-        <CardDescription>切换视觉氛围，体验不同的恋爱战场。</CardDescription>
+        <CardDescription>☀️ → 🌆 → 🌙 三态循环，体验昼夜流转。</CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
         <div class="grid grid-cols-1 gap-3">
@@ -242,16 +263,18 @@ const shakeLocalModel = () => {
           </label>
         </div>
 
-        <!-- 粒子特效开关 -->
+        <!-- 粒子特效开关 - 适配三主题 -->
         <label class="flex items-center justify-between rounded-lg border border-zinc-700 bg-zinc-900/60 p-4 mt-4">
           <div>
             <p class="text-sm font-medium flex items-center gap-2">
-              <Sparkles class="h-4 w-4 text-amber-400" />
-              光尘粒子
+              <Sparkles class="h-4 w-4 text-[var(--accent-color)]" />
+              场景粒子
             </p>
-            <p class="text-xs text-zinc-400">黄昏主题专属浮光效果</p>
+            <p class="text-xs text-zinc-400">
+              {{ themeOptions.find(t => t.value === currentTheme)?.particles || '光效粒子' }}
+            </p>
           </div>
-          <input type="checkbox" v-model="particlesEnabled" class="h-4 w-4 accent-amber-500" />
+          <input type="checkbox" v-model="particlesEnabled" class="h-4 w-4 accent-[var(--accent-color)]" />
         </label>
       </CardContent>
     </Card>
