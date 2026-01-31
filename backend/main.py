@@ -31,15 +31,18 @@ logger.add(
 
 from services.ai_service import ai_service
 from services.db_service import db_service
+from services.vision_service import vision_service  # v10.0 视觉智能
 from models.schemas import (
     ChatRequest, AdvisorResponse, FeedbackRequest, LegacyGenerateRequest, SelectionRequest,
-    AnalyzeRequest, AnalyzeResponse, ExecuteRequest, ExecuteResponse, SituationAnalysis
+    AnalyzeRequest, AnalyzeResponse, ExecuteRequest, ExecuteResponse, SituationAnalysis,
+    VisionAnalyzeRequest, VisionAnalyzeResponse, VisionExecuteRequest  # v10.0 视觉模型
 )
 
 # 初始化 App
-app = FastAPI(title="Love Advisor Backend - Commander System v8.0")
+app = FastAPI(title="Love Advisor Backend - Commander System v10.0")
 
-logger.info("🚀 [FastAPI] Commander System v8.0 starting...")
+logger.info("🚀 [FastAPI] Commander System v10.0 starting...")
+
 
 # ==========================================
 # 1. 解决 Network Error 的核心：CORS 配置
@@ -143,6 +146,131 @@ async def analyze_endpoint(request: AnalyzeRequest):
                 "pressure_level": 0
             },
             "raw_input": request.user_input
+        }
+
+
+# ==================== v10.0 视觉智能 API ====================
+
+@app.post("/api/vision/analyze")
+async def vision_analyze_endpoint(request: VisionAnalyzeRequest):
+    """
+    v10.0 视觉智能: 截图情报解析 (Tactical Vision)
+    分析聊天截图，提取对话内容和情绪分析
+    
+    Request: { image_base64: "...", hint?: "这是微信聊天" }
+    Response: { success: true, intelligence: VisionIntelligence, ... }
+    """
+    logger.info(f"👁️ [/api/vision/analyze] Analyzing screenshot... (hint: {request.hint or 'none'})")
+    
+    try:
+        intelligence, raw_text, analysis_time_ms = await vision_service.analyze_screenshot(
+            request.image_base64,
+            request.hint
+        )
+        
+        return {
+            "success": True,
+            "intelligence": intelligence.model_dump(),
+            "raw_text": raw_text[:500] if raw_text else "",  # 截断原始文本
+            "analysis_time_ms": analysis_time_ms
+        }
+    except Exception as exc:
+        logger.error(f"❌ [/api/vision/analyze] Error: {exc}")
+        return {
+            "success": False,
+            "message": f"视觉分析失败: {str(exc)}",
+            "intelligence": {
+                "summary": "视觉分析模块暂时离线",
+                "bubbles": [],
+                "emotion_detected": "未知",
+                "emotion_score": 0,
+                "context_hint": "",
+                "tactical_suggestion": "请手动输入对话内容",
+                "confidence": 0.0
+            },
+            "raw_text": "",
+            "analysis_time_ms": 0
+        }
+
+
+@app.post("/api/vision/execute")
+async def vision_execute_endpoint(request: VisionExecuteRequest):
+    """
+    v10.0 视觉智能: 战术执行 (基于修正后的情报)
+    用户确认/修改截图分析结果后，生成回复选项
+    
+    Request: { summary: "...", bubbles: [...], emotion_score: 1, history: [] }
+    Response: { success: true, analysis: "...", options: [...] }
+    """
+    logger.info(f"⚔️ [/api/vision/execute] Summary: {request.summary[:50]}...")
+    
+    start_time = time.perf_counter()
+    
+    try:
+        # 将视觉情报转换为文本上下文
+        context_text = f"【情报摘要】{request.summary}\n\n【对话记录】\n"
+        for bubble in request.bubbles:
+            role = "我" if bubble.is_me else "对方"
+            context_text += f"{role}: {bubble.text}\n"
+        
+        # 构建分析上下文
+        from models.schemas import SituationAnalysis
+        analysis_context = SituationAnalysis(
+            summary=request.summary,
+            emotion_score=request.emotion_score,
+            intent="UNKNOWN",  # 由 AI 推断
+            strategy="COMFORT",  # 由 AI 推断
+            confidence=0.8,
+            burst_detected=False,
+            pressure_level=0
+        )
+        
+        # 调用战术执行
+        result = await ai_service.execute_tactics(
+            context_text,
+            analysis_context.model_dump(),
+            request.history
+        )
+        
+        execution_time_ms = int((time.perf_counter() - start_time) * 1000)
+        
+        # 格式化选项
+        formatted_options = []
+        for idx, opt in enumerate(result.get("options", [])):
+            score = opt.get("score", 0)
+            emoji_map = {
+                "COLD": "❄️", "TSUNDERE": "💢", "GENKI": "✨",
+                "FLATTERING": "🥺", "CHUNIBYO": "🌙"
+            }
+            emoji = emoji_map.get(opt.get("style", ""), "💬")
+            
+            formatted_options.append({
+                "id": chr(65 + idx),
+                "text": opt.get("text", ""),
+                "kaomoji": opt.get("kaomoji", ""),
+                "score": score,
+                "style": opt.get("style", ""),
+                "style_name": opt.get("style_name", "未知"),
+                "emoji": emoji,
+                "favorChange": score,
+                "type": "default",
+                "description": f"情商评分: {score:+d}",
+                "effect": ""
+            })
+        
+        return {
+            "success": True,
+            "analysis": result.get("analysis", request.summary),
+            "options": formatted_options,
+            "executionTimeMs": execution_time_ms
+        }
+    except Exception as exc:
+        logger.error(f"❌ [/api/vision/execute] Error: {exc}")
+        return {
+            "success": False,
+            "message": f"战术执行失败: {str(exc)}",
+            "analysis": request.summary,
+            "options": []
         }
 
 

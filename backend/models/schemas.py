@@ -217,3 +217,41 @@ class DialogOption(BaseModel):
 class DialogOutput(BaseModel):
     sceneSummary: str
     options: List[DialogOption]
+
+
+# ==================== v10.0：视觉智能模型 ====================
+
+class VisionAnalyzeRequest(BaseModel):
+    """v10.0 视觉分析请求 - 截图战术流"""
+    image_base64: str = Field(..., description="Base64 编码的截图图片")
+    hint: Optional[str] = Field(None, description="用户补充提示（如：这是微信聊天记录）")
+
+class VisionBubble(BaseModel):
+    """OCR 识别的对话气泡"""
+    text: str = Field(..., description="对话文本内容")
+    is_me: bool = Field(..., description="是否是主角说的话")
+    confidence: float = Field(ge=0.0, le=1.0, default=0.9, description="识别置信度")
+
+class VisionIntelligence(BaseModel):
+    """v10.0 视觉情报分析结果"""
+    summary: str = Field(..., description="情报摘要 - 用一句话总结当前局势")
+    bubbles: List[VisionBubble] = Field(default=[], description="识别出的对话气泡列表")
+    emotion_detected: str = Field(default="中性", description="检测到的对方情绪")
+    emotion_score: int = Field(ge=-3, le=3, default=0, description="情绪评分 (-3=愤怒, +3=心动)")
+    context_hint: str = Field(default="", description="上下文提示（如：对方在试探你）")
+    tactical_suggestion: str = Field(default="", description="战术建议")
+    confidence: float = Field(ge=0.0, le=1.0, default=0.8, description="整体分析置信度")
+
+class VisionAnalyzeResponse(BaseModel):
+    """v10.0 视觉分析响应"""
+    success: bool = True
+    intelligence: VisionIntelligence
+    raw_text: str = Field(default="", description="原始 OCR 文本（用于调试）")
+    analysis_time_ms: int = Field(default=0, description="分析耗时(ms)")
+
+class VisionExecuteRequest(BaseModel):
+    """v10.0 视觉战术执行请求 - 用户修正后提交"""
+    summary: str = Field(..., description="用户确认/修改后的情报摘要")
+    bubbles: List[VisionBubble] = Field(..., description="用户修正后的对话列表")
+    emotion_score: int = Field(ge=-3, le=3, default=0, description="用户确认的情绪评分")
+    history: List[dict] = Field(default=[], description="历史对话上下文")

@@ -259,6 +259,25 @@ export const useGameStore = defineStore<"game", GameState, {}, GameActions>("gam
     setLoading(isLoading: boolean) {
       this.isLoading = isLoading;
     },
+    // v10.0: 从 Vision API 添加 AI 响应
+    addAIResponse(result: { sceneSummary?: string; options: ChoiceOption[] }) {
+      // 如果有场景摘要，添加系统消息
+      if (result.sceneSummary) {
+        this.addMessage({
+          role: "system",
+          content: result.sceneSummary,
+          type: "text",
+        });
+      }
+      
+      // 添加选项消息
+      this.addMessage({
+        role: "assistant",
+        content: "",
+        type: "options",
+        options: result.options,
+      });
+    },
   },
   persist: {
     key: "gal-game-store",
