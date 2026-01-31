@@ -117,7 +117,7 @@ const parsedScene = computed(() => {
 
 const lineClass = computed(() => {
   if (props.message.type === "thinking") {
-    return "border-l-4 border-l-white/20";
+    return "border-l-4 border-l-white/10";  // 🎨 v9.2: 淡化思考状态边框
   }
   const option = props.message.options?.[0];
   const style = (option?.type || option?.style || "").toLowerCase();
@@ -138,7 +138,11 @@ const glowClass = computed(() => {
 </script>
 
 <template>
-  <div class="w-full">
+  <div 
+    class="w-full message-bubble" 
+    :data-role="props.message.role"
+    :data-type="props.message.type"
+  >
     <!-- 🎯 v9.0: 连发气泡模式 -->
     <div
       v-if="props.message.type === 'burst'"
@@ -266,7 +270,17 @@ const glowClass = computed(() => {
       v-else-if="props.message.role === 'assistant'"
       class="group relative w-full animate-summary-popup"
     >
-      <div class="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900/40 p-6 mb-8" :class="[lineClass, glowClass]">
+      <!-- 🎨 v9.2: 思考状态使用更淡的背景 -->
+      <div 
+        class="flex flex-col gap-4 rounded-xl border p-6 mb-8" 
+        :class="[
+          lineClass, 
+          glowClass,
+          props.message.type === 'thinking' 
+            ? 'border-white/[0.02] bg-zinc-900/20' 
+            : 'border-white/5 bg-zinc-900/40'
+        ]"
+      >
         <!-- 🔮 v9.0: ThinkingOrb 替换原有 loading -->
         <div v-if="props.message.type === 'thinking'" class="thinking-orb-wrapper">
           <ThinkingOrb

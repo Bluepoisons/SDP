@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { onMounted, watch } from "vue";
+import { onMounted, watch, computed } from "vue";
 import AppLayout from "@/components/AppLayout.vue";
+import LoginPage from "@/components/LoginPage.vue";
 import { useUiSettings } from "@/stores/useUiSettings";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const uiSettings = useUiSettings();
+const authStore = useAuthStore();
+
+// 🎮 是否显示主应用（已登录）
+const showMainApp = computed(() => authStore.isAuthenticated);
+
+// 🚀 处理登录
+const handleLogin = (username: string) => {
+  authStore.linkStart(username);
+};
 
 onMounted(() => {
   // v2.0: 初始化主题
@@ -16,6 +27,9 @@ onMounted(() => {
   document.body.classList.toggle("fx-blur-off", !uiSettings.blurEnabled);
   document.body.classList.toggle("fx-shadow-on", uiSettings.shadowEnabled);
   document.body.classList.toggle("fx-shadow-off", !uiSettings.shadowEnabled);
+  
+  // 🔐 检查登录状态
+  authStore.checkSession();
 });
 
 watch(
@@ -33,8 +47,29 @@ watch(
 </script>
 
 <template>
-  <!-- 🆕 v2.0: 不设置任何背景，完全依赖 body 的 CSS 变量 -->
+  <!-- 🆕 v10.0: 登录守卫 -->
   <div class="min-h-screen" style="color: var(--theme-text);">
-    <AppLayout />
+    <!-- 🔐 登录页面 -->
+    <Transition name="app-fade" mode="out-in">
+      <LoginPage v-if="!showMainApp" @login="handleLogin" />
+      <AppLayout v-else />
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.app-fade-enter-active,
+.app-fade-leave-active {
+  transition: all 0.5s ease;
+}
+
+.app-fade-enter-from {
+  opacity: 0;
+  transform: scale(1.02);
+}
+
+.app-fade-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+</style>

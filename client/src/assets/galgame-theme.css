@@ -7,15 +7,15 @@
  * 本文件保留通用样式和动画效�?
  */
 
-/* 📦 字体引入 - 科技�?+ 日系 */
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@400;500;600;700&family=M+PLUS+Rounded+1c:wght@400;500;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
+/* 📦 字体引入 - 圆润 + 日系 */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=Rajdhani:wght@400;500;600;700&family=M+PLUS+Rounded+1c:wght@300;400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap');
 
 /* 🌌 Mode A: 深潜 (Deep Dive) - 赛博星空 */
 :root {
-  /* 🎯 字体系统 */
-  --font-primary: "M PLUS Rounded 1c", "Noto Sans JP", "Microsoft YaHei UI", sans-serif;
+  /* 🎯 字体系统 - 圆润风格 */
+  --font-primary: "M PLUS Rounded 1c", "Noto Sans SC", "PingFang SC", "Microsoft YaHei UI", system-ui, sans-serif;
   --font-display: "Orbitron", "Rajdhani", sans-serif;    /* Logo/标题专用 */
-  --font-tech: "Rajdhani", "Consolas", monospace;        /* 科技感数�?*/
+  --font-tech: "Rajdhani", "Consolas", monospace;        /* 科技感数字 */
   --font-mono: "Consolas", "Monaco", "Courier New", monospace;
   
   /* 📏 字间距与行高 */

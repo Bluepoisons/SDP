@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted } from "vue";
-import { Bot, Camera, History, Settings } from "lucide-vue-next";
+import { Bot, Camera, History, Settings, User } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
 import { useConnectionStore } from "@/stores/useConnectionStore";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const props = defineProps<{
   activeTab: string;
@@ -39,6 +40,7 @@ const statusTextClass = computed(() => "text-xs text-zinc-400");
 const handleSelect = (id: string) => emit("update:activeTab", id);
 
 const connectionStore = useConnectionStore();
+const authStore = useAuthStore();
 
 const statusLabel = computed(() =>
   connectionStore.isConnected ? "连接正常" : "未连接"
@@ -66,7 +68,7 @@ onBeforeUnmount(() => {
           <Bot class="h-5 w-5" />
         </div>
         <div>
-          <p class="text-lg font-semibold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+          <p class="logo-text text-xl font-semibold bg-gradient-to-r from-indigo-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
             SmartDialog
           </p>
           <p :class="subtitleClass">Galgame AI 助手</p>
@@ -91,6 +93,20 @@ onBeforeUnmount(() => {
           <component :is="tab.icon" class="h-4 w-4" />
           {{ tab.label }}
         </Button>
+      </div>
+    </div>
+
+    <!-- 🔐 v10.0: 用户信息卡片 -->
+    <div class="rounded-xl border border-[var(--accent-color)]/20 bg-[var(--accent-color)]/5 p-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--accent-color)]/20 text-[var(--accent-color)]">
+          <User class="h-5 w-5" />
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-white truncate">{{ authStore.username || 'Unknown' }}</p>
+          <p class="text-xs text-[var(--accent-color)]">NEURAL LINKED</p>
+        </div>
+        <div class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" title="在线"></div>
       </div>
     </div>
 

@@ -54,9 +54,9 @@ const handleSelect = (option: ChoiceOption) => {
     
     <div class="relative z-10 w-full max-w-3xl px-6">
       <!-- 🎯 标题 - 选择后变化 -->
-      <p class="mb-4 text-center text-xs uppercase tracking-[0.4em] transition-all duration-300"
-         :class="selectedId ? 'text-amber-400' : 'text-zinc-400'">
-        {{ selectedId ? '✦ Destiny Sealed ✦' : 'Destiny Choice' }}
+      <p class="title-happy mb-4 text-center text-sm uppercase tracking-[0.3em] transition-all duration-300"
+         :class="selectedId ? 'text-amber-400 scale-105' : 'text-zinc-400'">
+        {{ selectedId ? '✦ Destiny Sealed ✦' : '✧ Destiny Choice ✧' }}
       </p>
       
       <!-- 🎮 v9.2: 命运选项矩阵 -->
@@ -69,13 +69,21 @@ const handleSelect = (option: ChoiceOption) => {
         <div
           v-for="(option, index) in props.options"
           :key="option.id"
-          class="option-wrapper transition-all duration-500"
+          class="option-wrapper relative transition-all duration-500"
           :class="{
             'option-selected-wrapper': selectedId === option.id,
             'option-fading-wrapper': selectedId && selectedId !== option.id
           }"
           :style="{ transitionDelay: selectedId ? '0ms' : `${index * 80}ms` }"
         >
+          <!-- ✨ 选中时的 shimmer 扫光效果 -->
+          <div 
+            v-if="selectedId === option.id" 
+            class="absolute inset-0 z-20 pointer-events-none rounded-xl overflow-hidden"
+          >
+            <div class="shimmer-effect"></div>
+          </div>
+          
           <OptionCard
             :option="option"
             :selected="selectedId === option.id"
@@ -121,19 +129,40 @@ const handleSelect = (option: ChoiceOption) => {
   transform-origin: center center;
 }
 
-/* ✨ 选中的选项：高亮 + 微放大 */
+/* ✨ 选中的选项：高亮 + 微放大 + 金色光晕 */
 .option-selected-wrapper {
-  transform: scale(1.02);
+  transform: scale(1.03);
   z-index: 10;
-  filter: brightness(1.1);
+  filter: brightness(1.15);
 }
 
 /* 💫 未选中的选项：模糊 + 缩小 + 淡出 */
 .option-fading-wrapper {
-  opacity: 0.3;
-  transform: scale(0.95);
-  filter: blur(2px) grayscale(0.5);
+  opacity: 0.15;
+  transform: scale(0.92);
+  filter: blur(4px) grayscale(0.7);
   pointer-events: none;
+}
+
+/* ✨ Shimmer 扫光效果 */
+.shimmer-effect {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.3) 50%,
+    transparent 100%
+  );
+  animation: shimmer-sweep 1s ease-out forwards;
+}
+
+@keyframes shimmer-sweep {
+  0% { left: -100%; }
+  100% { left: 200%; }
 }
 
 /* 🎭 命运确认提示动画 */

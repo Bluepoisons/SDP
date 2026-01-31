@@ -2,14 +2,15 @@
 import { ref, onMounted, onUnmounted, computed, watch } from "vue";
 
 /**
- * ✨ ThemeParticles v2.1 - 双主题粒子系统
+ * ✨ ThemeParticles v2.2 - 三态主题粒子系统
  * 
- * 双主题适配：
+ * 三态主题适配：
+ * - Morning: 漂浮微尘/白色花瓣 (丁达尔效应，向上缓慢漂浮)
  * - Sunset: 漂浮的光点/火星 (金色，丁达尔效应)
  * - Night: 偶尔闪烁的流星/数据流 (青色)
  */
 
-type ThemeType = "sunset" | "night";
+type ThemeType = "morning" | "sunset" | "night";
 
 interface ThemeParticlesProps {
   /** 粒子数量 (默认 50) */
@@ -42,7 +43,7 @@ interface Particle {
   opacity: number;
   hue: number;
   twinkle: number;
-  type: "petal" | "spark" | "meteor";  // 更新类型
+  type: "petal" | "spark" | "meteor" | "firefly";  // 🏮 新增 firefly
   life: number;      // 生命值 (用于流星)
   maxLife: number;
   trail?: { x: number; y: number }[];  // 流星轨迹
@@ -50,11 +51,27 @@ interface Particle {
   rotationSpeed?: number;
   colorIndex?: number;  // 马卡龙色索引
   isPetal?: boolean;  // 是否为花瓣形状
+  // 🏮 萤火虫专属属性
+  pulseSpeed?: number;   // 呼吸速度
+  baseX?: number;        // 徘徊中心 X
+  baseY?: number;        // 徘徊中心 Y
+  hoverPhase?: number;   // 徘徊相位
 }
 
 // 主题配置
 const themeConfig = computed(() => {
   switch (props.theme) {
+    case "morning":
+      return {
+        hueRange: [330, 360],     // 淡粉色（花瓣色）
+        baseOpacity: 0.4,
+        speedMult: 0.3,           // 非常缓慢
+        sizeMult: 1.2,
+        direction: -1,            // 向上漂浮
+        particleType: "petal" as const,
+        glowColor: "rgba(253, 242, 248, 0.3)",
+        colorMode: "pastel" as const,
+      };
     case "sunset":
       return {
         hueRange: [35, 55],       // 金色
@@ -100,39 +117,64 @@ function createParticle(canvas: HTMLCanvasElement, fromEdge = true): Particle {
   const hue = config.hueRange[0] + Math.random() * (config.hueRange[1] - config.hueRange[0]);
   const baseSpeed = (Math.random() * 0.8 + 0.3) * config.speedMult * intensity.speedMult;
   
-  // 根据主题决定初始位置
-  let startX: number, startY: number;
+  // 根据主题决定粒子类型
+  let particleType: Particle["type"] = config.particleType;
   if (props.theme === "night") {
+    // 85% 萤火虫（氛围感），15% 流星（惊喜感）
+    particleType = Math.random() > 0.85 ? "meteor" : "firefly";
+  } else if (props.theme === "morning") {
+    // 清晨：70% 微尘，30% 花瓣
+    particleType = Math.random() > 0.7 ? "petal" : "spark";
+  }
+  
+  // 根据粒子类型决定初始位置
+  let startX: number, startY: number;
+  
+  if (particleType === "firefly") {
+    // 萤火虫：随机分布在屏幕中
+    startX = Math.random() * canvas.width;
+    startY = Math.random() * canvas.height;
+  } else if (props.theme === "night") {
     // 流星从顶部随机位置开始
     startX = Math.random() * canvas.width;
     startY = fromEdge ? -10 : Math.random() * canvas.height * 0.5;
+  } else if (props.theme === "morning") {
+    // 清晨：从底部/侧边缓慢升起
+    startX = Math.random() * canvas.width;
+    startY = fromEdge ? canvas.height + 20 : Math.random() * canvas.height;
   } else {
     // 光尘从底部开始
     startX = Math.random() * canvas.width;
     startY = fromEdge ? canvas.height + 10 : Math.random() * canvas.height;
   }
   
-  // 粒子颜色和形状
-  const colorIndex = 0;
-  const isPetal = false;
+  // 🌸 清晨专属：马卡龙色板索引
+  const colorIndex = props.theme === "morning" ? Math.floor(Math.random() * 4) : 0;
+  const isPetal = particleType === "petal";
   
   return {
     x: startX,
     y: startY,
+    // 🏮 萤火虫记住初始位置用于徘徊
+    baseX: startX,
+    baseY: startY,
     size: (Math.random() * 3 + 1) * config.sizeMult * intensity.sizeMult,
     speedY: baseSpeed * config.direction,
     speedX: (Math.random() - 0.5) * 0.5,
     opacity: (Math.random() * 0.4 + 0.2) * config.baseOpacity * intensity.opacityBase,
     hue,
     twinkle: Math.random() * Math.PI * 2,
-    type: config.particleType,
+    type: particleType,
     life: 1,
     maxLife: props.theme === "night" ? 60 + Math.random() * 60 : 999,
-    trail: props.theme === "night" ? [] : undefined,
+    trail: particleType === "meteor" ? [] : undefined,
     rotation: Math.random() * Math.PI * 2,
     rotationSpeed: (Math.random() - 0.5) * 0.03,
     colorIndex,
     isPetal,
+    // 🏮 萤火虫专属
+    pulseSpeed: 0.015 + Math.random() * 0.025,
+    hoverPhase: Math.random() * Math.PI * 2,
   };
 }
 
@@ -162,9 +204,14 @@ function drawMorningParticle(ctx: CanvasRenderingContext2D, p: Particle) {
   // 清新治愈风格：马卡龙色花瓣/细碎星光
   const twinkleOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.twinkle));
   
-  // 默认色板
-  const defaultPalette = [[253, 242, 248]];
-  const color = defaultPalette[p.colorIndex || 0];
+  // 🎨 马卡龙色板
+  const pastelPalette = [
+    [253, 242, 248], // 淡粉
+    [236, 254, 255], // 淡蓝
+    [240, 253, 244], // 淡绿
+    [254, 252, 232], // 淡黄
+  ];
+  const color = pastelPalette[p.colorIndex || 0];
   
   ctx.save();
   ctx.translate(p.x, p.y);
@@ -237,6 +284,39 @@ function drawSunsetParticle(ctx: CanvasRenderingContext2D, p: Particle) {
   ctx.fill();
 }
 
+// 🏮 新增：绘制萤火虫
+function drawFirefly(ctx: CanvasRenderingContext2D, p: Particle) {
+  // 呼吸效果：利用 sin 函数计算透明度
+  const breathCycle = p.twinkle * (p.pulseSpeed || 0.02);
+  const alpha = 0.2 + 0.5 * Math.abs(Math.sin(breathCycle));
+  
+  // 徘徊运动：在 baseX/Y 附近缓慢漂移
+  const hoverX = Math.sin(p.twinkle * 0.3 + (p.hoverPhase || 0)) * 25;
+  const hoverY = Math.cos(p.twinkle * 0.2 + (p.hoverPhase || 0)) * 20;
+  p.x = (p.baseX || p.x) + hoverX;
+  p.y = (p.baseY || p.y) + hoverY;
+  
+  // 绘制外层柔和光晕
+  const glowSize = p.size * 6;
+  const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowSize);
+  gradient.addColorStop(0, `hsla(${p.hue}, 80%, 70%, ${alpha * 0.9})`);
+  gradient.addColorStop(0.3, `hsla(${p.hue}, 70%, 60%, ${alpha * 0.4})`);
+  gradient.addColorStop(1, `hsla(${p.hue}, 60%, 50%, 0)`);
+  
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, glowSize, 0, Math.PI * 2);
+  ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // 绘制核心亮点（更亮时才明显）
+  if (alpha > 0.4) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.size * 0.8, 0, Math.PI * 2);
+    ctx.fillStyle = `hsla(${p.hue}, 90%, 90%, ${alpha})`;
+    ctx.fill();
+  }
+}
+
 function drawNightParticle(ctx: CanvasRenderingContext2D, p: Particle) {
   // 🌠 v9.0: 增强流星效果 - 更亮的尾迹
   const lifeRatio = p.life / p.maxLife;
@@ -296,7 +376,7 @@ function draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
       const force = (interactionRadius - distance) / interactionRadius;
       
       // 粒子受到推力
-      const pushStrength = props.theme === "meteor" ? 3 : 2;
+      const pushStrength = props.theme === "night" ? 3 : 2;
       p.x += forceDirectionX * force * pushStrength;
       p.y += forceDirectionY * force * pushStrength;
     }
@@ -321,23 +401,33 @@ function draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
     }
     
     // 绘制
-    switch (p.type) {
-      case "petal":
-        drawMorningParticle(ctx, p);
-        break;
-      case "spark":
-        drawSunsetParticle(ctx, p);
-        break;
-      case "meteor":
-        drawNightParticle(ctx, p);
-        break;
+    if (props.theme === "morning") {
+      // 清晨主题：统一使用清新风格绘制
+      drawMorningParticle(ctx, p);
+    } else {
+      switch (p.type) {
+        case "petal":
+          drawMorningParticle(ctx, p);
+          break;
+        case "spark":
+          drawSunsetParticle(ctx, p);
+          break;
+        case "meteor":
+          drawNightParticle(ctx, p);
+          break;
+        case "firefly":
+          drawFirefly(ctx, p);
+          break;
+      }
     }
     
     // 重置条件
     const needsReset = 
       (p.type === "meteor" && p.life <= 0) ||
-      (p.type !== "meteor" && p.y < -10) ||
-      p.y > canvas.height + 10;
+      (p.type !== "meteor" && p.type !== "firefly" && p.y < -10) ||
+      (p.type !== "firefly" && p.y > canvas.height + 10);
+    
+    // 萤火虫不需要重置，只是原地徘徊
     
     if (needsReset) {
       particles[i] = createParticle(canvas, true);

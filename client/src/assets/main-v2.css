@@ -4,14 +4,15 @@
  */
 
 @import "tailwindcss";
-@import "./theme-v2.css";
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;600;700&display=swap");
+@import "./theme-system.css";
+/* 🎮 二游化字体系统 - 可爱体 + 欢喜体 */
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@300;400;500;700&family=ZCOOL+KuaiLe&family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
 
 /* ═══════════════════════════════════════════════════════════════════
    🌐 基础样式
    ═══════════════════════════════════════════════════════════════════ */
 body {
-  font-family: "Inter", "Noto Serif SC", system-ui, sans-serif;
+  font-family: "M PLUS Rounded 1c", "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
   min-height: 100vh;
   overflow: hidden;
 }
@@ -97,4 +98,69 @@ body {
 
 .fx-anim-on .shimmer::after {
   animation: shimmer 1.6s infinite;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   🎮 二游化字体系统
+   ═══════════════════════════════════════════════════════════════════ */
+:root {
+  --font-cute: "M PLUS Rounded 1c", "Noto Sans SC", "PingFang SC", system-ui, sans-serif;
+  --font-happy: "ZCOOL KuaiLe", "Noto Sans SC", "PingFang SC", cursive;
+}
+
+/* 欢喜体标题 */
+h1, h2, h3, .title-happy {
+  font-family: var(--font-happy);
+}
+
+/* Logo 使用欢喜体 */
+.logo-text, .brand-text {
+  font-family: var(--font-happy);
+  letter-spacing: 0.05em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   💖 屏幕闪烁特效 - 选择时的反馈
+   ═══════════════════════════════════════════════════════════════════ */
+@keyframes flash-pink {
+  0% { opacity: 0; }
+  15% { opacity: 0.35; }
+  100% { opacity: 0; }
+}
+
+@keyframes flash-electric {
+  0% { opacity: 0; }
+  10% { opacity: 0.4; }
+  20% { opacity: 0.1; }
+  30% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+@keyframes flash-golden {
+  0% { opacity: 0; }
+  20% { opacity: 0.3; }
+  100% { opacity: 0; }
+}
+
+.flash-overlay {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0;
+}
+
+.flash-romantic {
+  background: radial-gradient(ellipse at center, rgba(244, 114, 182, 0.6) 0%, rgba(236, 72, 153, 0.3) 50%, transparent 80%);
+  animation: flash-pink 0.5s ease-out forwards;
+}
+
+.flash-mystery {
+  background: radial-gradient(ellipse at center, rgba(168, 85, 247, 0.5) 0%, rgba(139, 92, 246, 0.2) 50%, transparent 80%);
+  animation: flash-electric 0.6s ease-out forwards;
+}
+
+.flash-courage {
+  background: radial-gradient(ellipse at center, rgba(251, 191, 36, 0.5) 0%, rgba(245, 158, 11, 0.2) 50%, transparent 80%);
+  animation: flash-golden 0.5s ease-out forwards;
 }

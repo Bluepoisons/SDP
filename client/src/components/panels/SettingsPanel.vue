@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Moon, Sunset } from "lucide-vue-next";
+import { KeyRound, ServerCog, ShieldCheck, Palette, Sparkles, Moon, Sunset, Type, LogOut } from "lucide-vue-next";
 import Button from "@/components/ui/button/Button.vue";
 import Card from "@/components/ui/card/Card.vue";
 import CardHeader from "@/components/ui/card/CardHeader.vue";
@@ -9,7 +9,9 @@ import CardDescription from "@/components/ui/card/CardDescription.vue";
 import CardContent from "@/components/ui/card/CardContent.vue";
 import Input from "@/components/ui/input/Input.vue";
 import Badge from "@/components/ui/badge/Badge.vue";
+import FontTuner from "@/components/FontTuner.vue";
 import { useUiSettings } from "@/stores/useUiSettings";
+import { useAuthStore } from "@/stores/useAuthStore";
 
 const modelSource = ref("external");
 const backendUrl = ref("http://127.0.0.1:8000");
@@ -40,7 +42,7 @@ const memoryLimit = computed({
   set: (val: number) => uiSettings.setMemoryLimit(val),
 });
 
-// v2.1: 双主题设置
+// v2.3: 双态主题设置
 const currentTheme = computed({
   get: () => uiSettings.theme,
   set: (val: "sunset" | "night") => uiSettings.setTheme(val),
@@ -57,15 +59,15 @@ const optionTypewriter = computed({
   set: (val: boolean) => uiSettings.setOptionTypewriter(val),
 });
 
-// v2.1: 双主题选项（移除 Morning）
+// v2.3: 双态主题选项 - 蔚蓝档案治愈风
 const themeOptions = [
   { 
     value: "sunset", 
-    label: "黄昏 Sunset", 
+    label: "治愈 Healing", 
     icon: Sunset, 
-    color: "from-violet-600 via-pink-500 to-amber-400", 
-    desc: "逢魔之时 · 紫金魔幻",
-    particles: "金色光尘"
+    color: "from-sky-300 via-pink-300 to-violet-300", 
+    desc: "蔚蓝档案 · 清新日常",
+    particles: "漂浮花瓣"
   },
   { 
     value: "night", 
@@ -93,6 +95,23 @@ const shakeLocalModel = () => {
     el.classList.add('shake-deny');
     setTimeout(() => el.classList.remove('shake-deny'), 500);
   }
+};
+
+// 🔐 v10.0: 登出功能
+const authStore = useAuthStore();
+const handleLogout = () => {
+  if (confirm('确定要断开神经连接吗？')) {
+    authStore.disconnect();
+  }
+};
+
+// 🎨 字体选择 - 绑定到 store
+const currentFont = computed({
+  get: () => uiSettings.fontFamily,
+  set: (val: string) => uiSettings.setFontFamily(val as any),
+});
+const handleFontChange = (fontId: string) => {
+  uiSettings.setFontFamily(fontId as any);
 };
 </script>
 
@@ -357,6 +376,43 @@ const shakeLocalModel = () => {
             例如：设置 10 条，但当前只有 3 条消息 → 实际发送 3 条。
           </p>
         </div>
+      </CardContent>
+    </Card>
+
+    <!-- 🎨 v10.0: 字体调谐器 -->
+    <Card class="border-[var(--accent-color)]/30 bg-zinc-900/40">
+      <CardHeader>
+        <CardTitle class="flex items-center gap-2">
+          <Type class="h-4 w-4 text-[var(--accent-color)]" />
+          字体调谐 / Font Tuner
+        </CardTitle>
+        <CardDescription>选择你喜欢的字体风格，实时预览效果。</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <FontTuner v-model="currentFont" @change="handleFontChange" />
+      </CardContent>
+    </Card>
+
+    <!-- 🔐 v10.0: 账户管理 -->
+    <Card class="border-red-500/20 bg-zinc-900/40">
+      <CardHeader>
+        <CardTitle class="flex items-center gap-2 text-red-400">
+          <LogOut class="h-4 w-4" />
+          神经链路
+        </CardTitle>
+        <CardDescription>
+          当前连接: <span class="text-[var(--accent-color)] font-medium">{{ authStore.username || 'Unknown' }}</span>
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button 
+          variant="outline" 
+          class="w-full border-red-500/30 text-red-400 hover:bg-red-500/10 hover:border-red-500/50"
+          @click="handleLogout"
+        >
+          <LogOut class="h-4 w-4 mr-2" />
+          断开连接 / Disconnect
+        </Button>
       </CardContent>
     </Card>
   </section>

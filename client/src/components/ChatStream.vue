@@ -194,7 +194,7 @@ watch(() => messages.value.length, (newLen, oldLen) => {
     <TransitionGroup 
       name="message" 
       tag="div" 
-      class="space-y-10"
+      class="message-stream space-y-10"
     >
       <div
         v-for="message in messages"
@@ -249,5 +249,24 @@ div::-webkit-scrollbar {
 .message-leave-to {
   opacity: 0;
   transform: translateX(-30px) scale(0.9);
+}
+
+/* 🧵 v9.2: 视觉整合 - Summary 和 Options 一体化 */
+/* 当 Assistant 消息后面紧跟着 Options 消息时，减少间距 */
+.message-stream :deep(.message-bubble[data-role="assistant"] + .message-bubble[data-type="options"]) {
+  margin-top: -2rem !important;
+}
+
+/* 让 Summary 看起来像"题干"，Options 像"答案" */
+.message-stream :deep(.message-bubble[data-role="assistant"]:has(+ .message-bubble[data-type="options"])) {
+  /* 后面跟着 Options 的 Assistant 消息稍微淡化 */
+  opacity: 0.95;
+}
+
+/* Scene 描述降低对比度，作为背景叙述 */
+.message-stream :deep(.message-bubble[data-role="assistant"] .font-serif) {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.7;
 }
 </style>
