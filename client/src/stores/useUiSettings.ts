@@ -16,16 +16,18 @@ interface UiSettingsState {
   memoryLimit: number;
   theme: ThemeMode;
   particlesEnabled: boolean;
+  optionTypewriter: boolean;  // v9.0: 选项打字机效果
 }
 
 export const useUiSettings = defineStore("uiSettings", {
   state: (): UiSettingsState => ({
-    animationsEnabled: false,
-    blurEnabled: false,
-    shadowEnabled: false,
+    animationsEnabled: true,   // v9.0: 默认开启
+    blurEnabled: true,         // v9.0: 默认开启
+    shadowEnabled: true,       // v9.0: 默认开启
     memoryLimit: 10,
-    theme: "sunset",      // 🌆 默认黄昏主题
+    theme: "sunset",           // 🌆 默认黄昏主题
     particlesEnabled: true,
+    optionTypewriter: true,    // v9.0: 默认开启选项打字机
   }),
   getters: {
     // 获取当前主题图标
@@ -74,6 +76,11 @@ export const useUiSettings = defineStore("uiSettings", {
     
     setParticlesEnabled(value: boolean) {
       this.particlesEnabled = value;
+    },
+    
+    // v9.0: 选项打字机开关
+    setOptionTypewriter(value: boolean) {
+      this.optionTypewriter = value;
     },
     
     // 初始化主题

@@ -400,85 +400,87 @@ body.theme-morning .text-zinc-300 {
 /* 已移除 transparent !important 规则，改由 App.vue 动态控制背景 */
 
 /* ═══════════════════════════════════════════════════════════════════
-   🌆 SUNSET v8.1 - 深紫黄昏 (Deep Violet Twilight)
-   「深渊紫夜，金粉色光晕勾勒轮廓」
-   设计理念：#2e1065 深紫底 + #f472b6 金粉高光
+   🌆 SUNSET v9.0 - 黄昏暮色 (Golden Hour Twilight)
+   「逢魔之时，橙金色的温柔包裹」
+   设计理念：#1c1917 暖黑底 + #f97316 橙金高光
    ═══════════════════════════════════════════════════════════════════ */
 body.theme-sunset {
-  /* 🎨 核心色板 v8.1 */
-  --hue-primary: 270;
-  --hue-accent: 330;
+  /* 🎨 核心色板 v9.0 - 橙金暮色 */
+  --hue-primary: 24;
+  --hue-accent: 30;
   
-  /* 🌆 深紫底色 + 金粉渐变 */
-  --bg-gradient-start: #1e0a3c;       /* 更深的紫夜 */
-  --bg-gradient-mid: #2e1065;         /* 核心深紫 violet-950 */
-  --bg-gradient-end: #4c1d95;         /* 紫色过渡 violet-800 */
+  /* 🌆 暖黑底色 + 橙金渐变 */
+  --bg-gradient-start: #0c0a09;       /* Stone-950 深暖黑 */
+  --bg-gradient-mid: #1c1917;         /* Stone-900 核心暖黑 */
+  --bg-gradient-end: #292524;         /* Stone-800 过渡 */
   
-  --bg-primary: #2e1065;
-  --bg-secondary: rgba(46, 16, 101, 0.8);
-  --bg-tertiary: rgba(30, 10, 60, 0.6);
+  --bg-primary: #1c1917;
+  --bg-secondary: rgba(28, 25, 23, 0.85);
+  --bg-tertiary: rgba(12, 10, 9, 0.7);
   
-  /* 💬 对话气泡 - 深紫玻璃 + 金粉边框 */
-  --bubble-bg-user: rgba(244, 114, 182, 0.12);     /* 金粉玻璃 */
-  --bubble-bg-ai: rgba(30, 10, 60, 0.75);          /* 深紫玻璃 */
-  --bubble-border: rgba(244, 114, 182, 0.4);       /* 金粉边框 */
-  --bubble-text: #ffffff;                           /* 纯白文字 */
-  --bubble-glow: 0 0 20px rgba(244, 114, 182, 0.2);
+  /* 💬 对话气泡 - 暖黑玻璃 + 橙金边框 */
+  --bubble-bg-user: rgba(249, 115, 22, 0.12);      /* 橙金玻璃 */
+  --bubble-bg-ai: rgba(28, 25, 23, 0.8);           /* 暖黑玻璃 */
+  --bubble-border: rgba(251, 146, 60, 0.45);       /* Orange-400 边框 */
+  --bubble-text: #fef3c7;                           /* Amber-100 暖白 */
+  --bubble-glow: 0 0 25px rgba(249, 115, 22, 0.25);
   
-  /* ✨ 金粉强调色 #f472b6 */
-  --accent-color: #f472b6;            /* Pink-400 金粉色 */
-  --accent-secondary: #ec4899;        /* Pink-500 */
-  --accent-danger: #dc2626;
+  /* ✨ 橙金强调色 */
+  --accent-color: #f97316;            /* Orange-500 主橙 */
+  --accent-secondary: #fb923c;        /* Orange-400 */
+  --accent-tertiary: #fbbf24;         /* Amber-400 金黄 */
+  --accent-danger: #ef4444;
   
-  /* 🎮 控制台 - 深紫容器 */
-  --input-panel-bg: rgba(30, 10, 60, 0.85);
-  --input-panel-border: rgba(244, 114, 182, 0.35);
-  --input-text: #fdf2f8;              /* Pink-50 */
+  /* 🎮 控制台 - 暖黑容器 */
+  --input-panel-bg: rgba(28, 25, 23, 0.9);
+  --input-panel-border: rgba(251, 146, 60, 0.4);
+  --input-text: #fef3c7;
   
-  /* 🔘 按钮 - 金粉渐变 */
-  --btn-primary-from: #ec4899;
-  --btn-primary-to: #f472b6;
-  --btn-primary-shadow: rgba(244, 114, 182, 0.4);
-  --btn-primary-hover: rgba(244, 114, 182, 0.15);
+  /* 🔘 按钮 - 橙金渐变 */
+  --btn-primary-from: #ea580c;        /* Orange-600 */
+  --btn-primary-to: #f97316;          /* Orange-500 */
+  --btn-primary-shadow: rgba(249, 115, 22, 0.45);
+  --btn-primary-hover: rgba(251, 146, 60, 0.2);
   
-  /* ✨ 金粉光晕 */
-  --glow-color: rgba(244, 114, 182, 0.4);
-  --glow-strong: rgba(244, 114, 182, 0.7);
-  --star-color: rgba(244, 114, 182, 0.8);
+  /* ✨ 橙金光晕 */
+  --glow-color: rgba(251, 146, 60, 0.45);
+  --glow-strong: rgba(249, 115, 22, 0.7);
+  --star-color: rgba(251, 191, 36, 0.85);
   
   /* 📐 微斜切 */
   --skew-angle: -8deg;
   --skew-angle-subtle: -4deg;
   
-  /* 📝 文字适配 - 纯白 + 强阴影 */
-  --text-main: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.85);
-  --text-muted: rgba(255, 255, 255, 0.55);
-  --text-shadow: 0 2px 10px rgba(30, 10, 60, 0.8);
+  /* 📝 文字适配 - 暖白 */
+  --text-main: #fef3c7;               /* Amber-100 */
+  --text-secondary: rgba(254, 243, 199, 0.85);
+  --text-muted: rgba(254, 243, 199, 0.55);
+  --text-shadow: 0 2px 12px rgba(12, 10, 9, 0.9);
   
-  /* 🖼️ 卡片样式 - 深紫 */
-  --card-bg: rgba(30, 10, 60, 0.7);
-  --card-border: rgba(244, 114, 182, 0.25);
+  /* 🖼️ 卡片样式 */
+  --card-bg: rgba(28, 25, 23, 0.75);
+  --card-border: rgba(251, 146, 60, 0.3);
   --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
   
-  /* 🌅 深紫暗角 */
-  --vignette-color: rgba(15, 5, 30, 0.8);
+  /* 🌅 暖黑暗角 */
+  --vignette-color: rgba(12, 10, 9, 0.85);
   
-  /* 🎨 主背景 - 深紫渐变 */
+  /* 🎨 主背景 - 橙金渐变 + 微弱噪点 */
   background: 
-    /* 微弱噪点纹理 */
-    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 70% 20%, rgba(249, 115, 22, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 30% 80%, rgba(251, 191, 36, 0.08) 0%, transparent 40%),
     linear-gradient(
       180deg,
       var(--bg-gradient-start) 0%,
-      var(--bg-gradient-mid) 40%,
+      var(--bg-gradient-mid) 50%,
       var(--bg-gradient-end) 100%
     );
   background-attachment: fixed;
   color: var(--text-main);
 }
 
-/* 🌆 深紫暗角效果 */
+/* 🌆 暖黑暗角效果 */
 body.theme-sunset::before {
   content: '';
   position: fixed;
@@ -492,11 +494,11 @@ body.theme-sunset::before {
   );
 }
 
-/* 🌆 黄昏气泡 - 金粉边框发光 */
+/* 🌆 黄昏气泡 - 橙金边框发光 */
 body.theme-sunset .bubble-user {
   background: var(--bubble-bg-user);
   border: 1px solid var(--bubble-border);
-  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(244, 114, 182, 0.15);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(251, 146, 60, 0.2);
   color: var(--text-main);
   text-shadow: var(--text-shadow);
 }
@@ -504,7 +506,7 @@ body.theme-sunset .bubble-user {
 body.theme-sunset .bubble-ai {
   background: var(--bubble-bg-ai);
   border: 1px solid var(--bubble-border);
-  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(244, 114, 182, 0.1);
+  box-shadow: var(--bubble-glow), inset 0 1px 0 rgba(251, 146, 60, 0.12);
   color: var(--text-main);
   text-shadow: var(--text-shadow);
 }
@@ -514,9 +516,9 @@ body.theme-sunset .input-cockpit {
   background: var(--input-panel-bg);
   border: 1px solid var(--input-panel-border);
   box-shadow: 
-    0 -8px 40px rgba(244, 114, 182, 0.12),
+    0 -8px 40px rgba(249, 115, 22, 0.15),
     0 8px 32px rgba(0, 0, 0, 0.5),
-    inset 0 1px 0 rgba(244, 114, 182, 0.15);
+    inset 0 1px 0 rgba(251, 146, 60, 0.18);
 }
 
 /* 🌆 黄昏按钮 - 金粉脉冲 */

@@ -36,6 +36,7 @@ const emit = defineEmits<{
   (e: "capture"): void;
   (e: "upload"): void;
   (e: "override"): void;
+  (e: "focus"): void;  // v9.0: 聚焦时触发滚动
 }>();
 
 const input = ref(props.modelValue);
@@ -79,9 +80,30 @@ const handleKeyDown = (event: KeyboardEvent) => {
   if (event.key === 'Enter' && !event.shiftKey && !isBurstMode.value) {
     event.preventDefault();
     if (isReady.value && !props.loading) {
-      emit('generate');
+      handleLaunch();
     }
   }
+};
+
+// 🚀 P1: 发射动画
+const isLaunching = ref(false);
+
+const handleLaunch = async () => {
+  if (!isReady.value || props.loading) return;
+  
+  // 1. 播放发射动画
+  isLaunching.value = true;
+  
+  // 2. 等待动画播放一半
+  await new Promise(r => setTimeout(r, 150));
+  
+  // 3. 真正触发发送
+  emit('generate');
+  
+  // 4. 重置状态
+  setTimeout(() => {
+    isLaunching.value = false;
+  }, 200);
 };
 
 // v8.0: 添加新气泡（点击 + 按钮）
@@ -107,30 +129,48 @@ const toggleBurstMode = () => {
 const handleIntentUpdate = (intent: TacticalIntentType) => {
   emit('update:tacticalIntent', intent);
 };
+
+// v9.0: 连发警告消息（带彩蛋）
+const warningMessage = computed(() => {
+  const count = burstCount.value;
+  if (count >= 6) {
+    return `WARNING：前方${count}条信息准备发射⁽⁽٩(๑˃̶͈̀ ᗨ ˂̶͈́)۶⁾⁾`;
+  }
+  if (count >= 2) {
+    return `WARNING：${count}条信息已经准备(｡･∀･)ﾉ`;
+  }
+  return '';
+});
 </script>
 
 <template>
   <div class="w-full">
-    <!-- v8.0: 连发气泡预览 -->
-    <Transition name="burst-preview">
+    <!-- v9.0: 连发警告提示（带动画） -->
+    <Transition name="burst-warning">
       <div 
-        v-if="isBurstMode && burstCount > 1" 
-        class="burst-preview mb-3"
+        v-if="burstCount >= 2" 
+        class="burst-warning mb-3"
+        :class="{ 'burst-warning-critical': burstCount >= 6 }"
       >
-        <div class="flex items-center gap-2 mb-2">
-          <span class="deco-text text-[var(--accent-color)]">BURST_MODE</span>
-          <span class="deco-text">///</span>
-          <span class="deco-text text-amber-400">{{ burstCount }} 条连发</span>
-        </div>
-        <div class="burst-bubbles">
-          <div 
-            v-for="(line, idx) in burstLines" 
-            :key="idx"
-            class="burst-bubble"
-            :style="{ animationDelay: `${idx * 0.1}s` }"
-          >
-            {{ line }}
-          </div>
+        <div class="burst-warning-inner">
+          <!-- 闪烁警告图标 -->
+          <span class="warning-icon">⚠</span>
+          
+          <!-- 动态文字 -->
+          <span class="warning-text">
+            <Transition name="text-slide" mode="out-in">
+              <span :key="warningMessage" class="warning-message">
+                {{ warningMessage }}
+              </span>
+            </Transition>
+          </span>
+          
+          <!-- 数量徽章 -->
+          <Transition name="badge-pop" mode="out-in">
+            <span :key="burstCount" class="warning-badge">
+              ×{{ burstCount }}
+            </span>
+          </Transition>
         </div>
       </div>
     </Transition>
@@ -183,7 +223,10 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
         </div>
 
         <!-- 输入框容器 -->
-        <div class="relative flex-1 glass-panel rounded-lg p-3">
+        <div 
+          class="relative flex-1 glass-panel rounded-lg p-3"
+          :class="{ 'input-launching': isLaunching }"
+        >
           <Textarea
             v-model="input"
             ref="textarea"
@@ -191,7 +234,7 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
             class="min-h-[48px] w-full resize-none border-none bg-transparent text-base text-[var(--bubble-text)] placeholder:text-[var(--bubble-text)] placeholder:opacity-30 focus-visible:ring-0"
             :disabled="props.loading"
             style="font-family: var(--font-primary); letter-spacing: var(--letter-spacing-normal);"
-            @focus="isFocused = true"
+            @focus="isFocused = true; emit('focus')"
             @blur="isFocused = false"
             @keydown="handleKeyDown"
           />
@@ -224,9 +267,12 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
         <Tooltip :content="props.loading ? '取消生成' : '发射！'">
           <button
             class="trigger-btn flex items-center justify-center text-white"
-            :class="{ 'opacity-50 cursor-not-allowed': !isReady && !props.loading }"
+            :class="{ 
+              'opacity-50 cursor-not-allowed': !isReady && !props.loading,
+              'trigger-launching': isLaunching
+            }"
             :disabled="!isReady && !props.loading"
-            @click="props.loading ? emit('cancel') : emit('generate')"
+            @click="props.loading ? emit('cancel') : handleLaunch()"
           >
             <Zap 
               class="h-6 w-6" 
@@ -426,6 +472,46 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
   transform: rotate(45deg) scale(0.95);
 }
 
+/* 🚀 发射动画 */
+@keyframes launch-pulse {
+  0% { 
+    transform: rotate(45deg) scale(1);
+    box-shadow: 0 4px 20px var(--btn-primary-shadow);
+  }
+  40% { 
+    transform: rotate(45deg) scale(1.15);
+    box-shadow: 0 0 30px var(--glow-strong), 0 0 60px var(--accent-color);
+  }
+  100% { 
+    transform: rotate(45deg) scale(1);
+    box-shadow: 0 4px 20px var(--btn-primary-shadow);
+  }
+}
+
+.trigger-launching {
+  animation: launch-pulse 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* 输入框发射时的收缩效果 */
+@keyframes input-launch {
+  0% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+  30% { 
+    transform: scale(0.98) translateY(-2px);
+    opacity: 0.9;
+  }
+  100% { 
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.input-launching {
+  animation: input-launch 0.25s ease-out;
+}
+
 /* 心跳模式：圆形扳机 */
 :global(body.theme-heartbeat) .trigger-btn {
   border-radius: 50%;
@@ -442,6 +528,26 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
 
 :global(body.theme-heartbeat) .trigger-btn:active:not(:disabled) {
   transform: scale(0.95);
+}
+
+/* 心跳模式发射动画 */
+@keyframes launch-pulse-round {
+  0% { 
+    transform: scale(1);
+    box-shadow: 0 4px 20px var(--btn-primary-shadow);
+  }
+  40% { 
+    transform: scale(1.15);
+    box-shadow: 0 0 30px var(--glow-strong), 0 0 60px var(--accent-color);
+  }
+  100% { 
+    transform: scale(1);
+    box-shadow: 0 4px 20px var(--btn-primary-shadow);
+  }
+}
+
+:global(body.theme-heartbeat) .trigger-launching {
+  animation: launch-pulse-round 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ☀️ 清晨模式：圆润扳机 */
@@ -461,6 +567,11 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
 
 :global(body.theme-morning) .trigger-btn:active:not(:disabled) {
   transform: scale(0.95);
+}
+
+/* 清晨模式发射动画 */
+:global(body.theme-morning) .trigger-launching {
+  animation: launch-pulse-round 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* ☀️ 清晨模式：移除科技角落 */
@@ -509,48 +620,167 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
   border-top: none;
 }
 
-/* ==================== v8.0: 连发模式样式 ==================== */
+/* ==================== v9.0: 连发警告样式 ==================== */
 
-/* 连发预览容器 */
-.burst-preview {
-  padding: 12px 16px;
-  background: rgba(0, 0, 0, 0.4);
+/* 警告容器 */
+.burst-warning {
+  padding: 10px 16px;
+  background: rgba(245, 158, 11, 0.1);
   border: 1px solid rgba(245, 158, 11, 0.3);
-  border-radius: 12px;
+  border-radius: 10px;
   backdrop-filter: blur(10px);
+  overflow: hidden;
 }
 
-/* 连发气泡容器 */
-.burst-bubbles {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 120px;
-  overflow-y: auto;
+/* 高危状态（6+条） */
+.burst-warning-critical {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.4);
+  animation: warning-pulse 1s ease-in-out infinite;
 }
 
-/* 单个气泡 */
-.burst-bubble {
-  display: inline-block;
-  padding: 6px 12px;
-  font-size: 13px;
-  color: var(--bubble-text);
-  background: rgba(var(--accent-rgb), 0.15);
-  border: 1px solid rgba(var(--accent-rgb), 0.3);
-  border-radius: 12px 12px 12px 4px;
-  animation: bubble-in 0.3s ease-out forwards;
-  opacity: 0;
-  transform: translateX(-10px);
-  align-self: flex-start;
-  max-width: 80%;
-  word-break: break-word;
-}
-
-@keyframes bubble-in {
-  to {
-    opacity: 1;
-    transform: translateX(0);
+@keyframes warning-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
   }
+  50% { 
+    box-shadow: 0 0 20px 2px rgba(239, 68, 68, 0.3);
+  }
+}
+
+/* 内部布局 */
+.burst-warning-inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 警告图标 */
+.warning-icon {
+  font-size: 16px;
+  animation: icon-blink 0.8s ease-in-out infinite;
+}
+
+.burst-warning-critical .warning-icon {
+  color: #ef4444;
+  animation: icon-shake 0.3s ease-in-out infinite;
+}
+
+@keyframes icon-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes icon-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* 警告文字 */
+.warning-text {
+  flex: 1;
+  font-family: var(--font-tech, 'Rajdhani', monospace);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  color: rgba(245, 158, 11, 0.9);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.burst-warning-critical .warning-text {
+  color: rgba(239, 68, 68, 0.95);
+}
+
+.warning-message {
+  display: inline-block;
+}
+
+/* 数量徽章 */
+.warning-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: bold;
+  color: #fbbf24;
+  background: rgba(245, 158, 11, 0.2);
+  border-radius: 6px;
+}
+
+.burst-warning-critical .warning-badge {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.2);
+}
+
+/* 警告容器进场动画 - 弹入效果 */
+.burst-warning-enter-active {
+  animation: burst-bounce-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.burst-warning-leave-active {
+  animation: burst-bounce-out 0.3s ease-out forwards;
+}
+
+@keyframes burst-bounce-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px) scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(5px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes burst-bounce-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.9);
+  }
+}
+
+/* 文字滑动动画 */
+.text-slide-enter-active,
+.text-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.text-slide-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.text-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
+
+/* 徽章弹出动画 */
+.badge-pop-enter-active,
+.badge-pop-leave-active {
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.badge-pop-enter-from {
+  opacity: 0;
+  transform: scale(0.5);
+}
+
+.badge-pop-leave-to {
+  opacity: 0;
+  transform: scale(1.3);
 }
 
 /* 连发指示器按钮 */
@@ -570,20 +800,5 @@ const handleIntentUpdate = (intent: TacticalIntentType) => {
 
 .burst-indicator:hover {
   background: rgba(245, 158, 11, 0.25);
-}
-
-/* 连发预览过渡动画 */
-.burst-preview-enter-active,
-.burst-preview-leave-active {
-  transition: all 0.3s ease;
-}
-
-.burst-preview-enter-from,
-.burst-preview-leave-to {
-  opacity: 0;
-  transform: translateY(10px);
-  max-height: 0;
-  margin-bottom: 0;
-  padding: 0;
 }
 </style>

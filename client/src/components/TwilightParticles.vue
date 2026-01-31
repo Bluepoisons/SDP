@@ -69,13 +69,14 @@ const themeConfig = computed(() => {
     case "night":
     default:
       return {
-        hueRange: [180, 200],     // 青色
-        baseOpacity: 0.6,
-        speedMult: 2.0,           // 快速
-        sizeMult: 0.8,
+        hueRange: [175, 210],     // 青色/蓝色
+        baseOpacity: 0.9,         // 更亮
+        speedMult: 1.5,           // 适中速度
+        sizeMult: 1.5,            // 更大
         direction: 1,             // 向下划过
         particleType: "meteor" as const,
-        glowColor: "rgba(34, 211, 238, 0.5)",
+        glowColor: "rgba(34, 211, 238, 0.6)",
+        trailLength: 25,          // 更长尾迹
       };
   }
 });
@@ -111,16 +112,16 @@ function createParticle(canvas: HTMLCanvasElement, fromEdge = true): Particle {
     startY = fromEdge ? canvas.height + 10 : Math.random() * canvas.height;
   }
   
-  // 清晨主题：随机马卡龙色和花瓣/星光形状
-  const colorIndex = config.colorPalette ? Math.floor(Math.random() * config.colorPalette.length) : 0;
-  const isPetal = props.theme === "morning" && Math.random() > 0.6;  // 40% 是花瓣
+  // 粒子颜色和形状
+  const colorIndex = 0;
+  const isPetal = false;
   
   return {
     x: startX,
     y: startY,
     size: (Math.random() * 3 + 1) * config.sizeMult * intensity.sizeMult,
     speedY: baseSpeed * config.direction,
-    speedX: (Math.random() - 0.5) * (props.theme === "morning" ? 1.2 : 0.5),  // 清晨更多横向飘动
+    speedX: (Math.random() - 0.5) * 0.5,
     opacity: (Math.random() * 0.4 + 0.2) * config.baseOpacity * intensity.opacityBase,
     hue,
     twinkle: Math.random() * Math.PI * 2,
@@ -135,9 +136,23 @@ function createParticle(canvas: HTMLCanvasElement, fromEdge = true): Particle {
   };
 }
 
+// 🖱️ P1: 鼠标状态
+const mouse = { x: -9999, y: -9999 };
+
+function onMouseMove(e: MouseEvent) {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+}
+
+function onMouseLeave() {
+  mouse.x = -9999;
+  mouse.y = -9999;
+}
+
 function initParticles(canvas: HTMLCanvasElement) {
   particles = [];
-  const count = props.theme === "night" ? Math.floor(props.count * 0.3) : props.count;
+  // v9.0: night 模式增加粒子数量，让流星雨更明显
+  const count = props.theme === "night" ? Math.floor(props.count * 0.8) : props.count;
   for (let i = 0; i < count; i++) {
     particles.push(createParticle(canvas, false));
   }
@@ -146,11 +161,10 @@ function initParticles(canvas: HTMLCanvasElement) {
 function drawMorningParticle(ctx: CanvasRenderingContext2D, p: Particle) {
   // 清新治愈风格：马卡龙色花瓣/细碎星光
   const twinkleOpacity = p.opacity * (0.6 + 0.4 * Math.sin(p.twinkle));
-  const config = themeConfig.value;
   
-  // 获取马卡龙颜色
-  const palette = config.colorPalette || [[253, 242, 248]];
-  const color = palette[p.colorIndex || 0];
+  // 默认色板
+  const defaultPalette = [[253, 242, 248]];
+  const color = defaultPalette[p.colorIndex || 0];
   
   ctx.save();
   ctx.translate(p.x, p.y);
@@ -224,32 +238,43 @@ function drawSunsetParticle(ctx: CanvasRenderingContext2D, p: Particle) {
 }
 
 function drawNightParticle(ctx: CanvasRenderingContext2D, p: Particle) {
-  // 流星/数据流 - 带轨迹
+  // 🌠 v9.0: 增强流星效果 - 更亮的尾迹
   const lifeRatio = p.life / p.maxLife;
-  const fadeOpacity = p.opacity * lifeRatio;
+  const fadeOpacity = p.opacity * Math.pow(lifeRatio, 0.5); // 更平滑的淡出
   
-  // 绘制轨迹
+  // 绘制流星尾迹 - 渐变效果
   if (p.trail && p.trail.length > 1) {
-    ctx.beginPath();
-    ctx.moveTo(p.trail[0].x, p.trail[0].y);
     for (let i = 1; i < p.trail.length; i++) {
+      const trailOpacity = (i / p.trail.length) * fadeOpacity * 0.6;
+      const trailWidth = p.size * (i / p.trail.length) * 0.8;
+      
+      ctx.beginPath();
+      ctx.moveTo(p.trail[i - 1].x, p.trail[i - 1].y);
       ctx.lineTo(p.trail[i].x, p.trail[i].y);
+      ctx.strokeStyle = `hsla(${p.hue}, 90%, 70%, ${trailOpacity})`;
+      ctx.lineWidth = trailWidth;
+      ctx.lineCap = "round";
+      ctx.stroke();
     }
-    ctx.strokeStyle = `hsla(${p.hue}, 80%, 60%, ${fadeOpacity * 0.3})`;
-    ctx.lineWidth = p.size * 0.5;
-    ctx.lineCap = "round";
-    ctx.stroke();
   }
   
-  // 流星头部
-  const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 2);
-  gradient.addColorStop(0, `hsla(${p.hue}, 90%, 80%, ${fadeOpacity})`);
-  gradient.addColorStop(0.5, `hsla(${p.hue}, 80%, 60%, ${fadeOpacity * 0.5})`);
-  gradient.addColorStop(1, `hsla(${p.hue}, 70%, 50%, 0)`);
+  // 流星头部 - 更大更亮
+  const headSize = p.size * 3;
+  const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, headSize);
+  gradient.addColorStop(0, `hsla(${p.hue}, 100%, 95%, ${fadeOpacity})`);  // 中心纯白
+  gradient.addColorStop(0.2, `hsla(${p.hue}, 95%, 80%, ${fadeOpacity * 0.8})`);
+  gradient.addColorStop(0.5, `hsla(${p.hue}, 85%, 65%, ${fadeOpacity * 0.4})`);
+  gradient.addColorStop(1, `hsla(${p.hue}, 80%, 55%, 0)`);
   
   ctx.beginPath();
-  ctx.arc(p.x, p.y, p.size * 2, 0, Math.PI * 2);
+  ctx.arc(p.x, p.y, headSize, 0, Math.PI * 2);
   ctx.fillStyle = gradient;
+  ctx.fill();
+  
+  // 核心高亮
+  ctx.beginPath();
+  ctx.arc(p.x, p.y, p.size * 0.8, 0, Math.PI * 2);
+  ctx.fillStyle = `hsla(${p.hue}, 100%, 98%, ${fadeOpacity})`;
   ctx.fill();
 }
 
@@ -258,6 +283,23 @@ function draw(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D) {
   
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
+    
+    // 🖱️ P1: 鼠标斥力交互
+    const dx = p.x - mouse.x;
+    const dy = p.y - mouse.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    const interactionRadius = 120; // 感应半径
+    
+    if (distance < interactionRadius && distance > 0) {
+      const forceDirectionX = dx / distance;
+      const forceDirectionY = dy / distance;
+      const force = (interactionRadius - distance) / interactionRadius;
+      
+      // 粒子受到推力
+      const pushStrength = props.theme === "meteor" ? 3 : 2;
+      p.x += forceDirectionX * force * pushStrength;
+      p.y += forceDirectionY * force * pushStrength;
+    }
     
     // 更新位置
     p.y += p.speedY;
@@ -342,6 +384,10 @@ onMounted(() => {
   handleResize();
   window.addEventListener("resize", handleResize);
   
+  // 🖱️ P1: 鼠标交互监听
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mouseleave", onMouseLeave);
+  
   if (props.active) {
     animate();
   }
@@ -349,6 +395,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   window.removeEventListener("resize", handleResize);
+  window.removeEventListener("mousemove", onMouseMove);
+  window.removeEventListener("mouseleave", onMouseLeave);
   if (animationId) {
     cancelAnimationFrame(animationId);
   }

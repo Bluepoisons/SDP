@@ -48,11 +48,15 @@ const isSettingsOpen = ref(false);
 const scorePopupRef = ref<InstanceType<typeof ScorePopup> | null>(null);
 const twilightParticlesRef = ref<InstanceType<typeof TwilightParticles> | null>(null);
 const emotionFlashRef = ref<InstanceType<typeof EmotionFlash> | null>(null);
+const chatStreamRef = ref<InstanceType<typeof ChatStream> | null>(null); // v9.0: ChatStream 引用
 
 // v8.1: 「直出+热修」状态
 const tacticalIntent = ref<TacticalIntentType>(null);
 const showOverrideButton = ref(false);
 const lastGeneratedOptions = ref<any[]>([]);
+
+// v9.0: 心电图情绪分数
+const lastEmotionScore = ref(0);
 
 // v8.1: 简化的 AI 流程 - 直出模式
 const { 
@@ -63,11 +67,13 @@ const {
   thinkingDuration,
 } = useAIProcess();
 
-// 🎯 处理属性弹窗 + 情感闪烁
+// 🎯 处理属性弹窗 + 情感闪烁 + 心电图
 const handleScorePopup = (score: number, x: number, y: number) => {
   scorePopupRef.value?.trigger('好感度', score, x, y, 'favor');
   // 💔 触发情感色彩反馈
   emotionFlashRef.value?.triggerFlash(score);
+  // 🩺 v9.0: 更新心电图情绪分数
+  lastEmotionScore.value = score;
 };
 
 const toggleSidebar = () => {
@@ -104,8 +110,17 @@ const handleGenerate = async () => {
   const text = inputText.value.trim();
   if (!text || isThinking.value) return;
 
-  // v8.1: 「直出」模式 - 输入即生成，无需确认
-  gameStore.addMessage({ role: "user", content: text, type: "text" });
+  // v9.0: 检测是否为连发模式（多行输入）
+  const lines = text.split('\n').filter(line => line.trim());
+  const isBurstMode = lines.length > 1;
+
+  // v9.0: 连发模式使用 BubbleQueue 动画，普通模式直接显示
+  if (isBurstMode) {
+    gameStore.addBurstMessage(lines);
+  } else {
+    gameStore.addMessage({ role: "user", content: text, type: "text" });
+  }
+  
   const thinkingId = gameStore.addThinkingMessage();
   gameStore.setLoading(true);
 
@@ -576,10 +591,10 @@ const orbClass = computed(() => {
             </h2>
           </div>
           
-          <!-- 🩺 v8.0: 心电图监视器 -->
+          <!-- 🩺 v9.0: 心电图监视器（实时动画 + 情绪联动） -->
           <ECGMonitor
             :state="isThinking ? 'analyzing' : 'idle'"
-            :emotion-score="0"
+            :emotion-score="lastEmotionScore"
             label="EMOTION"
           />
           
@@ -599,7 +614,11 @@ const orbClass = computed(() => {
 
         <div class="relative flex-1 overflow-hidden">
           <div class="mx-auto h-full max-w-3xl px-6 py-6 gpu-accelerated">
+            <!-- v9.0: 传递思考状态给 ChatStream -->
             <ChatStream 
+              ref="chatStreamRef"
+              :thinking-duration="thinkingDuration"
+              :thinking-stage="thinkingStage"
               @regenerate="handleRegenerate" 
               @feedback="handleFeedback"
               @score-popup="handleScorePopup"
@@ -620,6 +639,7 @@ const orbClass = computed(() => {
               @cancel="handleCancel"
               @override="handleOverride"
               @update:tactical-intent="(v) => tacticalIntent = v"
+              @focus="chatStreamRef?.scrollToBottom()"
             />
           </div>
         </div>

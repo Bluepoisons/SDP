@@ -51,6 +51,12 @@ const particlesEnabled = computed({
   set: (val: boolean) => uiSettings.setParticlesEnabled(val),
 });
 
+// v9.0: 选项打字机效果
+const optionTypewriter = computed({
+  get: () => uiSettings.optionTypewriter,
+  set: (val: boolean) => uiSettings.setOptionTypewriter(val),
+});
+
 // v2.1: 双主题选项（移除 Morning）
 const themeOptions = [
   { 
@@ -297,6 +303,13 @@ const shakeLocalModel = () => {
             <p class="text-xs text-zinc-400">恢复卡片与按钮阴影。</p>
           </div>
           <input type="checkbox" v-model="shadowEnabled" class="h-4 w-4" />
+        </label>
+        <label class="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 p-4">
+          <div>
+            <p class="text-sm font-medium">选项打字机</p>
+            <p class="text-xs text-zinc-400">选项文本逐字显示动效。</p>
+          </div>
+          <input type="checkbox" v-model="optionTypewriter" class="h-4 w-4" />
         </label>
       </CardContent>
     </Card>

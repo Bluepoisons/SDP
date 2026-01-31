@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Copy, RefreshCw, ThumbsDown, ThumbsUp, Trash2, Sparkles } from "lucide-vue-next";
 import Card from "@/components/ui/card/Card.vue";
 import OptionCard from "@/components/OptionCard.vue"; // 🆕 v3.0 沉浸式情感交互
+import ThinkingOrb from "@/components/ThinkingOrb.vue"; // 🔮 v9.0 数字灵魂
+import BubbleQueue from "@/components/BubbleQueue.vue"; // 🎯 v9.0 连发气泡
 import type { ChatMessage, ChoiceOption } from "@/stores/useGameStore";
+import { useGameStore } from "@/stores/useGameStore";
+
+const gameStore = useGameStore();
 
 const props = defineProps<{
   message: ChatMessage;
   isActive: boolean;
+  thinkingDuration?: number; // v9.0: 思考时长
+  thinkingStage?: string;    // v9.0: 思考阶段
 }>();
 
 const emit = defineEmits<{
@@ -16,11 +23,42 @@ const emit = defineEmits<{
   (e: "feedback", payload: { id: string; type: "like" | "dislike" | "reset" }): void;
   (e: "typing"): void;
   (e: "delete", messageId: string): void;
-  (e: "score-popup", score: number, x: number, y: number): void; // 🎨 v4.0: 属性弹窗事件
+  (e: "score-popup", score: number, x: number, y: number): void;
+  (e: "burst-complete", messageId: string): void; // v9.0: 连发完成
 }>();
 
+// v9.0: 连发气泡状态
+const burstActive = ref(true);
+
+// v9.0: 选项选择动画状态
+const selectedOptionIdLocal = ref<string | null>(null);
+const isAnimatingSelection = ref(false);
+
+const handleBurstComplete = () => {
+  gameStore.markBurstComplete(props.message.id);
+  emit("burst-complete", props.message.id);
+};
+
 const handleSelect = (option: ChoiceOption) => {
-  emit("select", option);
+  // v9.0: 触发选择动画
+  selectedOptionIdLocal.value = option.id;
+  isAnimatingSelection.value = true;
+  
+  // 动画完成后执行实际选择
+  setTimeout(() => {
+    emit("select", option);
+    isAnimatingSelection.value = false;
+  }, 600); // 等待动画完成
+};
+
+// v9.0: 判断选项是否淡出
+const isOptionFading = (optionId: string) => {
+  return isAnimatingSelection.value && selectedOptionIdLocal.value !== optionId;
+};
+
+// v9.0: 判断选项是否居中
+const isOptionCentering = (optionId: string) => {
+  return isAnimatingSelection.value && selectedOptionIdLocal.value === optionId;
 };
 
 const handleScorePopup = (score: number, x: number, y: number) => {
@@ -73,7 +111,8 @@ const parsedScene = computed(() => {
     const dialogue = match[2].trim();
     return { scene, dialogue: dialogue || content };
   }
-  return { scene: "", dialogue: content };
+  // v9.0: 场景总结添加两字符缩进（中文全角空格）
+  return { scene: "", dialogue: content, isPlainSummary: true };
 });
 
 const lineClass = computed(() => {
@@ -100,8 +139,40 @@ const glowClass = computed(() => {
 
 <template>
   <div class="w-full">
+    <!-- 🎯 v9.0: 连发气泡模式 -->
     <div
-      v-if="props.message.role === 'user'"
+      v-if="props.message.type === 'burst'"
+      class="group flex w-full flex-col items-end gap-1"
+    >
+      <BubbleQueue
+        :lines="props.message.burstLines || []"
+        :is-active="burstActive && !props.message.burstComplete"
+        :interval="150"
+        @queue-complete="handleBurstComplete"
+      />
+      <!-- 已完成时显示静态气泡 -->
+      <div v-if="props.message.burstComplete" class="burst-static">
+        <div
+          v-for="(line, idx) in props.message.burstLines"
+          :key="idx"
+          class="burst-bubble-static"
+        >
+          {{ line }}
+        </div>
+      </div>
+      <button
+        class="opacity-0 transition-opacity group-hover:opacity-100 text-zinc-700 hover:text-red-500 mt-1"
+        type="button"
+        aria-label="Delete message"
+        @click="handleDelete"
+      >
+        <Trash2 class="h-4 w-4" />
+      </button>
+    </div>
+
+    <!-- 普通用户消息 -->
+    <div
+      v-else-if="props.message.role === 'user'"
       class="group flex w-full items-center justify-end gap-2"
     >
       <button
@@ -112,19 +183,22 @@ const glowClass = computed(() => {
       >
         <Trash2 class="h-4 w-4" />
       </button>
-      <div class="max-w-[70%] rounded-2xl bg-zinc-800/60 px-5 py-3 text-sm text-white">
+      <div class="user-bubble max-w-[70%] px-5 py-3 text-sm text-white">
         {{ props.message.content }}
       </div>
     </div>
 
     <div v-else-if="props.message.type === 'options'" class="group relative w-full">
-      <div class="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900/40 p-6 mb-8" :class="[lineClass, glowClass]">
-        <!-- 🆕 v3.0: 使用新的 OptionCard 组件 -->
-        <div v-if="!props.message.selectedOptionId" class="grid gap-3">
+      <div class="options-container flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900/40 p-6 mb-8" :class="[lineClass, glowClass]">
+        <!-- 🆕 v9.0: 选项卡片带动画效果 + 打字机 -->
+        <div v-if="!props.message.selectedOptionId" class="options-grid grid gap-3">
           <OptionCard
-            v-for="option in props.message.options || []"
+            v-for="(option, index) in props.message.options || []"
             :key="option.id"
             :option="option"
+            :fading="isOptionFading(option.id)"
+            :centering="isOptionCentering(option.id)"
+            :animation-delay="index * 150"
             @select="handleSelect"
             @score-popup="handleScorePopup"
           />
@@ -190,11 +264,16 @@ const glowClass = computed(() => {
 
     <div
       v-else-if="props.message.role === 'assistant'"
-      class="group relative w-full"
+      class="group relative w-full animate-summary-popup"
     >
       <div class="flex flex-col gap-4 rounded-xl border border-white/5 bg-zinc-900/40 p-6 mb-8" :class="[lineClass, glowClass]">
-        <div v-if="props.message.type === 'thinking'" class="rounded-2xl border border-white/10 bg-white/5 px-4 py-4 text-xs text-zinc-500">
-          ...
+        <!-- 🔮 v9.0: ThinkingOrb 替换原有 loading -->
+        <div v-if="props.message.type === 'thinking'" class="thinking-orb-wrapper">
+          <ThinkingOrb
+            state="thinking"
+            :duration="thinkingDuration || 0"
+            :stage="thinkingStage || '正在重构上下文...'"
+          />
         </div>
 
         <template v-else>
@@ -274,3 +353,136 @@ const glowClass = computed(() => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* 🎯 v9.0: 用户气泡切角设计 */
+.user-bubble {
+  position: relative;
+  background: rgba(var(--accent-rgb, 139, 92, 246), 0.2);
+  border: 1px solid rgba(var(--accent-rgb, 139, 92, 246), 0.3);
+  border-radius: 20px 20px 4px 20px;
+  backdrop-filter: blur(8px);
+  min-width: 3em; /* 最小宽度，避免单字太窄 */
+  
+  /* 切角效果 - 右上角 */
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* 切角装饰线 */
+.user-bubble::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20px;
+  height: 20px;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    rgba(var(--accent-rgb, 139, 92, 246), 0.5) 50%
+  );
+  pointer-events: none;
+}
+
+/* 🔮 ThinkingOrb 容器 */
+.thinking-orb-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0;
+}
+
+/* 🎯 v9.0: 弹入动画 */
+.animate-summary-popup {
+  animation: summary-popup 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes summary-popup {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 🎯 v9.0: 场景总结缩进（两个中文全角空格） */
+.summary-indent {
+  text-indent: 2em;
+}
+
+/* 🎯 v9.0: 选项容器弹入动画 */
+.options-container {
+  animation: options-container-popup 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes options-container-popup {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 🎯 v9.0: 选项卡片依次弹入 */
+.options-grid :deep(.option-card) {
+  animation: option-card-popup 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+.options-grid :deep(.option-card:nth-child(1)) { animation-delay: 0.05s; }
+.options-grid :deep(.option-card:nth-child(2)) { animation-delay: 0.15s; }
+.options-grid :deep(.option-card:nth-child(3)) { animation-delay: 0.25s; }
+.options-grid :deep(.option-card:nth-child(4)) { animation-delay: 0.35s; }
+.options-grid :deep(.option-card:nth-child(5)) { animation-delay: 0.45s; }
+
+@keyframes option-card-popup {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* 🎯 连发气泡静态显示 */
+.burst-static {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-end;
+}
+
+.burst-bubble-static {
+  max-width: 75%;
+  padding: 10px 20px 10px 16px; /* 右侧增加内边距 */
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--bubble-text, #fff);
+  background: rgba(var(--accent-rgb, 139, 92, 246), 0.2);
+  border: 1px solid rgba(var(--accent-rgb, 139, 92, 246), 0.3);
+  border-radius: 18px 18px 4px 18px;
+  backdrop-filter: blur(8px);
+  word-break: break-word;
+  
+  /* 切角效果 */
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    0 100%
+  );
+}
+</style>

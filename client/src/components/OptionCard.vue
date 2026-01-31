@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, watch } from 'vue';
 import { Heart, HeartCrack, Sparkles, Zap } from 'lucide-vue-next';
+import { useUiSettings } from '@/stores/useUiSettings';
 
 // 📋 v4.0 GALGAME 风格增强版
 // 新增：悬停特效、抖动动画、属性弹窗触发
+// v9.0: 打字机效果
+
+const uiSettings = useUiSettings();
 
 const props = defineProps<{
   option: {
@@ -14,25 +18,62 @@ const props = defineProps<{
     style_name?: string;
   };
   selected?: boolean;
+  fading?: boolean;       // v9.0: 是否正在淡出
+  centering?: boolean;    // v9.0: 是否正在居中
+  animationDelay?: number; // v9.0: 动画延迟(ms)
 }>();
 
 const emit = defineEmits<{
   select: [option: any];
   scorePopup: [score: number, x: number, y: number];
+  typed: [];  // v9.0: 打字完成事件
 }>();
 
 const cardRef = ref<HTMLElement | null>(null);
 const isHovering = ref(false);
 
-// 🐛 调试：检查数据完整性
-if (process.env.NODE_ENV === 'development') {
-  if (props.option.score === undefined) {
-    console.warn('⚠️ OptionCard: score is undefined', props.option);
+// v9.0: 打字机状态
+const displayText = ref('');
+const isTypingComplete = ref(false);
+const typingSpeed = 30; // ms per character
+
+// v9.0: 打字机效果
+const startTypewriter = () => {
+  if (!uiSettings.optionTypewriter) {
+    displayText.value = props.option.text;
+    isTypingComplete.value = true;
+    return;
   }
-  if (!props.option.kaomoji) {
-    console.warn('⚠️ OptionCard: kaomoji is missing', props.option);
-  }
-}
+  
+  const text = props.option.text;
+  let index = 0;
+  displayText.value = '';
+  
+  const typeNext = () => {
+    if (index < text.length) {
+      displayText.value += text[index];
+      index++;
+      setTimeout(typeNext, typingSpeed);
+    } else {
+      isTypingComplete.value = true;
+      emit('typed');
+    }
+  };
+  
+  // 根据延迟开始打字
+  const delay = props.animationDelay || 0;
+  setTimeout(typeNext, delay + 200); // 200ms 额外等待卡片出现
+};
+
+// 监听文本变化重新打字
+watch(() => props.option.text, () => {
+  isTypingComplete.value = false;
+  startTypewriter();
+});
+
+onMounted(() => {
+  startTypewriter();
+});
 
 // 🎨 动态样式计算 - 基于 score 的颜色映射
 const colorStyle = computed(() => {
@@ -117,7 +158,7 @@ const handleClick = (event: MouseEvent) => {
 <template>
   <div 
     ref="cardRef"
-    class="option-card group relative w-full cursor-pointer overflow-hidden rounded-xl border-2 transition-all duration-300"
+    class="option-card group relative w-full cursor-pointer overflow-hidden border-2 transition-all duration-300"
     :class="[
       colorStyle.border,
       colorStyle.bg,
@@ -126,7 +167,9 @@ const handleClick = (event: MouseEvent) => {
       { 'option-mysterious': isMysteriousOption },
       { 'option-highlight': isHovering },
       { 'shine-effect': isHovering },
-      selected ? 'scale-[1.02] ring-2 ring-white/20' : 'hover:scale-105 active:scale-95'
+      { 'option-fading': fading },
+      { 'option-centering': centering },
+      selected ? 'option-selected scale-[1.02] ring-2 ring-white/20' : 'hover:scale-105 active:scale-95'
     ]"
     @click="handleClick"
     @mouseenter="isHovering = true"
@@ -162,12 +205,12 @@ const handleClick = (event: MouseEvent) => {
         </Transition>
       </div>
 
-      <!-- 📝 正文文本 -->
+      <!-- 📝 正文文本 - v9.0: 打字机效果 -->
       <p 
-        class="text-base font-medium leading-relaxed tracking-wide transition-colors"
+        class="text-base font-medium leading-relaxed tracking-wide transition-colors min-h-[1.5em]"
         :class="colorStyle.text"
       >
-        {{ option.text }}
+        {{ displayText }}<span v-if="!isTypingComplete" class="typing-cursor">|</span>
       </p>
 
       <!-- 🎭 底部右侧：颜文字 (独立排版) -->
@@ -201,6 +244,41 @@ const handleClick = (event: MouseEvent) => {
 </template>
 
 <style scoped>
+/* 🎨 v9.0: 切角设计 (Chamfered Corners) */
+.option-card {
+  /* 右上角切角 */
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    0 100%
+  );
+  border-radius: 12px 0 12px 12px;
+}
+
+/* 切角装饰线 */
+.option-card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 28px;
+  height: 28px;
+  background: linear-gradient(
+    135deg,
+    transparent 50%,
+    currentColor 50%
+  );
+  opacity: 0.1;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.option-card:hover::after {
+  opacity: 0.2;
+}
+
 /* 🎨 自定义动画效果 */
 @keyframes pulse-glow {
   0%, 100% { opacity: 0.03; }
@@ -244,5 +322,63 @@ const handleClick = (event: MouseEvent) => {
 /* 💫 悬浮时轻微上浮 */
 .option-card:hover {
   transform: translateY(-4px) scale(1.02);
+}
+
+/* 🎯 v9.0: 选中状态动画 */
+.option-selected {
+  animation: option-select-pulse 0.4s ease-out;
+}
+
+@keyframes option-select-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1.02); }
+}
+
+/* 🎯 v9.0: 淡出动画（其他选项） */
+.option-fading {
+  animation: option-fade-out 0.5s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes option-fade-out {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.95);
+  }
+}
+
+/* 🎯 v9.0: 居中动画（选中选项） */
+.option-centering {
+  animation: option-center 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes option-center {
+  0% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-10px) scale(1.05);
+  }
+  100% {
+    transform: translateY(0) scale(1.02);
+  }
+}
+
+/* 🎬 v9.0: 打字机光标动画 */
+.typing-cursor {
+  animation: cursor-blink 0.8s ease-in-out infinite;
+  opacity: 1;
+  font-weight: 100;
+  color: var(--accent-color, #06b6d4);
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 </style>

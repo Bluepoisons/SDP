@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { deleteSessionMessage } from "@/services/api";
 
 export type MessageRole = "user" | "assistant" | "system";
-export type MessageType = "text" | "options" | "selection" | "thinking";
+export type MessageType = "text" | "options" | "selection" | "thinking" | "burst"; // v9.0: 连发气泡
 
 export interface ChoiceOption {
   id: string;
@@ -28,6 +28,9 @@ export interface ChatMessage {
   selectedText?: string | null;
   feedback?: "like" | "dislike" | null;
   trainingWeight?: number;
+  // v9.0: 连发气泡支持
+  burstLines?: string[];       // 连发模式下的消息数组
+  burstComplete?: boolean;     // 连发动画是否完成
 }
 
 export interface SessionSummary {
@@ -54,6 +57,8 @@ interface GameActions {
   loadSession(id: string): void;
   addMessage(message: Omit<ChatMessage, "id" | "timestamp">): void;
   addThinkingMessage(): string;
+  addBurstMessage(lines: string[]): string; // v9.0: 连发消息
+  markBurstComplete(messageId: string): void; // v9.0: 标记连发完成
   updateMessage(messageId: string, patch: Partial<Omit<ChatMessage, "id">>): void;
   handleOptionSelection(option: ChoiceOption): void;
   setMessageFeedback(messageId: string, feedback: "like" | "dislike" | null): void;
@@ -155,6 +160,45 @@ export const useGameStore = defineStore<"game", GameState, {}, GameActions>("gam
       this.currentSession.messages.push(message);
       this.sessionStore[this.currentSession.id] = this.currentSession;
       return message.id;
+    },
+    // v9.0: 添加连发气泡消息
+    addBurstMessage(lines: string[]) {
+      const message: ChatMessage = {
+        id: createId(),
+        role: "user",
+        content: lines.join('\n'), // 完整内容用于 AI 请求
+        type: "burst",
+        timestamp: Date.now(),
+        burstLines: lines,
+        burstComplete: false,
+      };
+      this.currentSession.messages.push(message);
+      this.sessionStore[this.currentSession.id] = this.currentSession;
+      
+      // 更新会话摘要
+      const summaryIndex = this.sessions.findIndex(
+        (session) => session.id === this.currentSession.id
+      );
+      const nextSummary: SessionSummary = {
+        id: this.currentSession.id,
+        title: lines[0].slice(0, 18) || "新对话",
+        lastMessage: `[${lines.length}条连发]`,
+        timestamp: Date.now(),
+      };
+      if (summaryIndex >= 0) {
+        this.sessions.splice(summaryIndex, 1, nextSummary);
+      } else {
+        this.sessions.unshift(nextSummary);
+      }
+      
+      return message.id;
+    },
+    // v9.0: 标记连发完成
+    markBurstComplete(messageId: string) {
+      const message = this.currentSession.messages.find((msg) => msg.id === messageId);
+      if (message && message.type === "burst") {
+        message.burstComplete = true;
+      }
     },
     updateMessage(messageId: string, patch: Partial<Omit<ChatMessage, "id">>) {
       const message = this.currentSession.messages.find((msg) => msg.id === messageId);

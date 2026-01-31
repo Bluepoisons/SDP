@@ -111,6 +111,12 @@ watch(showStars, (shouldShow) => {
 
 <template>
   <div class="fixed inset-0 pointer-events-none z-0">
+    <!-- 🌌 Night 主题背景渐变 -->
+    <div 
+      v-if="currentTheme === 'night'"
+      class="absolute inset-0 night-bg-gradient"
+    ></div>
+    
     <!-- 🌌 星空背景 (Night Mode Only) -->
     <canvas
       v-if="showStars"
@@ -123,5 +129,19 @@ watch(showStars, (shouldShow) => {
 </template>
 
 <style scoped>
-/* 保留空样式以备后续扩展 */
+/* 🌙 Night 主题 - 深空渐变 + 星云 */
+.night-bg-gradient {
+  background: 
+    /* 星云效果 */
+    radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 80%, rgba(34, 211, 238, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 60%),
+    /* 深空渐变 */
+    linear-gradient(180deg, 
+      #020617 0%,           /* Slate-950 深黑 */
+      #0f172a 30%,          /* Slate-900 */
+      #1e1b4b 60%,          /* Indigo-950 微紫 */
+      #0c4a6e 100%          /* Sky-900 深青 */
+    );
+}
 </style>
