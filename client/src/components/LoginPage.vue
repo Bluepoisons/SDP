@@ -1,18 +1,27 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { Zap, User, KeyRound, Sparkles, ChevronRight } from 'lucide-vue-next';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { Zap, User, KeyRound, Sparkles, ChevronRight, Globe, Lock, Mail, RefreshCw, Shield } from 'lucide-vue-next';
 import TwilightParticles from '@/components/TwilightParticles.vue';
 import Button from '@/components/ui/button/Button.vue';
 import Input from '@/components/ui/input/Input.vue';
+import { useI18n } from '@/composables/useI18n';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 /**
- * 🎮 Link Start - 二游风格登录界面
+ * 🎮 Link Start - 二游风格登录界面 v11.0
  * 灵感来源: SAO、原神、崩铁的开场画面
+ * 功能: 首页Logo + 登录 + 注册 + 验证码 + i18n
  */
 
 const emit = defineEmits<{
   login: [username: string];
 }>();
+
+// 🌐 国际化
+const { t, locale, toggleLocale, isZh } = useI18n();
+
+// 🔐 认证状态
+const authStore = useAuthStore();
 
 // 🎬 场景状态
 type Scene = 'title' | 'auth';
@@ -21,22 +30,38 @@ const isTransitioning = ref(false);
 
 // 📝 表单数据
 const username = ref('');
+const password = ref('');
+const captchaInput = ref('');
+const emergencyContact = ref('');
 const isNewUser = ref(false);
+const errorMessage = ref('');
+
+// 🛡️ 验证码状态
+const captchaLoading = ref(false);
 
 // 🌟 Loading 状态
 const isLinking = ref(false);
 const linkProgress = ref(0);
-const linkStages = [
-  'System Initializing...',
-  'Memory Module Loaded',
-  'Emotion Core Online',
-  'Neural Link Established',
-  'WELCOME BACK, MASTER'
+const linkStagesZh = [
+  '初始化神经接口',
+  '同步意识数据',
+  '验证身份标识',
+  '建立量子通道',
+  '神经链接完成'
+];
+const linkStagesEn = [
+  'Initializing Neural Interface',
+  'Synchronizing Consciousness',
+  'Verifying Identity',
+  'Establishing Quantum Channel',
+  'Neural Link Complete'
 ];
 const currentStage = ref(0);
 
+// 计算当前语言的链接阶段文本
+const linkStages = computed(() => isZh.value ? linkStagesZh : linkStagesEn);
+
 // 💫 闪烁文字
-const pressKeyText = ref('[ PRESS ANY KEY TO START ]');
 const showCursor = ref(true);
 
 // ⌨️ 按键监听
@@ -59,29 +84,90 @@ const transitionToAuth = () => {
   setTimeout(() => {
     currentScene.value = 'auth';
     isTransitioning.value = false;
+    // 自动获取验证码
+    refreshCaptcha();
   }, 800);
 };
 
-// 🚀 执行登录
+// 🔄 刷新验证码
+const refreshCaptcha = async () => {
+  if (captchaLoading.value) return;
+  
+  captchaLoading.value = true;
+  errorMessage.value = '';
+  captchaInput.value = '';
+  
+  try {
+    await authStore.getCaptcha();
+  } catch (error: any) {
+    console.error('Failed to load captcha:', error);
+    errorMessage.value = t('errors.connectionFailed');
+  } finally {
+    captchaLoading.value = false;
+  }
+};
+
+// 🚀 执行登录/注册
 const executeLink = async () => {
   if (!username.value.trim() || isLinking.value) return;
+  if (!captchaInput.value.trim()) {
+    errorMessage.value = t('errors.captchaInvalid');
+    return;
+  }
   
   isLinking.value = true;
   linkProgress.value = 0;
   currentStage.value = 0;
+  errorMessage.value = '';
   
-  // 模拟初始化过程
-  for (let i = 0; i < linkStages.length; i++) {
-    currentStage.value = i;
-    linkProgress.value = ((i + 1) / linkStages.length) * 100;
-    await new Promise(resolve => setTimeout(resolve, 600));
+  try {
+    // 模拟初始化过程动画
+    for (let i = 0; i < linkStages.value.length - 1; i++) {
+      currentStage.value = i;
+      linkProgress.value = ((i + 1) / linkStages.value.length) * 100;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    
+    // 实际认证请求
+    if (isNewUser.value) {
+      // 注册
+      await authStore.register(
+        username.value.trim(),
+        password.value || 'default_password',
+        captchaInput.value.trim(),
+        emergencyContact.value.trim() || undefined
+      );
+    } else {
+      // 登录
+      await authStore.linkStart(
+        username.value.trim(),
+        password.value || 'default_password',
+        captchaInput.value.trim()
+      );
+    }
+    
+    // 最后阶段
+    currentStage.value = linkStages.value.length - 1;
+    linkProgress.value = 100;
+    
+    // 完成后发射事件
+    setTimeout(() => {
+      emit('login', username.value.trim());
+    }, 500);
+    
+  } catch (error: any) {
+    errorMessage.value = error.message || t('errors.neuralSyncFailed');
+    // 刷新验证码
+    await refreshCaptcha();
+    isLinking.value = false;
   }
-  
-  // 完成后发射事件
-  setTimeout(() => {
-    emit('login', username.value.trim());
-  }, 500);
 };
+
+// 🎯 表单验证
+const isReady = computed(() => 
+  username.value.trim().length >= 2 && 
+  captchaInput.value.trim().length >= 4
+);
 
 // 🎭 光标闪烁
 let cursorInterval: ReturnType<typeof setInterval>;
@@ -98,15 +184,18 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handleKeyPress);
   clearInterval(cursorInterval);
 });
-
-// 🎯 表单验证
-const isReady = computed(() => username.value.trim().length >= 2);
 </script>
 
 <template>
   <div class="login-page" @click="handleClick">
     <!-- 🌌 背景粒子 -->
     <TwilightParticles class="absolute inset-0" />
+    
+    <!-- 🌐 语言切换按钮 (始终显示) -->
+    <button class="language-toggle" @click.stop="toggleLocale">
+      <Globe class="w-4 h-4" />
+      <span>{{ isZh ? 'EN' : '中' }}</span>
+    </button>
     
     <!-- 🎬 标题场景 -->
     <Transition name="scene-fade">
@@ -115,9 +204,7 @@ const isReady = computed(() => username.value.trim().length >= 2);
         <div class="logo-area" :class="{ 'logo-transitioning': isTransitioning }">
           <!-- 主 Logo -->
           <div class="main-logo">
-            <span class="logo-gal">Gal</span>
-            <span class="logo-heart">♥</span>
-            <span class="logo-chat">chat</span>
+            <img src="/images/avatar.png" alt="Gal Logo" class="logo-image" />
           </div>
           
           <!-- 副标题 -->
@@ -128,13 +215,13 @@ const isReady = computed(() => username.value.trim().length >= 2);
           </p>
           
           <!-- 版本号 -->
-          <p class="version-tag">ver.10.0 「Neural Dive」</p>
+          <p class="version-tag">ver.11.0 「Neural Link」</p>
         </div>
         
         <!-- 按键提示 -->
         <div class="press-key-hint" :class="{ 'hint-fading': isTransitioning }">
           <span class="hint-bracket">[</span>
-          <span class="hint-text">PRESS ANY KEY TO START</span>
+          <span class="hint-text">{{ t('login.pressAnyKey') }}</span>
           <span class="hint-cursor" :class="{ 'cursor-visible': showCursor }">_</span>
           <span class="hint-bracket">]</span>
         </div>
@@ -142,7 +229,7 @@ const isReady = computed(() => username.value.trim().length >= 2);
         <!-- 底部装饰 -->
         <div class="bottom-deco">
           <div class="deco-line"></div>
-          <span class="deco-text">© 2026 SmartDialog Processor</span>
+          <span class="deco-text">{{ t('login.copyright') }}</span>
           <div class="deco-line"></div>
         </div>
       </div>
@@ -153,9 +240,7 @@ const isReady = computed(() => username.value.trim().length >= 2);
       <div v-if="currentScene === 'auth'" class="auth-scene">
         <!-- 迷你 Logo -->
         <div class="mini-logo">
-          <span class="logo-gal">Gal</span>
-          <span class="logo-heart">♥</span>
-          <span class="logo-chat">chat</span>
+          <img src="/images/avatar.png" alt="Gal Logo" class="logo-image-mini" />
         </div>
         
         <!-- 认证卡片 -->
@@ -169,9 +254,15 @@ const isReady = computed(() => username.value.trim().length >= 2);
               <Sparkles class="w-6 h-6" />
             </div>
             <div class="header-text">
-              <h2 class="title-happy">{{ isNewUser ? '建立新档案' : '神经连接' }}</h2>
+              <h2 class="title-happy">{{ isNewUser ? t('login.createArchive') : t('login.neuralLink') }}</h2>
               <p class="header-subtitle">{{ isNewUser ? 'Register Protocol' : 'Link Start' }}</p>
             </div>
+          </div>
+          
+          <!-- 错误消息 -->
+          <div v-if="errorMessage" class="error-message">
+            <span class="error-icon">⚠</span>
+            <span>{{ errorMessage }}</span>
           </div>
           
           <!-- 表单区域 -->
@@ -180,12 +271,12 @@ const isReady = computed(() => username.value.trim().length >= 2);
             <div class="input-group">
               <label class="input-label">
                 <User class="w-4 h-4" />
-                <span>识别码 / Codename</span>
+                <span>{{ t('login.identifier') }} / Codename</span>
               </label>
               <div class="input-wrapper" :class="{ 'input-focused': username }">
                 <Input
                   v-model="username"
-                  placeholder="输入你的代号..."
+                  :placeholder="t('login.identifierPlaceholder')"
                   class="auth-input"
                   :disabled="isLinking"
                   @keydown.enter="executeLink"
@@ -194,14 +285,89 @@ const isReady = computed(() => username.value.trim().length >= 2);
               </div>
             </div>
             
+            <!-- 密码输入 (仅在需要时显示) -->
+            <div class="input-group">
+              <label class="input-label">
+                <Lock class="w-4 h-4" />
+                <span>{{ t('login.password') }} / Neural Key</span>
+              </label>
+              <div class="input-wrapper" :class="{ 'input-focused': password }">
+                <Input
+                  v-model="password"
+                  type="password"
+                  :placeholder="t('login.passwordPlaceholder')"
+                  class="auth-input"
+                  :disabled="isLinking"
+                  @keydown.enter="executeLink"
+                />
+                <div class="input-glow"></div>
+              </div>
+            </div>
+            
+            <!-- 紧急联络 (注册时显示) -->
+            <div v-if="isNewUser" class="input-group">
+              <label class="input-label">
+                <Mail class="w-4 h-4" />
+                <span>{{ t('login.emergencyContact') }}</span>
+              </label>
+              <div class="input-wrapper" :class="{ 'input-focused': emergencyContact }">
+                <Input
+                  v-model="emergencyContact"
+                  :placeholder="t('login.emergencyContactPlaceholder')"
+                  class="auth-input"
+                  :disabled="isLinking"
+                />
+                <div class="input-glow"></div>
+              </div>
+            </div>
+            
+            <!-- 🛡️ 验证码输入 -->
+            <div class="input-group">
+              <label class="input-label">
+                <Shield class="w-4 h-4" />
+                <span>{{ t('login.securityCode') }}</span>
+              </label>
+              <div class="captcha-row">
+                <div class="input-wrapper captcha-input-wrapper" :class="{ 'input-focused': captchaInput }">
+                  <Input
+                    v-model="captchaInput"
+                    :placeholder="t('login.securityCodePlaceholder')"
+                    class="auth-input"
+                    :disabled="isLinking"
+                    maxlength="4"
+                    @keydown.enter="executeLink"
+                  />
+                  <div class="input-glow"></div>
+                </div>
+                <div class="captcha-image-box" @click.stop="refreshCaptcha">
+                  <template v-if="captchaLoading">
+                    <RefreshCw class="w-5 h-5 animate-spin" />
+                    <span class="captcha-loading-text">{{ t('status.loadingCaptcha') }}</span>
+                  </template>
+                  <template v-else-if="authStore.captchaImage">
+                    <img 
+                      :src="authStore.captchaImage" 
+                      alt="captcha" 
+                      class="captcha-image"
+                    />
+                    <span class="captcha-refresh-hint">{{ t('login.refreshCaptcha') }}</span>
+                  </template>
+                  <template v-else>
+                    <RefreshCw class="w-5 h-5" />
+                    <span>{{ t('login.refreshCaptcha') }}</span>
+                  </template>
+                </div>
+              </div>
+            </div>
+            
             <!-- 模式切换 -->
             <button 
               class="mode-switch"
               :disabled="isLinking"
-              @click="isNewUser = !isNewUser"
+              @click.stop="isNewUser = !isNewUser"
             >
               <span class="switch-text">
-                {{ isNewUser ? '已有档案？同步连接' : '首次连接？建立档案' }}
+                {{ isNewUser ? t('login.switchToLogin') : t('login.switchToRegister') }}
               </span>
               <ChevronRight class="w-4 h-4" />
             </button>
@@ -213,7 +379,7 @@ const isReady = computed(() => username.value.trim().length >= 2);
               class="link-button"
               :class="{ 'is-linking': isLinking, 'is-ready': isReady && !isLinking }"
               :disabled="!isReady || isLinking"
-              @click="executeLink"
+              @click.stop="executeLink"
             >
               <template v-if="isLinking">
                 <!-- 加载进度 -->
@@ -224,7 +390,7 @@ const isReady = computed(() => username.value.trim().length >= 2);
               </template>
               <template v-else>
                 <Zap class="w-5 h-5" />
-                <span>LINK START</span>
+                <span>{{ t('login.linkStart') }}</span>
               </template>
             </button>
           </div>
@@ -232,7 +398,7 @@ const isReady = computed(() => username.value.trim().length >= 2);
         
         <!-- 底部提示 -->
         <p class="auth-hint">
-          「在虚拟与现实的边界，我们再次相遇」
+          {{ t('login.quote') }}
         </p>
       </div>
     </Transition>
@@ -250,6 +416,34 @@ const isReady = computed(() => username.value.trim().length >= 2);
   background: var(--theme-bg);
   overflow: hidden;
   cursor: default;
+}
+
+/* 🌐 语言切换按钮 */
+.language-toggle {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--theme-text-secondary);
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+  backdrop-filter: blur(10px);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.language-toggle:hover {
+  color: var(--theme-text);
+  background: rgba(0, 0, 0, 0.6);
+  border-color: var(--theme-accent);
+  transform: scale(1.05);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -279,15 +473,18 @@ const isReady = computed(() => username.value.trim().length >= 2);
 
 /* 主 Logo */
 .main-logo {
-  font-family: var(--font-happy);
-  font-size: 5rem;
-  letter-spacing: 0.05em;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: center;
   animation: logo-breathe 4s ease-in-out infinite;
-  text-shadow: 
-    0 0 30px var(--theme-glow),
-    0 0 60px var(--theme-glow);
+}
+
+.main-logo .logo-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 30px var(--theme-glow)) drop-shadow(0 0 60px var(--theme-glow));
+  border-radius: 20px;
 }
 
 @keyframes logo-breathe {
@@ -412,12 +609,18 @@ const isReady = computed(() => username.value.trim().length >= 2);
 }
 
 .mini-logo {
-  font-family: var(--font-happy);
-  font-size: 2rem;
-  letter-spacing: 0.05em;
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 1rem;
+}
+
+.mini-logo .logo-image-mini {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 15px var(--theme-accent));
+  border-radius: 12px;
 }
 
 .mini-logo .logo-gal,
@@ -691,5 +894,86 @@ const isReady = computed(() => username.value.trim().length >= 2);
 .scene-slide-leave-to {
   opacity: 0;
   transform: translateY(-20px);
+}
+
+/* 🚫 错误消息 */
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 0.5rem;
+  animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+.error-icon {
+  font-size: 1rem;
+}
+
+/* 🛡️ 验证码行 */
+.captcha-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: stretch;
+}
+
+.captcha-input-wrapper {
+  flex: 1;
+}
+
+.captcha-image-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 120px;
+  height: auto;
+  padding: 0.5rem;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  overflow: hidden;
+}
+
+.captcha-image-box:hover {
+  border-color: var(--theme-accent);
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.captcha-image {
+  width: 100%;
+  height: 40px;
+  object-fit: contain;
+  border-radius: 4px;
+}
+
+.captcha-loading-text,
+.captcha-refresh-hint {
+  font-size: 0.625rem;
+  color: var(--theme-text-muted);
+  text-align: center;
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 </style>

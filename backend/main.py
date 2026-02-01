@@ -38,10 +38,13 @@ from models.schemas import (
     VisionAnalyzeRequest, VisionAnalyzeResponse, VisionExecuteRequest  # v10.0 视觉模型
 )
 
-# 初始化 App
-app = FastAPI(title="Love Advisor Backend - Commander System v10.0")
+# v11.0 Neural Link 认证路由
+from auth.routes import router as auth_router
 
-logger.info("🚀 [FastAPI] Commander System v10.0 starting...")
+# 初始化 App
+app = FastAPI(title="SmartDialog Processor - Neural Link v11.0")
+
+logger.info("🧠 [FastAPI] Neural Link v11.0 starting...")
 
 
 # ==========================================
@@ -64,11 +67,16 @@ app.add_middleware(
 )
 
 # ==========================================
+# v11.0 Neural Link 路由注册
+# ==========================================
+app.include_router(auth_router)
+
+# ==========================================
 # 3. 路由定义 (Endpoint)
 # ==========================================
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "恋爱军师后端正在运行！"}
+    return {"status": "ok", "message": "Neural Link 神经连接系统正在运行！"}
 
 @app.get("/bridge/health")
 async def health_check():
@@ -581,5 +589,5 @@ async def delete_message(session_id: str, message_id: str):
 
 if __name__ == "__main__":
     # 启动服务，端口设为 8000
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="127.0.0.1", port=8001)
 
