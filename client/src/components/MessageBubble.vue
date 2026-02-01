@@ -293,7 +293,7 @@ const glowClass = computed(() => {
         <template v-else>
           <div v-if="parsedScene.scene" class="flex items-start gap-2 text-sm italic text-zinc-500 leading-loose">
             <Sparkles class="mt-0.5 h-4 w-4 text-zinc-600" />
-            <p class="font-serif">
+            <p class="">
               {{ parsedScene.scene }}
             </p>
           </div>

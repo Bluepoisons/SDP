@@ -73,6 +73,12 @@ export const useUiSettings = defineStore("uiSettings", {
       this.memoryLimit = Math.max(0, Math.min(60, limit));
     },
     
+    // 🆕 v10.0: 设置字体并立即应用
+    setFontFamily(family: FontFamily) {
+      this.fontFamily = family;
+      this.applyFontSettings();
+    },
+    
     // 主题切换 (双态循环)
     setTheme(theme: ThemeMode) {
       // 兼容：如果是旧的 morning 主题，自动转为 sunset
@@ -82,26 +88,15 @@ export const useUiSettings = defineStore("uiSettings", {
       this.theme = theme;
       document.body.classList.remove("theme-morning", "theme-sunset", "theme-night");
       document.body.classList.add(`theme-${theme}`);
+      // 🔥 v10.0: 切换主题时也应用字体
+      this.applyFontSettings();
     },
     
-    // 轮盘切换
-    cycleTheme() {
-      this.setTheme(this.nextTheme);
-    },
-    
-    // 🎨 v10.0: 字体切换
-    setFontFamily(font: FontFamily) {
-      this.fontFamily = font;
-      // 应用到 CSS 变量
-      document.documentElement.style.setProperty(
-        '--font-family-app', 
-        FONT_MAP[font] || FONT_MAP.rounded
-      );
-    },
-    
-    // 初始化字体
-    initFont() {
-      this.setFontFamily(this.fontFamily);
+    // 🔥 [新增] v10.0: 应用字体设置到 CSS 变量
+    applyFontSettings() {
+      const root = document.documentElement;
+      const fontCSS = this.fontFamilyCSS;
+      root.style.setProperty("--font-primary", fontCSS);
     },
     
     setParticlesEnabled(value: boolean) {

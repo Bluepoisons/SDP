@@ -127,6 +127,23 @@ class AIService:
         # 2. 获取基础 prompt
         base_prompt = build_advisor_prompt(user_input, selected_styles)
         
+        # 🔥 [新增] v10.0: 强制颜文字风格指令
+        style_enforcement = """
+
+=== 🎭 GALGAME EMOTION EXPRESSION RULES ===
+【强制规则】
+1. 【禁用标准Emoji】: 严格禁止使用 😀😭😡 等标准Unicode Emoji表情
+2. 【必用颜文字】: 必须使用日本颜文字(Kaomoji)来表达情感，例如：
+   - 甜蜜: (๑•́ ω •̀๑)、(≧▽≦)ﾉ、(๑˃ᴗ˂)و
+   - 伤心: (｡•́︿•̀｡)、(´；ω；`)、(´；︿；')
+   - 愤怒: (╯°□°）╯︵ ┻━┻、(´・ω・`)っ由紀ヲタ
+   - 害羞: (´▽｀)、(//∇//)、(´°̥̥̥̥̥̥̥̥ω°̥̥̥̥̥̥̥̥｀)
+3. 【保持沉浸】: 回复要完全沉浸在二次元Galgame角色设定中
+
+【示例】✓正确: "等你呢...(´°̥̥̥̥̥̥̥̥ω°̥̥̥̥̥̥̥̥｀)" | ✗错误: "等你呢...😭"
+"""
+        base_prompt += style_enforcement
+        
         # 3. 将 context 插入到 Input 之前
         if context_str:
             final_prompt = base_prompt.replace(
