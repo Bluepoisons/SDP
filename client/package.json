@@ -44,9 +44,11 @@
     "framer-motion": "^12.29.2",
     "lucide-react": "^0.563.0",
     "lucide-vue-next": "^0.468.0",
-    "pinia": "^2.3.0",
+    "pinia": "^3.0.4",
+    "pinia-plugin-persistedstate": "^4.7.1",
     "radix-vue": "^1.9.9",
     "tailwind-merge": "^2.5.4",
-    "vue": "^3.5.13"
+    "vue": "^3.5.13",
+    "vue-router": "4"
   }
 }

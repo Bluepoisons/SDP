@@ -5,6 +5,13 @@ from loguru import logger
 import uvicorn
 import time
 import os
+import uuid
+import base64
+import io
+import random
+import string
+from typing import Dict, Tuple
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
 
 # Load environment variables BEFORE importing services that use them
@@ -38,13 +45,78 @@ from models.schemas import (
     VisionAnalyzeRequest, VisionAnalyzeResponse, VisionExecuteRequest  # v10.0 视觉模型
 )
 
-# v11.0 Neural Link 认证路由
-from auth.routes import router as auth_router
-
 # 初始化 App
-app = FastAPI(title="SmartDialog Processor - Neural Link v11.0")
+app = FastAPI(title="Love Advisor Backend - Commander System v10.0")
 
-logger.info("🧠 [FastAPI] Neural Link v11.0 starting...")
+logger.info("🚀 [FastAPI] Commander System v10.0 starting...")
+
+# ==========================================
+# 🔐 验证码系统 (Captcha)
+# ==========================================
+captcha_store: Dict[str, Tuple[str, datetime]] = {}
+
+def generate_captcha_text(length: int = 4) -> str:
+    """生成验证码文本 (排除容易混淆的字符)"""
+    chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'
+    return ''.join(random.choice(chars) for _ in range(length))
+
+def create_captcha_image(text: str) -> str:
+    """
+    生成纯 ASCII 验证码图片的 base64
+    不依赖 Pillow，使用 SVG 方式生成
+    """
+    # 创建 SVG 验证码
+    width, height = 120, 40
+    
+    svg_parts = [f'''<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">
+        <rect width="100%" height="100%" fill="#0a0a20"/>
+        <defs>
+            <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" style="stop-color:#a78bfa"/>
+                <stop offset="50%" style="stop-color:#f472b6"/>
+                <stop offset="100%" style="stop-color:#22d3ee"/>
+            </linearGradient>
+        </defs>''']
+    
+    # 添加干扰线
+    for _ in range(5):
+        x1, y1 = random.randint(0, width), random.randint(0, height)
+        x2, y2 = random.randint(0, width), random.randint(0, height)
+        color = f"rgba({random.randint(100, 200)}, {random.randint(100, 200)}, {random.randint(100, 200)}, 0.3)"
+        svg_parts.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{color}" stroke-width="1"/>')
+    
+    # 添加干扰点
+    for _ in range(30):
+        x, y = random.randint(0, width), random.randint(0, height)
+        r = random.randint(1, 2)
+        color = f"rgba({random.randint(100, 200)}, {random.randint(100, 200)}, {random.randint(100, 200)}, 0.5)"
+        svg_parts.append(f'<circle cx="{x}" cy="{y}" r="{r}" fill="{color}"/>')
+    
+    # 添加字符 (每个字符有随机偏移和旋转)
+    char_width = width // (len(text) + 1)
+    for i, char in enumerate(text):
+        x = char_width * (i + 0.5) + random.randint(-3, 3)
+        y = height // 2 + random.randint(-3, 3) + 5
+        rotation = random.randint(-15, 15)
+        font_size = random.randint(18, 24)
+        svg_parts.append(
+            f'<text x="{x}" y="{y}" font-family="monospace" font-size="{font_size}" '
+            f'fill="url(#textGrad)" transform="rotate({rotation}, {x}, {y})" '
+            f'font-weight="bold">{char}</text>'
+        )
+    
+    svg_parts.append('</svg>')
+    svg_content = ''.join(svg_parts)
+    
+    # 转换为 base64
+    return base64.b64encode(svg_content.encode()).decode()
+
+def cleanup_expired_captchas():
+    """清理过期验证码"""
+    now = datetime.now()
+    expired = [k for k, (_, exp) in captcha_store.items() if exp < now]
+    for k in expired:
+        del captcha_store[k]
 
 
 # ==========================================
@@ -67,16 +139,11 @@ app.add_middleware(
 )
 
 # ==========================================
-# v11.0 Neural Link 路由注册
-# ==========================================
-app.include_router(auth_router)
-
-# ==========================================
 # 3. 路由定义 (Endpoint)
 # ==========================================
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "Neural Link 神经连接系统正在运行！"}
+    return {"status": "ok", "message": "恋爱军师后端正在运行！"}
 
 @app.get("/bridge/health")
 async def health_check():
@@ -111,6 +178,167 @@ async def get_system_logs(lines: int = 100):
     except Exception as e:
         logger.error(f"❌ [/api/system/logs] Error reading logs: {e}")
         return f"Error reading logs: {str(e)}"
+
+
+# ==================== 🔐 认证 API ====================
+
+@app.get("/api/auth/captcha")
+async def get_captcha():
+    """
+    获取图形验证码
+    返回 SVG 格式的验证码图片 (base64) 和 captcha_id
+    """
+    cleanup_expired_captchas()
+    
+    captcha_id = str(uuid.uuid4())
+    captcha_text = generate_captcha_text(4)
+    captcha_image_b64 = create_captcha_image(captcha_text)
+    
+    # 存储验证码 (5分钟有效)
+    expire_time = datetime.now() + timedelta(minutes=5)
+    captcha_store[captcha_id] = (captcha_text.upper(), expire_time)
+    
+    logger.info(f"🔐 [/api/auth/captcha] Generated captcha: {captcha_id} -> {captcha_text}")
+    
+    return {
+        "success": True,
+        "data": {
+            "captcha_id": captcha_id,
+            "image": captcha_image_b64,
+            "image_type": "svg+xml"
+        }
+    }
+
+@app.post("/api/auth/login")
+async def login(request: dict):
+    """
+    用户登录
+    """
+    identifier = request.get("identifier", "")
+    password = request.get("password", "")
+    captcha = request.get("captcha", "")
+    captcha_id = request.get("captcha_id", "")
+    
+    # 验证码校验
+    if captcha_id and captcha_id in captcha_store:
+        stored_captcha, expire_time = captcha_store[captcha_id]
+        del captcha_store[captcha_id]  # 一次性验证码
+        
+        if datetime.now() > expire_time:
+            return {
+                "success": False,
+                "message": "验证码已过期，请刷新重试",
+                "error_code": "CAPTCHA_EXPIRED"
+            }
+        
+        if captcha.upper() != stored_captcha:
+            return {
+                "success": False,
+                "message": "验证码错误",
+                "error_code": "CAPTCHA_INVALID"
+            }
+    elif captcha_id:
+        return {
+            "success": False,
+            "message": "验证码不存在或已使用",
+            "error_code": "CAPTCHA_NOT_FOUND"
+        }
+    
+    # 简单的用户验证 (Demo 模式: 任意用户名密码都可以登录)
+    if len(identifier) < 2:
+        return {
+            "success": False,
+            "message": "用户名至少需要2个字符",
+            "error_code": "INVALID_USERNAME"
+        }
+    
+    user_id = str(uuid.uuid4())
+    access_token = str(uuid.uuid4())
+    refresh_token = str(uuid.uuid4())
+    
+    logger.info(f"✅ [/api/auth/login] User logged in: {identifier}")
+    
+    return {
+        "success": True,
+        "data": {
+            "user_id": user_id,
+            "username": identifier,
+            "email": f"{identifier}@galgame.neural",
+            "neural_id": f"CMD-{user_id[:8].upper()}",
+            "access_level": 1,
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
+    }
+
+@app.post("/api/auth/register")
+async def register(request: dict):
+    """
+    用户注册
+    """
+    identifier = request.get("identifier", "")
+    password = request.get("password", "")
+    captcha = request.get("captcha", "")
+    captcha_id = request.get("captcha_id", "")
+    emergency_contact = request.get("emergency_contact", "")
+    
+    # 验证码校验
+    if captcha_id and captcha_id in captcha_store:
+        stored_captcha, expire_time = captcha_store[captcha_id]
+        del captcha_store[captcha_id]
+        
+        if datetime.now() > expire_time:
+            return {
+                "success": False,
+                "message": "验证码已过期，请刷新重试",
+                "error_code": "CAPTCHA_EXPIRED"
+            }
+        
+        if captcha.upper() != stored_captcha:
+            return {
+                "success": False,
+                "message": "验证码错误",
+                "error_code": "CAPTCHA_INVALID"
+            }
+    elif captcha_id:
+        return {
+            "success": False,
+            "message": "验证码不存在或已使用",
+            "error_code": "CAPTCHA_NOT_FOUND"
+        }
+    
+    if len(identifier) < 2:
+        return {
+            "success": False,
+            "message": "用户名至少需要2个字符",
+            "error_code": "INVALID_USERNAME"
+        }
+    
+    if len(password) < 4:
+        return {
+            "success": False,
+            "message": "密码至少需要4个字符",
+            "error_code": "INVALID_PASSWORD"
+        }
+    
+    user_id = str(uuid.uuid4())
+    access_token = str(uuid.uuid4())
+    refresh_token = str(uuid.uuid4())
+    
+    logger.info(f"✅ [/api/auth/register] New user registered: {identifier}")
+    
+    return {
+        "success": True,
+        "data": {
+            "user_id": user_id,
+            "username": identifier,
+            "email": emergency_contact or f"{identifier}@galgame.neural",
+            "neural_id": f"CMD-{user_id[:8].upper()}",
+            "access_level": 1,
+            "access_token": access_token,
+            "refresh_token": refresh_token
+        }
+    }
 
 
 # ==================== v8.0 指挥官系统 API ====================
@@ -588,6 +816,6 @@ async def delete_message(session_id: str, message_id: str):
     }
 
 if __name__ == "__main__":
-    # 启动服务，端口设为 8000
-    uvicorn.run(app, host="127.0.0.1", port=8001)
+    # 启动服务，端口设为 8002（避免与其他服务冲突）
+    uvicorn.run(app, host="127.0.0.1", port=8002)
 

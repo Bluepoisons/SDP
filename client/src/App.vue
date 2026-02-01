@@ -1,17 +1,23 @@
 <script setup lang="ts">
 import { onMounted, watch, computed } from "vue";
 import AppLayout from "@/components/AppLayout.vue";
-import NeuralLinkLogin from "@/components/NeuralLinkLogin.vue";
+import LoginPage from "@/components/LoginPage.vue";
 import { useUiSettings } from "@/stores/useUiSettings";
 import { useAuthStore } from "@/stores/useAuthStore";
 
 const uiSettings = useUiSettings();
 const authStore = useAuthStore();
 
-// 🧠 是否显示主应用（已认证）
+// 🎮 是否显示主应用（已登录）
 const showMainApp = computed(() => authStore.isAuthenticated);
 
-onMounted(async () => {
+// 🔗 处理登录成功
+const handleLogin = (username: string) => {
+  console.log('🎮 Login successful:', username);
+  // 登录逻辑已在 LoginPage 中通过 authStore 处理
+};
+
+onMounted(() => {
   // v2.0: 初始化主题
   uiSettings.initTheme();
   
@@ -23,9 +29,30 @@ onMounted(async () => {
   document.body.classList.toggle("fx-shadow-on", uiSettings.shadowEnabled);
   document.body.classList.toggle("fx-shadow-off", !uiSettings.shadowEnabled);
   
-  // 🧠 检查神经连接会话
-  await authStore.checkSession();
+  // 🔐 初始化认证状态（已在 useAuthStore 中自动执行）
+  if (authStore.isAuthenticated) {
+    console.log('🔗 Auth session restored:', authStore.user?.username);
+  }
+  
+  // 🌐 检查 OAuth 回调 (简化版本，从 URL 参数检查)
+  const urlParams = new URLSearchParams(window.location.search);
+  const provider = urlParams.get('provider');
+  if (provider && (urlParams.has('code') || urlParams.has('error'))) {
+    handleOAuthCallback(provider, urlParams);
+  }
 });
+
+// 🌐 处理 OAuth 回调
+const handleOAuthCallback = async (provider: string, params: URLSearchParams) => {
+  try {
+    await authStore.handleOAuthCallback(provider, params);
+    // 清理 URL 参数
+    window.history.replaceState({}, document.title, window.location.pathname);
+    console.log(`🌐 OAuth ${provider} login successful`);
+  } catch (error) {
+    console.error(`OAuth ${provider} callback failed:`, error);
+  }
+};
 
 watch(
   () => [uiSettings.animationsEnabled, uiSettings.blurEnabled, uiSettings.shadowEnabled],
@@ -42,11 +69,11 @@ watch(
 </script>
 
 <template>
-  <!-- 🧠 Neural Link v11.0: 神经连接守卫 -->
+  <!-- 🎮 Neural Link v11.0: 二游风格登录界面 -->
   <div class="min-h-screen" style="color: var(--theme-text);">
-    <!-- 🔐 神经连接界面 -->
+    <!-- 🔐 Link Start 登录界面 (带首页/验证码/i18n) -->
     <Transition name="neural-fade" mode="out-in">
-      <NeuralLinkLogin v-if="!showMainApp" />
+      <LoginPage v-if="!showMainApp" @login="handleLogin" />
       <AppLayout v-else />
     </Transition>
   </div>
@@ -55,51 +82,18 @@ watch(
 <style scoped>
 .neural-fade-enter-active,
 .neural-fade-leave-active {
-  transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .neural-fade-enter-from {
   opacity: 0;
-  transform: scale(1.05) rotateX(5deg);
-  filter: blur(20px);
+  transform: scale(1.02) rotateY(10deg);
+  filter: blur(8px);
 }
 
 .neural-fade-leave-to {
   opacity: 0;
-  transform: scale(0.95) rotateX(-5deg);
-  filter: blur(20px);
-}
-
-/* 🧠 Neural Link 特效 */
-.neural-fade-enter-active::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: radial-gradient(circle at center, 
-    rgba(0, 255, 255, 0.1) 0%,
-    rgba(0, 150, 255, 0.05) 30%,
-    transparent 70%
-  );
-  animation: neuralPulse 0.8s ease-out;
-  pointer-events: none;
-  z-index: 9999;
-}
-
-@keyframes neuralPulse {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.5);
-  }
+  transform: scale(0.98) rotateY(-10deg);
+  filter: blur(8px);
 }
 </style>
