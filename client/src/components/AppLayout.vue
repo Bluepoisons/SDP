@@ -1,4 +1,3 @@
-<script setup lang="ts">
 import { computed, onMounted, ref } from "vue";
 import Button from "@/components/ui/button/Button.vue";
 import Separator from "@/components/ui/separator/Separator.vue";
@@ -38,6 +37,9 @@ import { type TacticalIntentType } from "@/components/TacticalIntent.vue";
 // 🌅 v4.0: 时间轮盘粒子系统
 import TwilightParticles from "@/components/TwilightParticles.vue";
 
+// 🎯 v12.0: 动态危险等级页眉
+import DynamicHeader from "@/components/DynamicHeader.vue";
+
 const gameStore = useGameStore();
 const connectionStore = useConnectionStore();
 const uiSettings = useUiSettings();
@@ -66,6 +68,21 @@ const {
   thinkingStage, 
   thinkingDuration,
 } = useAIProcess();
+
+// v12.0: Dynamic header state
+const currentCharacterName = computed(() => {
+  const session = gameStore.getCurrentSession();
+  return session?.characterName || '神经链接';
+});
+
+const lastActionText = computed(() => {
+  if (isThinking.value) {
+    return thinkingStage.value === 'analyzing' ? '分析中...' : '生成中...';
+  }
+  const session = gameStore.getCurrentSession();
+  if (!session || session.messages.length === 0) return 'SYSTEM READY';
+  return 'WAITING FOR INPUT';
+});
 
 // 🎯 处理属性弹窗 + 情感闪烁 + 心电图
 const handleScorePopup = (score: number, x: number, y: number) => {
@@ -583,7 +600,13 @@ const orbClass = computed(() => {
       </aside>
 
       <section class="relative flex flex-1 flex-col overflow-hidden">
-        <header class="flex items-center justify-between border-b border-white/5 px-8 py-5">
+        <!-- v12.0: Dynamic threat level header -->
+        <DynamicHeader
+          :emotion-score="lastEmotionScore"
+          :character-name="currentCharacterName"
+          :last-action="lastActionText"
+          :is-thinking="isThinking"
+        />
           <div>
             <p class="text-xs uppercase tracking-[0.25em] text-zinc-500">The Narrative Stream</p>
             <h2 class="text-lg font-semibold text-zinc-100">
