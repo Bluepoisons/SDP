@@ -607,6 +607,8 @@ const orbClass = computed(() => {
           :last-action="lastActionText"
           :is-thinking="isThinking"
         />
+
+        <header class="flex items-center justify-between border-b border-white/5 px-8 py-5">
           <div>
             <p class="text-xs uppercase tracking-[0.25em] text-zinc-500">The Narrative Stream</p>
             <h2 class="text-lg font-semibold text-zinc-100">
