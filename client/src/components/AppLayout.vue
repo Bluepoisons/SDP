@@ -47,10 +47,10 @@ const uiSettings = useUiSettings();
 const inputText = ref("");
 const isSidebarCollapsed = ref(false);
 const isSettingsOpen = ref(false);
-const scorePopupRef = ref<InstanceType<typeof ScorePopup> | null>(null);
-const twilightParticlesRef = ref<InstanceType<typeof TwilightParticles> | null>(null);
-const emotionFlashRef = ref<InstanceType<typeof EmotionFlash> | null>(null);
-const chatStreamRef = ref<InstanceType<typeof ChatStream> | null>(null); // v9.0: ChatStream 引用
+const scorePopupRef = ref<InstanceType<typeof ScorePopup>>();
+const twilightParticlesRef = ref<InstanceType<typeof TwilightParticles>>();
+const emotionFlashRef = ref<InstanceType<typeof EmotionFlash>>();
+const chatStreamRef = ref<InstanceType<typeof ChatStream>>(); // v9.0: ChatStream 引用
 
 // v8.1: 「直出+热修」状态
 const tacticalIntent = ref<TacticalIntentType>(null);
