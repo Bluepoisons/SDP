@@ -3,6 +3,7 @@ import { computed, ref, onMounted, watch } from 'vue';
 import { Heart, HeartCrack, Sparkles, Zap } from 'lucide-vue-next';
 import { useUiSettings } from '@/stores/useUiSettings';
 import TacticalAssessment from '@/components/TacticalAssessment.vue';
+import { useSound } from '@/composables/useSound';
 
 // 📋 v4.0 GALGAME 风格增强版
 // 新增：悬停特效、抖动动画、属性弹窗触发
@@ -142,6 +143,18 @@ const isMysteriousOption = computed(() => {
 });
 
 const handleClick = (event: MouseEvent) => {
+  // 🎵 v12.0: 根据分数选择音效
+  const score = props.option.score ?? 0;
+  const { playSuccess, playError, playRomantic } = useSound();
+  
+  if (score >= 2) {
+    playRomantic(); // 心动选项
+  } else if (score <= -2) {
+    playError(); // 灾难选项
+  } else {
+    playSuccess(); // 其他选项
+  }
+  
   emit('select', props.option);
   
   // 🎯 触发属性弹窗

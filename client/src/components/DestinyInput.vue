@@ -4,6 +4,7 @@ import { Camera, ImagePlus, Zap, Plus, Command } from "lucide-vue-next";
 import Textarea from "@/components/ui/textarea/Textarea.vue";
 import Tooltip from "@/components/ui/tooltip/Tooltip.vue";
 import TacticalIntent, { type TacticalIntentType } from "@/components/TacticalIntent.vue";
+import { useSound } from "@/composables/useSound";
 
 /**
  * 🎮 驾驶舱输入框 v8.1
@@ -38,6 +39,15 @@ const emit = defineEmits<{
   (e: "override"): void;
   (e: "focus"): void;  // v9.0: 聚焦时触发滚动
 }>();
+
+// 🎵 v12.0: 音效管理
+const { 
+  playClick, 
+  playSelectConfirm, 
+  playDataStream,
+  playWarning,
+  playDataStream: playLoadingSound,
+} = useSound();
 
 const input = ref(props.modelValue);
 const isFocused = ref(false);
@@ -91,6 +101,9 @@ const isLaunching = ref(false);
 const handleLaunch = async () => {
   if (!isReady.value || props.loading) return;
   
+  // 🎵 v12.0: 播放确认音
+  await playSelectConfirm();
+  
   // 1. 播放发射动画
   isLaunching.value = true;
   
@@ -107,7 +120,10 @@ const handleLaunch = async () => {
 };
 
 // v8.0: 添加新气泡（点击 + 按钮）
-const addBubble = () => {
+const addBubble = async () => {
+  // 🎵 v12.0: 播放点击音
+  await playClick();
+  
   if (!isBurstMode.value) {
     isBurstMode.value = true;
   }
@@ -117,7 +133,10 @@ const addBubble = () => {
 };
 
 // v8.0: 切换连发模式
-const toggleBurstMode = () => {
+const toggleBurstMode = async () => {
+  // 🎵 v12.0: 播放切换音
+  await playWarning();
+  
   isBurstMode.value = !isBurstMode.value;
   // 退出连发模式时合并为单行
   if (!isBurstMode.value && input.value.includes('\n')) {
@@ -234,7 +253,7 @@ const warningMessage = computed(() => {
             class="min-h-[48px] w-full resize-none border-none bg-transparent text-base text-[var(--bubble-text)] placeholder:text-[var(--bubble-text)] placeholder:opacity-30 focus-visible:ring-0"
             :disabled="props.loading"
             style="font-family: var(--font-primary); letter-spacing: var(--letter-spacing-normal);"
-            @focus="isFocused = true; emit('focus')"
+            @focus="isFocused = true; emit('focus'); playClick()"
             @blur="isFocused = false"
             @keydown="handleKeyDown"
           />
@@ -248,7 +267,7 @@ const warningMessage = computed(() => {
           <Tooltip content="截图识别">
             <button
               class="btn-skew flex h-8 w-8 items-center justify-center border border-[var(--input-panel-border)] bg-[var(--bg-secondary)] text-[var(--accent-color)] hover:bg-[var(--btn-primary-hover)] transition-all"
-              @click="emit('capture')"
+              @click="playWarning(); emit('capture')"
             >
               <Camera class="h-4 w-4" />
             </button>
@@ -256,7 +275,7 @@ const warningMessage = computed(() => {
           <Tooltip content="上传图片">
             <button
               class="btn-skew flex h-8 w-8 items-center justify-center border border-[var(--input-panel-border)] bg-[var(--bg-secondary)] text-[var(--accent-secondary)] hover:bg-[var(--btn-primary-hover)] transition-all"
-              @click="emit('upload')"
+              @click="playClick(); emit('upload')"
             >
               <ImagePlus class="h-4 w-4" />
             </button>
@@ -272,7 +291,7 @@ const warningMessage = computed(() => {
               'trigger-launching': isLaunching
             }"
             :disabled="!isReady && !props.loading"
-            @click="props.loading ? emit('cancel') : handleLaunch()"
+            @click="props.loading ? (playWarning(), emit('cancel')) : handleLaunch()"
           >
             <Zap 
               class="h-6 w-6" 
@@ -297,7 +316,7 @@ const warningMessage = computed(() => {
             class="override-btn flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full
               border border-amber-500/30 bg-amber-500/10 text-amber-400
               hover:bg-amber-500/20 hover:border-amber-500/50 transition-all"
-            @click="emit('override')"
+            @click="playSelectConfirm(); emit('override')"
           >
             <Command class="w-3.5 h-3.5" />
             <span>介入指挥</span>
