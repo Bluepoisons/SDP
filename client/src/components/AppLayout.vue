@@ -71,15 +71,14 @@ const {
 
 // v12.0: Dynamic header state
 const currentCharacterName = computed(() => {
-  const session = gameStore.getCurrentSession();
-  return session?.characterName || '神经链接';
+  return gameStore.currentSession?.id ? '神经链接' : '神经链接';
 });
 
 const lastActionText = computed(() => {
   if (isThinking.value) {
     return thinkingStage.value === 'analyzing' ? '分析中...' : '生成中...';
   }
-  const session = gameStore.getCurrentSession();
+  const session = gameStore.currentSession;
   if (!session || session.messages.length === 0) return 'SYSTEM READY';
   return 'WAITING FOR INPUT';
 });
