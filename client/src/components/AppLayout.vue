@@ -47,10 +47,12 @@ const uiSettings = useUiSettings();
 const inputText = ref("");
 const isSidebarCollapsed = ref(false);
 const isSettingsOpen = ref(false);
-const scorePopupRef = ref<InstanceType<typeof ScorePopup>>();
-const twilightParticlesRef = ref<InstanceType<typeof TwilightParticles>>();
-const emotionFlashRef = ref<InstanceType<typeof EmotionFlash>>();
-const chatStreamRef = ref<InstanceType<typeof ChatStream>>(); // v9.0: ChatStream 引用
+
+// 🔧 组件引用 - 使用简单 ref 避免 Vue SFC 泛型解析问题
+const scorePopupRef = ref(null as any);
+const twilightParticlesRef = ref(null as any);
+const emotionFlashRef = ref(null as any);
+const chatStreamRef = ref(null as any); // v9.0: ChatStream 引用
 
 // v8.1: 「直出+热修」状态
 const tacticalIntent = ref<TacticalIntentType>(null);
