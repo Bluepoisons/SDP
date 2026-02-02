@@ -15,6 +15,9 @@ export interface ChoiceOption {
   emoji?: string;
   type?: string;
   description?: string;
+  successRate?: number;  // 🎯 v12.0: 成功率预测 (0-100)
+  riskLevel?: 'safe' | 'moderate' | 'critical';  // 🎯 v12.0: 风险等级
+  riskTag?: string;  // 🎯 v12.0: 风险标签
 }
 
 export interface ChatMessage {

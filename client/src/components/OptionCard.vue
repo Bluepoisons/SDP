@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import { Heart, HeartCrack, Sparkles, Zap } from 'lucide-vue-next';
 import { useUiSettings } from '@/stores/useUiSettings';
+import TacticalAssessment from '@/components/TacticalAssessment.vue';
 
 // 📋 v4.0 GALGAME 风格增强版
 // 新增：悬停特效、抖动动画、属性弹窗触发
@@ -222,6 +223,15 @@ const handleClick = (event: MouseEvent) => {
           {{ option.kaomoji }}
         </span>
       </div>
+
+      <!-- 🎯 v12.0: 战术评估 - 胜率预测 -->
+      <TacticalAssessment 
+        v-if="option.successRate !== undefined && option.successRate !== null"
+        :success-rate="option.successRate"
+        :risk-level="option.riskLevel || 'moderate'"
+        :risk-tag="option.riskTag || '战术方案'"
+        class="mt-3"
+      />
     </div>
 
     <!-- 🌊 背景装饰：巨大的半透明颜文字水印 -->
